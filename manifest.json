@@ -1,12 +1,12 @@
 {
   "name": "Agash Tracker",
   "short_name": "Agash",
-  "description": "Agash truck tracking app — Djibouti",
+  "description": "Truck tracking app for Agash – Djibouti",
   "start_url": "./index.html",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#0a0e1a",
-  "theme_color": "#0a0e1a",
+  "theme_color": "#f0a500",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -20,5 +20,15 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "categories": ["productivity", "utilities"],
+  "share_target": {
+    "action": "./index.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

@@ -353,7 +353,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </nav>
 </div>
 <div class="screen" id="s-cashier-reports">
-  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Overview</div></div></div><div class="tb-badge badge-sealer">SEALER</div></div>
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Overview</div></div></div><div class="tb-right"><button class="tb-btn" onclick="openShareReport()" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:#10b981;">📤 Share</button><div class="tb-badge badge-sealer">SEALER</div></div></div>
   <div class="scroll" id="c-reports-content"></div>
   <nav class="bnav">
     <div class="bnav-item" onclick="cashierTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
@@ -477,7 +477,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </nav>
 </div>
 <div class="screen" id="s-admin-reports">
-  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Full Overview</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Full Overview</div></div></div><div class="tb-right"><button class="tb-btn" onclick="openShareReport()" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:#10b981;">📤 Share</button><div class="tb-badge badge-admin">ADMIN</div></div></div>
   <div class="scroll" id="a-reports-content"></div>
   <nav class="bnav">
     <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
@@ -500,6 +500,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div id="manage-admin-pin"></div>
     <div class="section-divider">📊 Export</div>
     <button onclick="exportTrucksExcel()" class="btn-pri" style="margin-bottom:8px;">📊 Export Trucks to Excel</button>
+    <button onclick="openShareReport()" class="btn-pri" style="margin-bottom:8px;background:linear-gradient(135deg,#10b981,#059669);">📤 Share Report</button>
+    <button onclick="openShareApp()" class="btn-pri" style="margin-bottom:8px;background:linear-gradient(135deg,#25d366,#128c7e);">📲 Share App via WhatsApp</button>
     <div class="section-divider">⚠️ Danger Zone</div>
     <button onclick="clearAllTrucks()" class="btn-danger" style="margin-bottom:8px;">🗑️ Clear All Truck Data</button>
     <button onclick="logout()" class="btn-sec">🚪 Logout</button>
@@ -624,6 +626,69 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="modal-title">📅 Select Date</div>
     <div id="date-picker-list" style="display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow-y:auto;padding-right:4px;"></div>
     <button class="btn-sec" style="margin-top:12px;" onclick="closeModal('m-date-picker')">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════ SHARE REPORT MODAL ══════════ -->
+<div class="overlay" id="m-share-report">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📤 Share Report</div>
+    <div id="share-report-preview" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.8;color:var(--sub);max-height:180px;overflow-y:auto;white-space:pre-wrap;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.3px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <button onclick="shareVia('whatsapp')" style="background:#25d36622;border:1px solid #25d36655;color:#25d366;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">💬</span>WhatsApp
+      </button>
+      <button onclick="shareVia('telegram')" style="background:#2aabee22;border:1px solid #2aabee55;color:#2aabee;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">✈️</span>Telegram
+      </button>
+      <button onclick="shareVia('email')" style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">📧</span>Email
+      </button>
+      <button onclick="shareVia('sms')" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#10b981;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">💬</span>SMS
+      </button>
+      <button onclick="shareVia('copy')" style="background:rgba(240,165,0,0.12);border:1px solid rgba(240,165,0,0.3);color:#f0a500;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">📋</span>Copy
+      </button>
+      <button onclick="shareVia('native')" id="share-native-btn" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">⬆️</span>More…
+      </button>
+    </div>
+    <button class="btn-sec" onclick="closeModal('m-share-report')">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════ SHARE APP MODAL ══════════ -->
+<div class="overlay" id="m-share-app">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📲 Share Agash App</div>
+    <div style="text-align:center;padding:10px 0 14px;">
+      <div style="font-size:48px;margin-bottom:6px;">🚛</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--accent);">Agash Tracker</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px;">Truck tracking app · Djibouti</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:18px;">🔗</span>
+      <div id="share-app-url" style="font-size:12px;color:var(--accent);word-break:break-all;flex:1;"></div>
+      <button onclick="copyAppUrl()" style="background:rgba(240,165,0,0.12);border:1px solid rgba(240,165,0,0.3);color:var(--accent);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">Copy</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <button onclick="shareAppVia('whatsapp')" style="background:#25d36622;border:1px solid #25d36655;color:#25d366;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">💬</span>WhatsApp
+      </button>
+      <button onclick="shareAppVia('telegram')" style="background:#2aabee22;border:1px solid #2aabee55;color:#2aabee;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">✈️</span>Telegram
+      </button>
+      <button onclick="shareAppVia('email')" style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">📧</span>Email
+      </button>
+      <button onclick="shareAppVia('native')" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
+        <span style="font-size:22px;">⬆️</span>More…
+      </button>
+    </div>
+    <button class="btn-sec" onclick="closeModal('m-share-app')">Cancel</button>
   </div>
 </div>
 
@@ -2092,6 +2157,142 @@ function toast(msg) {
   el.textContent = msg; el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════════════════
+// SHARE FUNCTIONS
+// ══════════════════════════════════════════════════════════
+let _shareReportText = '';
+
+function buildReportText() {
+  const trucks = loadTrucks();
+  const cfg = loadConfig();
+  const today = getTodayWorkDay();
+  const todayTrucks = trucks.filter(t => (t.workDay || t.date) === today);
+  const total = todayTrucks.length;
+  const finished = todayTrucks.filter(t => t.status === 'finished').length;
+  const half = todayTrucks.filter(t => t.status === 'half').length;
+  const started = todayTrucks.filter(t => t.status === 'started').length;
+  const bashal = todayTrucks.filter(t => t.status === 'bashal').length;
+  const shirac = todayTrucks.filter(t => t.type === 'shirac').length;
+  const bila = todayTrucks.filter(t => t.type === 'bilashirac').length;
+  const metal = todayTrucks.filter(t => t.type === 'metal').length;
+
+  const d = new Date(today + 'T06:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateLabel = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+  let txt = `🚛 AGASH TRACKER — DAILY REPORT\n`;
+  txt += `📅 ${dateLabel}\n`;
+  txt += `${'─'.repeat(30)}\n`;
+  txt += `📦 TOTAL TRUCKS: ${total}\n\n`;
+  txt += `📊 BY STATUS:\n`;
+  txt += `  ✅ Finished : ${finished}\n`;
+  txt += `  ⚡ Half     : ${half}\n`;
+  txt += `  ▶️ Started  : ${started}\n`;
+  txt += `  🔮 Bashal   : ${bashal}\n\n`;
+  txt += `📦 BY TYPE:\n`;
+  txt += `  🚛 Shirac      : ${shirac}\n`;
+  txt += `  🚚 Bila Shirac : ${bila}\n`;
+  txt += `  🏗️ Metal       : ${metal}\n\n`;
+  txt += `🏗️ BY POST:\n`;
+  cfg.posts.forEach(p => {
+    const pt = todayTrucks.filter(t => t.postId === p.id);
+    if (pt.length > 0) {
+      txt += `  ${p.label}: ${pt.length} trucks`;
+      const f = pt.filter(t=>t.status==='finished').length;
+      if (f > 0) txt += ` (${f} done)`;
+      txt += `\n`;
+    }
+  });
+  txt += `${'─'.repeat(30)}\n`;
+  txt += `Agash · Djibouti · ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+  return txt;
+}
+
+function openShareReport() {
+  _shareReportText = buildReportText();
+  document.getElementById('share-report-preview').textContent = _shareReportText;
+  // Show/hide native share button
+  const nativeBtn = document.getElementById('share-native-btn');
+  if (nativeBtn) nativeBtn.style.display = navigator.share ? '' : 'none';
+  openModal('m-share-report');
+}
+
+function shareVia(method) {
+  const text = _shareReportText;
+  const encoded = encodeURIComponent(text);
+  if (method === 'whatsapp') {
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
+  } else if (method === 'telegram') {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encoded}`, '_blank');
+  } else if (method === 'email') {
+    const subject = encodeURIComponent('Agash Daily Report — ' + new Date().toLocaleDateString());
+    window.open(`mailto:?subject=${subject}&body=${encoded}`);
+  } else if (method === 'sms') {
+    window.open(`sms:?body=${encoded}`);
+  } else if (method === 'copy') {
+    navigator.clipboard.writeText(text).then(() => {
+      toast('📋 Report copied!');
+      closeModal('m-share-report');
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('📋 Report copied!');
+      closeModal('m-share-report');
+    });
+    return;
+  } else if (method === 'native') {
+    if (navigator.share) {
+      navigator.share({ title: 'Agash Daily Report', text }).catch(() => {});
+    } else {
+      toast('⚠️ Share not supported on this browser');
+    }
+  }
+}
+
+function openShareApp() {
+  const url = window.location.href.split('?')[0].split('#')[0];
+  document.getElementById('share-app-url').textContent = url;
+  openModal('m-share-app');
+}
+
+function copyAppUrl() {
+  const url = window.location.href.split('?')[0].split('#')[0];
+  navigator.clipboard.writeText(url).then(() => {
+    toast('🔗 Link copied!');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('🔗 Link copied!');
+  });
+}
+
+function shareAppVia(method) {
+  const url = window.location.href.split('?')[0].split('#')[0];
+  const appMsg = `🚛 *Agash Tracker* — Truck tracking app\n📍 Agash · Djibouti\n\n📲 Open the app:\n${url}\n\n_Works offline, installable on phone_`;
+  const encoded = encodeURIComponent(appMsg);
+  if (method === 'whatsapp') {
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
+  } else if (method === 'telegram') {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('🚛 Agash Tracker — Truck tracking app for Agash · Djibouti')}`, '_blank');
+  } else if (method === 'email') {
+    const subject = encodeURIComponent('Agash Tracker App');
+    const body = encodeURIComponent(`Hi,\n\nHere is the link to the Agash Tracker app:\n${url}\n\nIt works offline and can be installed on your phone.\n\nAgash · Djibouti`);
+    window.open(`mailto:?subject=${subject}&body=${body}`);
+  } else if (method === 'native') {
+    if (navigator.share) {
+      navigator.share({ title: 'Agash Tracker', text: 'Truck tracking app for Agash · Djibouti', url }).catch(() => {});
+    } else {
+      copyAppUrl();
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════
