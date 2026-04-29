@@ -562,14 +562,59 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 <div class="screen" id="s-admin-manage">
   <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Manage</div><div class="tb-sub">Users & Permissions</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
   <div class="scroll">
-    <div class="section-divider">🏗️ Work Posts (7)</div>
+    <div class="section-divider" style="display:flex;justify-content:space-between;align-items:center;"><span>🏗️ Work Posts</span><span onclick="openAddPost()" style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;">+ Add Post</span></div>
     <div id="manage-posts-list"></div>
-    <div class="section-divider">👷‍♂️ Foreman</div>
+    <div class="section-divider" style="display:flex;justify-content:space-between;align-items:center;"><span>👷‍♂️ Foreman</span><span onclick="openAddForeman()" style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;">+ Add</span></div>
     <div id="manage-foreman-section"></div>
-    <div class="section-divider">🔒 Sealers</div>
+    <div class="section-divider" style="display:flex;justify-content:space-between;align-items:center;"><span>🔒 Sealers</span><span onclick="openAddSealer()" style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;">+ Add Sealer</span></div>
     <div id="manage-cashiers-list"></div>
+    <div class="section-divider" style="display:flex;justify-content:space-between;align-items:center;"><span>👷 Workers</span><span onclick="openAddWorker()" style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;">+ Add Worker</span></div>
+    <div id="manage-workers-list"></div>
     <div class="section-divider">👑 Admin PIN</div>
     <div id="manage-admin-pin"></div>
+    <div class="section-divider">📲 Install App</div>
+    <div id="manage-install-section">
+      <!-- One-tap install for Android/Chrome/Edge -->
+      <button onclick="managerTriggerInstall()" id="manage-install-btn" class="btn-pri" style="margin-bottom:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;gap:8px;">
+        <span style="font-size:18px;">📲</span><span>Install App on This Device</span>
+      </button>
+      <!-- Always-visible step-by-step for iOS Safari -->
+      <div style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.22);border-radius:12px;padding:13px 14px;margin-bottom:8px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:#3b82f6;margin-bottom:10px;letter-spacing:0.3px;">📱 iPhone / iPad (Safari)</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:26px;height:26px;border-radius:7px;background:rgba(59,130,246,0.18);color:#3b82f6;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Tap the <strong style="color:var(--text);">Share ⬆️</strong> button at the bottom of Safari</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:26px;height:26px;border-radius:7px;background:rgba(59,130,246,0.18);color:#3b82f6;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Scroll down and tap <strong style="color:var(--text);">"Add to Home Screen"</strong></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:26px;height:26px;border-radius:7px;background:rgba(59,130,246,0.18);color:#3b82f6;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Tap <strong style="color:var(--text);">"Add"</strong> — the app icon appears on your home screen</div>
+          </div>
+        </div>
+      </div>
+      <!-- Android/Chrome instructions -->
+      <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.22);border-radius:12px;padding:13px 14px;margin-bottom:8px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:#10b981;margin-bottom:10px;letter-spacing:0.3px;">🤖 Android (Chrome)</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:26px;height:26px;border-radius:7px;background:rgba(16,185,129,0.18);color:#10b981;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Tap the blue <strong style="color:var(--text);">"Install App"</strong> button above — or tap ⋮ menu in Chrome</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:26px;height:26px;border-radius:7px;background:rgba(16,185,129,0.18);color:#10b981;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Select <strong style="color:var(--text);">"Add to Home Screen"</strong> or <strong style="color:var(--text);">"Install App"</strong></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:26px;height:26px;border-radius:7px;background:rgba(16,185,129,0.18);color:#10b981;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Tap <strong style="color:var(--text);">"Install"</strong> — done!</div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="section-divider">📊 Export</div>
     <button onclick="exportTrucksExcel()" class="btn-pri" style="margin-bottom:8px;">📊 Export Trucks to Excel</button>
     <button onclick="openShareReport()" class="btn-pri" style="margin-bottom:8px;background:linear-gradient(135deg,#10b981,#059669);">📤 Share Report</button>
@@ -764,6 +809,43 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </div>
 </div>
 
+<!-- ══════════ ADD / EDIT WORKER MODAL ══════════ -->
+<div class="overlay" id="m-worker">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-worker-title">👷 Add Worker</div>
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <input class="form-input" id="w-name" placeholder="e.g. Ahmed Hassan" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Role</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:4px;" id="w-role-grid">
+        <div class="type-opt" id="wrole-sealer" onclick="selectWorkerRole('sealer')" style="border-color:var(--teal);background:rgba(6,182,212,0.1);">
+          <div class="t-icon">🔒</div><div class="t-label" style="color:var(--teal);">Sealer</div>
+        </div>
+        <div class="type-opt" id="wrole-foreman" onclick="selectWorkerRole('foreman')">
+          <div class="t-icon">👷‍♂️</div><div class="t-label" style="color:var(--purple);">Foreman</div>
+        </div>
+        <div class="type-opt" id="wrole-post" onclick="selectWorkerRole('post')">
+          <div class="t-icon">🏗️</div><div class="t-label" style="color:var(--orange);">Post</div>
+        </div>
+      </div>
+      <input type="hidden" id="w-role" value="sealer">
+    </div>
+    <div class="form-group" id="w-post-group" style="display:none;">
+      <label class="form-label">Assign Post</label>
+      <select class="form-select" id="w-post-assign"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">PIN (4 digits)</label>
+      <input class="form-input" id="w-pin" type="number" placeholder="e.g. 3344" maxlength="4" autocomplete="off">
+    </div>
+    <button class="btn-pri" onclick="saveWorker()">💾 Save Worker</button>
+    <button class="btn-sec" onclick="closeModal('m-worker')">Cancel</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -790,6 +872,14 @@ function formatWorkDayLabel(dateStr) {
 
 const DEFAULT_CONFIG = {
   apin: '1234',
+  foremen: [
+    { id:'foreman1', pin:'5555', name:'Foreman', perms:{ viewTrucks:true, viewPosts:true, addTruck:false, editTruck:false, deleteTruck:false }}
+  ],
+  sealers: [
+    { id:'sealer1', pin:'7777', name:'Sealer 1', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
+    { id:'sealer2', pin:'8888', name:'Sealer 2', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
+  ],
+  // Keep legacy keys for backward compat (will be migrated on first load)
   foreman: { pin:'5555', name:'Foreman', perms:{ viewTrucks:true, viewPosts:true, addTruck:false, editTruck:false, deleteTruck:false }},
   sealer1: { pin:'7777', name:'Sealer 1', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
   sealer2: { pin:'8888', name:'Sealer 2', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
@@ -833,6 +923,7 @@ function initFirebase() {
     listenTrucks();
     listenConfig();
     listenKabIncoming();
+    listenWorkers();
     console.log('🔥 Firestore connected');
   } catch(e) {
     console.warn('Firebase failed:', e.message);
@@ -841,6 +932,7 @@ function initFirebase() {
     if (statusEl) statusEl.textContent = 'Agash · Djibouti · Offline';
     try { _trucks = JSON.parse(localStorage.getItem('kab_trucks_v2') || '[]'); } catch(_e) {}
     try { _config = JSON.parse(localStorage.getItem('kab_config_v2') || 'null'); } catch(_e) {}
+    listenWorkers();  // loads from localStorage when offline
   }
 }
 
@@ -889,9 +981,25 @@ function listenConfig() {
 
 // ── Storage helpers ─────────────────────────────────────────────────────────
 function loadConfig() {
-  if (_config) return JSON.parse(JSON.stringify(_config));
-  try { return JSON.parse(localStorage.getItem('kab_config_v2') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
-  catch(e) { return JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+  let c;
+  if (_config) c = JSON.parse(JSON.stringify(_config));
+  else {
+    try { c = JSON.parse(localStorage.getItem('kab_config_v2') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+    catch(e) { c = JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+  }
+  // Migrate legacy sealer1/sealer2 → sealers array
+  if (!c.sealers) {
+    c.sealers = [];
+    if (c.sealer1) c.sealers.push({ id:'sealer1', ...c.sealer1 });
+    if (c.sealer2) c.sealers.push({ id:'sealer2', ...c.sealer2 });
+    if (!c.sealers.length) c.sealers = JSON.parse(JSON.stringify(DEFAULT_CONFIG.sealers));
+  }
+  // Migrate legacy foreman → foremen array
+  if (!c.foremen) {
+    c.foremen = c.foreman ? [{ id:'foreman1', ...c.foreman }] : JSON.parse(JSON.stringify(DEFAULT_CONFIG.foremen));
+  }
+  if (!c.posts) c.posts = JSON.parse(JSON.stringify(DEFAULT_CONFIG.posts));
+  return c;
 }
 
 async function saveConfig(c) {
@@ -993,12 +1101,27 @@ document.querySelectorAll('.overlay').forEach(o=>{
 function buildLoginScreen() {
   const cfg = loadConfig();
   const list = document.getElementById('who-list');
+  // Dynamic workers from Firestore merged with built-in roles
+  const workerRoles = (_workers || []).map(w => {
+    const m = WORKER_ROLE_META ? WORKER_ROLE_META[w.role] : null;
+    const color  = m ? m.color : '#06b6d4';
+    const emoji  = m ? m.emoji : '👤';
+    const roleLabel = m ? m.label : w.role;
+    // For post workers, resolve post label
+    let sub = roleLabel + ' · Added by Admin';
+    let postData = null;
+    if (w.role === 'post' && w.postId) {
+      const p = cfg.posts.find(p => p.id === w.postId);
+      if (p) { sub = p.label + ' · Work Post'; postData = p; }
+    }
+    return { emoji, label: w.name, sub, role: w.role === 'post' ? 'post' : w.role, id: w.role === 'post' ? (w.postId || w.id) : w.id, color, _workerId: w.id, _workerPin: w.pin, postData };
+  });
   const roles = [
     { emoji:'👑', label:'Admin', sub:'Full access', role:'admin', id:'admin', color:'#f0a500' },
-    { emoji:'👷‍♂️', label:cfg.foreman.name, sub:'Foreman · Supervisor', role:'foreman', id:'foreman', color:'#8b5cf6' },
-    { emoji:'🔒', label:cfg.sealer1.name, sub:'Sealer · Trucks overview', role:'sealer1', id:'sealer1', color:'#06b6d4' },
-    { emoji:'🔒', label:cfg.sealer2.name, sub:'Sealer · Trucks overview', role:'sealer2', id:'sealer2', color:'#06b6d4' },
-    ...cfg.posts.map(p => ({ emoji:'🏗️', label:p.label, sub:'Work Post · My trucks', role:'post', id:p.id, color:p.color, postData:p }))
+    ...cfg.foremen.map(fm => ({ emoji:'👷‍♂️', label:fm.name, sub:'Foreman · Supervisor', role:'foreman', id:fm.id, color:'#8b5cf6', _fmId: fm.id })),
+    ...cfg.sealers.map(s => ({ emoji:'🔒', label:s.name, sub:'Sealer · Trucks overview', role:'sealer', id:s.id, color:'#06b6d4', _sealerId: s.id })),
+    ...cfg.posts.map(p => ({ emoji:'🏗️', label:p.label, sub:'Work Post · My trucks', role:'post', id:p.id, color:p.color, postData:p })),
+    ...workerRoles
   ];
   list.innerHTML = roles.map(r => {
     const safeR = JSON.stringify(r).replace(/"/g,"'");
@@ -1037,13 +1160,27 @@ function checkPin() {
   const cfg = loadConfig();
   const r   = pinTarget;
   let correct = '';
-  if      (r.role === 'admin')   correct = cfg.apin;
-  else if (r.role === 'foreman') correct = cfg.foreman.pin;
-  else if (r.role === 'sealer1') correct = cfg.sealer1.pin;
-  else if (r.role === 'sealer2') correct = cfg.sealer2.pin;
-  else if (r.role === 'post') {
-    const p = cfg.posts.find(p => p.id === r.id);
-    correct = p ? p.pin : '';
+  if (r.role === 'admin') {
+    correct = cfg.apin;
+  } else if (r.role === 'foreman') {
+    const fm = cfg.foremen.find(f => f.id === (r._fmId || r.id));
+    correct = fm ? fm.pin : '';
+  } else if (r.role === 'sealer') {
+    const s = cfg.sealers.find(s => s.id === (r._sealerId || r.id));
+    correct = s ? s.pin : '';
+  } else if (r.role === 'post') {
+    // Check worker PIN first (dynamic workers), then fall back to config post PIN
+    if (r._workerId) {
+      const wk = (_workers || []).find(w => w.id === r._workerId);
+      correct = wk ? wk.pin : '';
+    } else {
+      const p = cfg.posts.find(p => p.id === r.id);
+      correct = p ? p.pin : '';
+    }
+  } else if (r._workerId) {
+    // Dynamic worker with sealer/foreman role
+    const wk = (_workers || []).find(w => w.id === r._workerId);
+    correct = wk ? wk.pin : '';
   }
   if (pinBuffer === correct) {
     currentUser = { ...r, name: r.label };
@@ -1077,7 +1214,7 @@ function loginSuccess() {
     foremanSelectedDate = null;
     updateForemanDateDisplay();
     showScreen('s-foreman'); renderForemanTrucks();
-  } else if (role === 'sealer1' || role === 'sealer2') {
+  } else if (role === 'sealer' || role === 'sealer1' || role === 'sealer2') {
     showScreen('s-cashier'); renderCashierTrucks();
   } else {
     updateAdminDateDisplay();
@@ -1280,7 +1417,7 @@ let foremanSelectedDate = null; // null = today
 
 function renderForemanTrucks() {
   const cfg    = loadConfig();
-  const perms  = cfg.foreman.perms || {};
+  const perms  = (cfg.foremen && cfg.foremen[0] ? cfg.foremen[0].perms : cfg.foreman?.perms) || {};
   document.getElementById('f-add-btn').style.display = perms.addTruck ? '' : 'none';
   const today  = getTodayWorkDay();
   const date   = foremanSelectedDate || today;
@@ -2025,25 +2162,27 @@ function renderManage() {
       </div>
       <div class="manage-acts">
         <div class="m-btn m-btn-pin" onclick="openPinChange('post','${p.id}','${p.label}')">🔐 PIN</div>
+        <div class="m-btn m-btn-del" onclick="deletePost('${p.id}','${p.label}')">🗑️</div>
       </div>
     </div>`).join('');
 
   // Foreman — show PIN visible
-  document.getElementById('manage-foreman-section').innerHTML = `
+  document.getElementById('manage-foreman-section').innerHTML = cfg.foremen.map(fm => `
     <div class="manage-row">
       <div class="manage-av" style="background:rgba(139,92,246,0.15);color:#8b5cf6;">👷‍♂️</div>
       <div style="flex:1">
-        <div class="manage-name">${cfg.foreman.name}</div>
-        <div class="manage-sub">PIN: <span class="pin-reveal">${cfg.foreman.pin}</span></div>
+        <div class="manage-name">${fm.name}</div>
+        <div class="manage-sub">PIN: <span class="pin-reveal">${fm.pin}</span></div>
       </div>
       <div class="manage-acts">
-        <div class="m-btn m-btn-perm" onclick="openForemanPerms()">⚙️ Perms</div>
-        <div class="m-btn m-btn-pin" onclick="openPinChange('foreman',null,'Foreman')">🔐 PIN</div>
+        <div class="m-btn m-btn-perm" onclick="openForemanPerms('${fm.id}')">⚙️ Perms</div>
+        <div class="m-btn m-btn-pin" onclick="openPinChange('foreman','${fm.id}','${fm.name}')">🔐 PIN</div>
+        <div class="m-btn m-btn-del" onclick="deleteForeman('${fm.id}','${fm.name.replace(/'/g,"\\'") }')">🗑️</div>
       </div>
-    </div>`;
+    </div>`).join('') || '<div style="text-align:center;padding:14px;color:var(--muted);font-size:13px;">No foreman added.</div>';
 
   // Sealers — show PIN visible
-  document.getElementById('manage-cashiers-list').innerHTML = [cfg.sealer1, cfg.sealer2].map((c,i) => `
+  document.getElementById('manage-cashiers-list').innerHTML = cfg.sealers.map((c,i) => `
     <div class="manage-row">
       <div class="manage-av" style="background:rgba(6,182,212,0.15);color:#06b6d4;">🔒</div>
       <div style="flex:1">
@@ -2051,10 +2190,11 @@ function renderManage() {
         <div class="manage-sub">Sealer · PIN: <span class="pin-reveal">${c.pin}</span></div>
       </div>
       <div class="manage-acts">
-        <div class="m-btn m-btn-perm" onclick="openPerms('sealer${i+1}')">⚙️ Perms</div>
-        <div class="m-btn m-btn-pin" onclick="openPinChange('sealer${i+1}',null,'${c.name}')">🔐 PIN</div>
+        <div class="m-btn m-btn-perm" onclick="openPerms('${c.id}')">⚙️ Perms</div>
+        <div class="m-btn m-btn-pin" onclick="openPinChange('sealer','${c.id}','${c.name.replace(/'/g,"\\'")}')">🔐 PIN</div>
+        <div class="m-btn m-btn-del" onclick="deleteSealer('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗑️</div>
       </div>
-    </div>`).join('');
+    </div>`).join('') || '<div style="text-align:center;padding:14px;color:var(--muted);font-size:13px;">No sealers added.</div>';
 
   // Admin PIN
   document.getElementById('manage-admin-pin').innerHTML = `
@@ -2068,6 +2208,9 @@ function renderManage() {
         <div class="m-btn m-btn-pin" onclick="openPinChange('admin',null,'Admin')">🔐 PIN</div>
       </div>
     </div>`;
+
+  // Workers from Firestore
+  renderWorkersSection();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2085,14 +2228,14 @@ async function savePinChange() {
   const cfg = loadConfig();
   const { type, id } = pinChangeTarget;
   if      (type === 'admin')   cfg.apin = pin;
-  else if (type === 'foreman') cfg.foreman.pin = pin;
-  else if (type === 'sealer1') cfg.sealer1.pin = pin;
-  else if (type === 'sealer2') cfg.sealer2.pin = pin;
-  else if (type === 'post')    { const p = cfg.posts.find(p=>p.id===id); if(p) p.pin=pin; }
+  else if (type === 'foreman') { const f = cfg.foremen.find(f=>f.id===id); if(f) f.pin=pin; }
+  else if (type === 'sealer')  { const s = cfg.sealers.find(s=>s.id===id); if(s) s.pin=pin; }
+  else if (type === 'post')    { const p = cfg.posts.find(p=>p.id===id);   if(p) p.pin=pin; }
   saveConfig(cfg);
   closeModal('m-pin-change');
   toast('🔐 PIN updated!');
   renderManage();
+  buildLoginScreen();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2103,9 +2246,10 @@ const SEALER_PERM_LABELS = {
   viewPosts:'View Posts', viewReports:'View Reports'
 };
 function openPerms(sealerId) {
-  permsTarget = sealerId;
+  permsTarget = { type: 'sealer', id: sealerId };
   const cfg   = loadConfig();
-  const perms = cfg[sealerId].perms || {};
+  const sealer = cfg.sealers.find(s => s.id === sealerId);
+  const perms = sealer ? (sealer.perms || {}) : {};
   document.getElementById('perms-list').innerHTML = Object.entries(SEALER_PERM_LABELS).map(([k,v])=>`
     <div class="perm-row">
       <span class="perm-label">${v}</span>
@@ -2119,7 +2263,8 @@ function savePerms() {
   Object.keys(SEALER_PERM_LABELS).forEach(k => {
     perms[k] = document.getElementById('perm-'+k)?.classList.contains('on') || false;
   });
-  cfg[permsTarget].perms = perms;
+  const sealer = cfg.sealers.find(s => s.id === permsTarget.id);
+  if (sealer) sealer.perms = perms;
   saveConfig(cfg);
   closeModal('m-perms');
   toast('⚙️ Permissions saved!');
@@ -2130,9 +2275,12 @@ const FOREMAN_PERM_LABELS = {
   viewTrucks:'View All Trucks', viewPosts:'View Posts',
   addTruck:'Add Trucks', editTruck:'Edit Trucks', deleteTruck:'Delete Trucks'
 };
-function openForemanPerms() {
+function openForemanPerms(fmId) {
   const cfg   = loadConfig();
-  const perms = cfg.foreman.perms || {};
+  const fm    = cfg.foremen.find(f => f.id === fmId) || cfg.foremen[0];
+  if (!fm) return;
+  permsTarget = { type: 'foreman', id: fm.id };
+  const perms = fm.perms || {};
   document.getElementById('foreman-perms-list').innerHTML = Object.entries(FOREMAN_PERM_LABELS).map(([k,v])=>`
     <div class="perm-row">
       <span class="perm-label">${v}</span>
@@ -2146,7 +2294,8 @@ async function saveForemanPerms() {
   Object.keys(FOREMAN_PERM_LABELS).forEach(k => {
     perms[k] = document.getElementById('fperm-'+k)?.classList.contains('on') || false;
   });
-  cfg.foreman.perms = perms;
+  const fm = cfg.foremen.find(f => f.id === permsTarget.id);
+  if (fm) fm.perms = perms;
   saveConfig(cfg);
   closeModal('m-foreman-perms');
   toast('⚙️ Foreman permissions saved!');
@@ -2232,7 +2381,290 @@ function toast(msg) {
 }
 
 // ══════════════════════════════════════════════════════════
-// SHARE FUNCTIONS
+// WORKERS — Firestore Collection: kab_workers
+// ══════════════════════════════════════════════════════════
+let _workers = [];
+let _unsubWorkers = null;
+let editingWorkerId = null;
+let _workerRole = 'sealer';
+
+function listenWorkers() {
+  if (!db) {
+    try { _workers = JSON.parse(localStorage.getItem('kab_workers_v1') || '[]'); } catch(e) {}
+    renderWorkersSection();
+    return;
+  }
+  if (_unsubWorkers) _unsubWorkers();
+  _unsubWorkers = db.collection('kab_workers').onSnapshot(snap => {
+    _workers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    localStorage.setItem('kab_workers_v1', JSON.stringify(_workers));
+    renderWorkersSection();
+    buildLoginScreen(); // refresh login list with latest workers
+  }, err => console.warn('Workers listener error:', err));
+}
+
+async function firestoreSaveWorker(worker) {
+  if (!db) { localStorage.setItem('kab_workers_v1', JSON.stringify(_workers)); return; }
+  try { await db.collection('kab_workers').doc(worker.id).set(worker); }
+  catch(e) { console.warn('firestoreSaveWorker error:', e); }
+}
+
+async function firestoreDeleteWorker(id) {
+  _workers = _workers.filter(w => w.id !== id);
+  localStorage.setItem('kab_workers_v1', JSON.stringify(_workers));
+  if (!db) return;
+  try { await db.collection('kab_workers').doc(id).delete(); }
+  catch(e) { console.warn('firestoreDeleteWorker error:', e); }
+}
+
+// Role colours
+const WORKER_ROLE_META = {
+  sealer:  { color:'#06b6d4', bg:'rgba(6,182,212,0.15)',  emoji:'🔒',  label:'Sealer'  },
+  foreman: { color:'#8b5cf6', bg:'rgba(139,92,246,0.15)', emoji:'👷‍♂️', label:'Foreman' },
+  post:    { color:'#f97316', bg:'rgba(249,115,22,0.15)', emoji:'🏗️',  label:'Post'    },
+};
+
+function renderWorkersSection() {
+  const el = document.getElementById('manage-workers-list');
+  if (!el) return;
+  if (!_workers.length) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No workers yet. Tap <strong style="color:var(--accent);">+ Add Worker</strong> to get started.</div>`;
+    return;
+  }
+  const cfg = loadConfig();
+  el.innerHTML = _workers.map(w => {
+    const m = WORKER_ROLE_META[w.role] || WORKER_ROLE_META.sealer;
+    const postLabel = w.role === 'post' ? ` · ${(cfg.posts.find(p=>p.id===w.postId)||{label:w.postId||''}).label}` : '';
+    return `
+    <div class="manage-row">
+      <div class="manage-av" style="background:${m.bg};color:${m.color};">${m.emoji}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="manage-name">${w.name}</div>
+        <div class="manage-sub">${m.label}${postLabel} · PIN: <span class="pin-reveal">${w.pin}</span></div>
+      </div>
+      <div class="manage-acts">
+        <div class="m-btn m-btn-pin" onclick="openEditWorker('${w.id}')">✏️ Edit</div>
+        <div class="m-btn m-btn-del" onclick="deleteWorker('${w.id}','${w.name.replace(/'/g,"\\'")}')">🗑️</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddWorker() {
+  editingWorkerId = null;
+  document.getElementById('m-worker-title').textContent = '👷 Add Worker';
+  document.getElementById('w-name').value = '';
+  document.getElementById('w-pin').value  = '';
+  selectWorkerRole('sealer');
+  populatePostAssign();
+  openModal('m-worker');
+}
+
+function openEditWorker(id) {
+  const w = _workers.find(x => x.id === id);
+  if (!w) return;
+  editingWorkerId = id;
+  document.getElementById('m-worker-title').textContent = '✏️ Edit Worker';
+  document.getElementById('w-name').value = w.name;
+  document.getElementById('w-pin').value  = w.pin;
+  selectWorkerRole(w.role || 'sealer');
+  populatePostAssign(w.postId);
+  openModal('m-worker');
+}
+
+function selectWorkerRole(role) {
+  _workerRole = role;
+  document.getElementById('w-role').value = role;
+  // Reset all role buttons
+  ['sealer','foreman','post'].forEach(r => {
+    const el = document.getElementById('wrole-'+r);
+    if (!el) return;
+    const m = WORKER_ROLE_META[r];
+    if (r === role) {
+      el.style.borderColor = m.color;
+      el.style.background  = m.bg;
+    } else {
+      el.style.borderColor = 'var(--border)';
+      el.style.background  = 'rgba(255,255,255,0.02)';
+    }
+  });
+  // Show/hide post selector
+  document.getElementById('w-post-group').style.display = role === 'post' ? '' : 'none';
+}
+
+function populatePostAssign(selectedId) {
+  const cfg = loadConfig();
+  const sel = document.getElementById('w-post-assign');
+  sel.innerHTML = cfg.posts.map(p =>
+    `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.label}</option>`
+  ).join('');
+}
+
+async function saveWorker() {
+  const name = document.getElementById('w-name').value.trim();
+  const pin  = document.getElementById('w-pin').value.trim();
+  const role = document.getElementById('w-role').value;
+  const postId = document.getElementById('w-post-assign').value;
+
+  if (!name) { toast('⚠️ Enter worker name!'); return; }
+  if (pin.length !== 4 || isNaN(pin)) { toast('⚠️ PIN must be 4 digits!'); return; }
+
+  // Special flows for sealers and foremen via config
+  if (editingWorkerId === '__new_sealer__') {
+    const cfg = loadConfig();
+    const id = 'sealer_' + Date.now();
+    cfg.sealers.push({ id, name, pin, perms: { addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true } });
+    saveConfig(cfg);
+    toast(`✅ ${name} added as Sealer!`);
+    closeModal('m-worker');
+    editingWorkerId = null;
+    renderManage();
+    buildLoginScreen();
+    return;
+  }
+  if (editingWorkerId === '__new_foreman__') {
+    const cfg = loadConfig();
+    const id = 'foreman_' + Date.now();
+    cfg.foremen.push({ id, name, pin, perms: { viewTrucks:true, viewPosts:true, addTruck:false, editTruck:false, deleteTruck:false } });
+    saveConfig(cfg);
+    toast(`✅ ${name} added as Foreman!`);
+    closeModal('m-worker');
+    editingWorkerId = null;
+    renderManage();
+    buildLoginScreen();
+    return;
+  }
+
+  const cfg = loadConfig();
+
+  if (editingWorkerId) {
+    const idx = _workers.findIndex(w => w.id === editingWorkerId);
+    if (idx > -1) {
+      _workers[idx] = { ..._workers[idx], name, pin, role, postId: role === 'post' ? postId : null };
+      await firestoreSaveWorker(_workers[idx]);
+    }
+    toast('✅ Worker updated!');
+  } else {
+    const id = 'w_' + Date.now();
+    const worker = { id, name, pin, role, postId: role === 'post' ? postId : null, createdAt: Date.now() };
+    _workers.push(worker);
+    await firestoreSaveWorker(worker);
+    toast(`✅ ${name} added!`);
+  }
+
+  closeModal('m-worker');
+  renderWorkersSection();
+  buildLoginScreen();
+}
+
+async function deleteWorker(id, name) {
+  if (!confirm(`Delete worker "${name}"? This cannot be undone.`)) return;
+  await firestoreDeleteWorker(id);
+  toast(`🗑️ ${name} removed`);
+  renderWorkersSection();
+  buildLoginScreen();
+}
+
+
+// ══════════════════════════════════════════════════════════
+// ADD / DELETE — SEALERS
+// ══════════════════════════════════════════════════════════
+function openAddSealer() {
+  document.getElementById('m-worker-title').textContent = '🔒 Add Sealer';
+  editingWorkerId = '__new_sealer__';
+  document.getElementById('w-name').value = '';
+  document.getElementById('w-pin').value  = '';
+  selectWorkerRole('sealer');
+  openModal('m-worker');
+}
+
+function deleteSealer(id, name) {
+  if (!confirm(`Delete sealer "${name}"? They won't be able to log in anymore.`)) return;
+  const cfg = loadConfig();
+  cfg.sealers = cfg.sealers.filter(s => s.id !== id);
+  saveConfig(cfg);
+  toast(`🗑️ ${name} removed`);
+  renderManage();
+  buildLoginScreen();
+}
+
+// ══════════════════════════════════════════════════════════
+// ADD / DELETE — FOREMAN
+// ══════════════════════════════════════════════════════════
+function openAddForeman() {
+  document.getElementById('m-worker-title').textContent = '👷‍♂️ Add Foreman';
+  editingWorkerId = '__new_foreman__';
+  document.getElementById('w-name').value = '';
+  document.getElementById('w-pin').value  = '';
+  selectWorkerRole('foreman');
+  openModal('m-worker');
+}
+
+function deleteForeman(id, name) {
+  if (!confirm(`Delete foreman "${name}"? They won't be able to log in anymore.`)) return;
+  const cfg = loadConfig();
+  cfg.foremen = cfg.foremen.filter(f => f.id !== id);
+  saveConfig(cfg);
+  toast(`🗑️ ${name} removed`);
+  renderManage();
+  buildLoginScreen();
+}
+
+// ══════════════════════════════════════════════════════════
+// ADD / DELETE / RENAME — POSTS
+// ══════════════════════════════════════════════════════════
+const POST_COLORS = ['#d97706','#10b981','#3b82f6','#ef4444','#8b5cf6','#06b6d4','#f97316','#e879f9','#14b8a6','#f43f5e'];
+
+function openAddPost() {
+  const cfg = loadConfig();
+  const num = cfg.posts.length + 1;
+  const label = prompt(`New post name (e.g. "Post ${num}"):`);
+  if (!label || !label.trim()) return;
+  const pin = prompt('Set a 4-digit PIN for this post:');
+  if (!pin || pin.length !== 4 || isNaN(pin)) { toast('⚠️ PIN must be 4 digits!'); return; }
+  const id = 'p_' + Date.now();
+  const color = POST_COLORS[(cfg.posts.length) % POST_COLORS.length];
+  cfg.posts.push({ id, label: label.trim(), pin, color });
+  saveConfig(cfg);
+  toast(`✅ ${label.trim()} added!`);
+  renderManage();
+  buildLoginScreen();
+}
+
+function deletePost(id, label) {
+  if (!confirm(`Delete "${label}"? This post will be removed from the login screen.`)) return;
+  const cfg = loadConfig();
+  cfg.posts = cfg.posts.filter(p => p.id !== id);
+  saveConfig(cfg);
+  toast(`🗑️ ${label} removed`);
+  renderManage();
+  buildLoginScreen();
+}
+
+// ══════════════════════════════════════════════════════════
+// INSTALL BUTTON (Manage tab)
+// ══════════════════════════════════════════════════════════
+function managerTriggerInstall() {
+  if (isInStandaloneMode()) {
+    toast('✅ App is already installed!');
+    return;
+  }
+  if (_deferredPrompt) {
+    document.getElementById('pwa-install-banner').classList.remove('show');
+    _deferredPrompt.prompt();
+    _deferredPrompt.userChoice.then(({ outcome }) => {
+      if (outcome === 'accepted') toast('🎉 Installing Agash…');
+      _deferredPrompt = null;
+    });
+  } else if (isIOS()) {
+    const tip = document.getElementById('manage-ios-tip');
+    if (tip) tip.style.display = tip.style.display === 'none' ? 'block' : 'none';
+  } else {
+    toast('ℹ️ Open in Chrome / Edge to install, or use browser menu → "Add to Home Screen"');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════
 let _shareReportText = '';
 
