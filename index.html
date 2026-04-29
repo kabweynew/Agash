@@ -247,9 +247,81 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 .incoming-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
 .incoming-text{font-size:12px;font-weight:700;color:var(--green);}
+
+/* PWA INSTALL BANNER */
+#pwa-install-banner{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(135deg,#1a2235,#111827);
+  border-top:1px solid rgba(240,165,0,0.3);
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));
+  display:none;align-items:center;gap:12px;
+  box-shadow:0 -8px 32px rgba(0,0,0,0.5);
+  animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+#pwa-install-banner.show{display:flex;}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.pwa-icon{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#f0a500,#d48000);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:#0a0e1a;flex-shrink:0;}
+.pwa-text{flex:1;min-width:0;}
+.pwa-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;color:var(--text);}
+.pwa-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.pwa-btn-install{background:linear-gradient(135deg,#f0a500,#d48000);color:#0a0e1a;border:none;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Barlow Condensed',sans-serif;white-space:nowrap;flex-shrink:0;}
+.pwa-btn-dismiss{background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1;}
+
+/* iOS INSTALL TOOLTIP */
+#ios-install-tip{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(135deg,#1a2235,#111827);
+  border-top:1px solid rgba(240,165,0,0.3);
+  padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
+  display:none;flex-direction:column;gap:10px;
+  box-shadow:0 -8px 32px rgba(0,0,0,0.5);
+  animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+#ios-install-tip.show{display:flex;}
+.ios-tip-hdr{display:flex;align-items:center;justify-content:space-between;}
+.ios-tip-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:var(--accent);}
+.ios-tip-close{background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+.ios-tip-steps{display:flex;flex-direction:column;gap:8px;}
+.ios-step{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border-radius:9px;padding:9px 12px;}
+.ios-step-icon{font-size:22px;flex-shrink:0;}
+.ios-step-text{font-size:12px;color:var(--sub);line-height:1.4;}
+.ios-step-text strong{color:var(--text);}
 </style>
 </head>
 <body>
+
+<!-- ══════════ PWA INSTALL BANNER (Android/Desktop) ══════════ -->
+<div id="pwa-install-banner">
+  <div class="pwa-icon">AGS</div>
+  <div class="pwa-text">
+    <div class="pwa-title">Install Agash Tracker</div>
+    <div class="pwa-sub">Add to home screen · Works offline</div>
+  </div>
+  <button class="pwa-btn-install" onclick="pwaInstall()">📲 Install</button>
+  <button class="pwa-btn-dismiss" onclick="pwaDismiss()" aria-label="Dismiss">✕</button>
+</div>
+
+<!-- ══════════ iOS INSTALL TOOLTIP ══════════ -->
+<div id="ios-install-tip">
+  <div class="ios-tip-hdr">
+    <div class="ios-tip-title">📲 Install Agash App</div>
+    <button class="ios-tip-close" onclick="iosDismiss()">✕</button>
+  </div>
+  <div class="ios-tip-steps">
+    <div class="ios-step">
+      <span class="ios-step-icon">⬆️</span>
+      <span class="ios-step-text">Tap the <strong>Share</strong> button at the bottom of your browser</span>
+    </div>
+    <div class="ios-step">
+      <span class="ios-step-icon">➕</span>
+      <span class="ios-step-text">Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+    </div>
+    <div class="ios-step">
+      <span class="ios-step-icon">✅</span>
+      <span class="ios-step-text">Tap <strong>"Add"</strong> — the app will appear on your home screen</span>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════ LOGIN ══════════════════════ -->
 <div class="screen active" id="s-login">
@@ -2308,6 +2380,70 @@ function init() {
 init();
 </script>
 <script>
+// ══════════════════════════════════════════════════════════
+// PWA INSTALL LOGIC
+// ══════════════════════════════════════════════════════════
+let _deferredPrompt = null;
+const INSTALL_DISMISSED_KEY = 'agash_install_dismissed';
+
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+function isInStandaloneMode() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+}
+
+// Android / Desktop — capture the native install prompt
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredPrompt = e;
+  // Only show if not dismissed recently
+  const dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY);
+  if (!dismissed || (Date.now() - parseInt(dismissed)) > 7 * 24 * 60 * 60 * 1000) {
+    setTimeout(() => {
+      document.getElementById('pwa-install-banner').classList.add('show');
+    }, 2000); // show after 2s so login renders first
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwa-install-banner').classList.remove('show');
+  _deferredPrompt = null;
+  toast('🎉 Agash installed on your device!');
+});
+
+async function pwaInstall() {
+  if (!_deferredPrompt) return;
+  document.getElementById('pwa-install-banner').classList.remove('show');
+  _deferredPrompt.prompt();
+  const { outcome } = await _deferredPrompt.userChoice;
+  if (outcome === 'accepted') toast('🎉 Installing Agash…');
+  _deferredPrompt = null;
+}
+
+function pwaDismiss() {
+  document.getElementById('pwa-install-banner').classList.remove('show');
+  localStorage.setItem(INSTALL_DISMISSED_KEY, Date.now().toString());
+}
+
+// iOS — show manual install tip
+function iosDismiss() {
+  document.getElementById('ios-install-tip').classList.remove('show');
+  localStorage.setItem(INSTALL_DISMISSED_KEY, Date.now().toString());
+}
+
+// Show iOS tip automatically
+if (isIOS() && !isInStandaloneMode()) {
+  const dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY);
+  if (!dismissed || (Date.now() - parseInt(dismissed)) > 7 * 24 * 60 * 60 * 1000) {
+    setTimeout(() => {
+      document.getElementById('ios-install-tip').classList.add('show');
+    }, 2500);
+  }
+}
+
+// ── Service Worker Registration ──────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js')
