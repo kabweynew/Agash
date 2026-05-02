@@ -9,9 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="icon-192.png"/>
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -249,81 +247,9 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 .incoming-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
 .incoming-text{font-size:12px;font-weight:700;color:var(--green);}
-
-/* PWA INSTALL BANNER */
-#pwa-install-banner{
-  position:fixed;bottom:0;left:0;right:0;z-index:9999;
-  background:linear-gradient(135deg,#1a2235,#111827);
-  border-top:1px solid rgba(240,165,0,0.3);
-  padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));
-  display:none;align-items:center;gap:12px;
-  box-shadow:0 -8px 32px rgba(0,0,0,0.5);
-  animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
-}
-#pwa-install-banner.show{display:flex;}
-@keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
-.pwa-icon{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#f0a500,#d48000);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:#0a0e1a;flex-shrink:0;}
-.pwa-text{flex:1;min-width:0;}
-.pwa-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;color:var(--text);}
-.pwa-sub{font-size:11px;color:var(--muted);margin-top:1px;}
-.pwa-btn-install{background:linear-gradient(135deg,#f0a500,#d48000);color:#0a0e1a;border:none;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Barlow Condensed',sans-serif;white-space:nowrap;flex-shrink:0;}
-.pwa-btn-dismiss{background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1;}
-
-/* iOS INSTALL TOOLTIP */
-#ios-install-tip{
-  position:fixed;bottom:0;left:0;right:0;z-index:9999;
-  background:linear-gradient(135deg,#1a2235,#111827);
-  border-top:1px solid rgba(240,165,0,0.3);
-  padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
-  display:none;flex-direction:column;gap:10px;
-  box-shadow:0 -8px 32px rgba(0,0,0,0.5);
-  animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
-}
-#ios-install-tip.show{display:flex;}
-.ios-tip-hdr{display:flex;align-items:center;justify-content:space-between;}
-.ios-tip-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:var(--accent);}
-.ios-tip-close{background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
-.ios-tip-steps{display:flex;flex-direction:column;gap:8px;}
-.ios-step{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border-radius:9px;padding:9px 12px;}
-.ios-step-icon{font-size:22px;flex-shrink:0;}
-.ios-step-text{font-size:12px;color:var(--sub);line-height:1.4;}
-.ios-step-text strong{color:var(--text);}
 </style>
 </head>
 <body>
-
-<!-- ══════════ PWA INSTALL BANNER (Android/Desktop) ══════════ -->
-<div id="pwa-install-banner">
-  <div class="pwa-icon">AGS</div>
-  <div class="pwa-text">
-    <div class="pwa-title">Install Agash Tracker</div>
-    <div class="pwa-sub">Add to home screen · Works offline</div>
-  </div>
-  <button class="pwa-btn-install" onclick="pwaInstall()">📲 Install</button>
-  <button class="pwa-btn-dismiss" onclick="pwaDismiss()" aria-label="Dismiss">✕</button>
-</div>
-
-<!-- ══════════ iOS INSTALL TOOLTIP ══════════ -->
-<div id="ios-install-tip">
-  <div class="ios-tip-hdr">
-    <div class="ios-tip-title">📲 Install Agash App</div>
-    <button class="ios-tip-close" onclick="iosDismiss()">✕</button>
-  </div>
-  <div class="ios-tip-steps">
-    <div class="ios-step">
-      <span class="ios-step-icon">⬆️</span>
-      <span class="ios-step-text">Tap the <strong>Share</strong> button at the bottom of your browser</span>
-    </div>
-    <div class="ios-step">
-      <span class="ios-step-icon">➕</span>
-      <span class="ios-step-text">Scroll down and tap <strong>"Add to Home Screen"</strong></span>
-    </div>
-    <div class="ios-step">
-      <span class="ios-step-icon">✅</span>
-      <span class="ios-step-text">Tap <strong>"Add"</strong> — the app will appear on your home screen</span>
-    </div>
-  </div>
-</div>
 
 <!-- ══════════════════════ LOGIN ══════════════════════ -->
 <div class="screen active" id="s-login">
@@ -427,7 +353,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </nav>
 </div>
 <div class="screen" id="s-cashier-reports">
-  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Overview</div></div></div><div class="tb-right"><button class="tb-btn" onclick="openShareReport()" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:#10b981;">📤 Share</button><div class="tb-badge badge-sealer">SEALER</div></div></div>
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Overview</div></div></div><div class="tb-badge badge-sealer">SEALER</div></div>
   <div class="scroll" id="c-reports-content"></div>
   <nav class="bnav">
     <div class="bnav-item" onclick="cashierTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
@@ -535,6 +461,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="bnav-item active" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
     <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
     <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" id="a-incoming-nav" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
     <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
     <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
   </nav>
@@ -546,17 +473,36 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
     <div class="bnav-item active" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
     <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
     <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
     <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
   </nav>
 </div>
 <div class="screen" id="s-admin-reports">
-  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Full Overview</div></div></div><div class="tb-right"><button class="tb-btn" onclick="openShareReport()" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:#10b981;">📤 Share</button><div class="tb-badge badge-admin">ADMIN</div></div></div>
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Full Overview</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
   <div class="scroll" id="a-reports-content"></div>
   <nav class="bnav">
     <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
     <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
     <div class="bnav-item active" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+
+<!-- ══════════════════════ ADMIN INCOMING ══════════════════════ -->
+<div class="screen" id="s-admin-incoming">
+  <div class="topbar">
+    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Incoming from Hask</div><div class="tb-sub" id="a-incoming-sub">Trucks sent to sealers</div></div></div>
+    <div class="tb-badge badge-admin">ADMIN</div>
+  </div>
+  <div class="scroll" id="a-incoming-list" style="padding:12px 14px 100px;"></div>
+  <nav class="bnav">
+    <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item active" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
     <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
     <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
   </nav>
@@ -564,63 +510,14 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 <div class="screen" id="s-admin-manage">
   <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Manage</div><div class="tb-sub">Users & Permissions</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
   <div class="scroll">
-    <div class="section-divider" style="display:flex;justify-content:space-between;align-items:center;"><span>🏗️ Work Posts</span><span onclick="openAddPost()" style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;">+ Add Post</span></div>
+    <div class="section-divider">🏗️ Work Posts (7)</div>
     <div id="manage-posts-list"></div>
-    <div class="section-divider" style="display:flex;justify-content:space-between;align-items:center;"><span>👷‍♂️ Foreman</span><span onclick="openAddForeman()" style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;">+ Add</span></div>
+    <div class="section-divider">👷‍♂️ Foreman</div>
     <div id="manage-foreman-section"></div>
-    <div class="section-divider" style="display:flex;justify-content:space-between;align-items:center;"><span>🔒 Sealers</span><span onclick="openAddSealer()" style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;">+ Add Sealer</span></div>
-    <div id="manage-cashiers-list"></div>
-    <div class="section-divider" style="display:flex;justify-content:space-between;align-items:center;"><span>👷 Workers</span><span onclick="openAddWorker()" style="font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;">+ Add Worker</span></div>
-    <div id="manage-workers-list"></div>
     <div class="section-divider">👑 Admin PIN</div>
     <div id="manage-admin-pin"></div>
-    <div class="section-divider">📲 Install App</div>
-    <div id="manage-install-section">
-      <!-- One-tap install for Android/Chrome/Edge -->
-      <button onclick="managerTriggerInstall()" id="manage-install-btn" class="btn-pri" style="margin-bottom:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;gap:8px;">
-        <span style="font-size:18px;">📲</span><span>Install App on This Device</span>
-      </button>
-      <!-- Always-visible step-by-step for iOS Safari -->
-      <div style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.22);border-radius:12px;padding:13px 14px;margin-bottom:8px;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:#3b82f6;margin-bottom:10px;letter-spacing:0.3px;">📱 iPhone / iPad (Safari)</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:26px;height:26px;border-radius:7px;background:rgba(59,130,246,0.18);color:#3b82f6;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
-            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Tap the <strong style="color:var(--text);">Share ⬆️</strong> button at the bottom of Safari</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:26px;height:26px;border-radius:7px;background:rgba(59,130,246,0.18);color:#3b82f6;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Scroll down and tap <strong style="color:var(--text);">"Add to Home Screen"</strong></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:26px;height:26px;border-radius:7px;background:rgba(59,130,246,0.18);color:#3b82f6;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
-            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Tap <strong style="color:var(--text);">"Add"</strong> — the app icon appears on your home screen</div>
-          </div>
-        </div>
-      </div>
-      <!-- Android/Chrome instructions -->
-      <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.22);border-radius:12px;padding:13px 14px;margin-bottom:8px;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:#10b981;margin-bottom:10px;letter-spacing:0.3px;">🤖 Android (Chrome)</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:26px;height:26px;border-radius:7px;background:rgba(16,185,129,0.18);color:#10b981;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
-            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Tap the blue <strong style="color:var(--text);">"Install App"</strong> button above — or tap ⋮ menu in Chrome</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:26px;height:26px;border-radius:7px;background:rgba(16,185,129,0.18);color:#10b981;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Select <strong style="color:var(--text);">"Add to Home Screen"</strong> or <strong style="color:var(--text);">"Install App"</strong></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:26px;height:26px;border-radius:7px;background:rgba(16,185,129,0.18);color:#10b981;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
-            <div style="font-size:12px;color:var(--sub);line-height:1.4;">Tap <strong style="color:var(--text);">"Install"</strong> — done!</div>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="section-divider">📊 Export</div>
     <button onclick="exportTrucksExcel()" class="btn-pri" style="margin-bottom:8px;">📊 Export Trucks to Excel</button>
-    <button onclick="openShareReport()" class="btn-pri" style="margin-bottom:8px;background:linear-gradient(135deg,#10b981,#059669);">📤 Share Report</button>
-    <button onclick="openShareApp()" class="btn-pri" style="margin-bottom:8px;background:linear-gradient(135deg,#25d366,#128c7e);">📲 Share App via WhatsApp</button>
     <div class="section-divider">⚠️ Danger Zone</div>
     <button onclick="clearAllTrucks()" class="btn-danger" style="margin-bottom:8px;">🗑️ Clear All Truck Data</button>
     <button onclick="logout()" class="btn-sec">🚪 Logout</button>
@@ -629,6 +526,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
     <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
     <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
     <div class="bnav-item active" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
     <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
   </nav>
@@ -748,106 +646,6 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </div>
 </div>
 
-<!-- ══════════ SHARE REPORT MODAL ══════════ -->
-<div class="overlay" id="m-share-report">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">📤 Share Report</div>
-    <div id="share-report-preview" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.8;color:var(--sub);max-height:180px;overflow-y:auto;white-space:pre-wrap;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.3px;"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-      <button onclick="shareVia('whatsapp')" style="background:#25d36622;border:1px solid #25d36655;color:#25d366;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">💬</span>WhatsApp
-      </button>
-      <button onclick="shareVia('telegram')" style="background:#2aabee22;border:1px solid #2aabee55;color:#2aabee;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">✈️</span>Telegram
-      </button>
-      <button onclick="shareVia('email')" style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">📧</span>Email
-      </button>
-      <button onclick="shareVia('sms')" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#10b981;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">💬</span>SMS
-      </button>
-      <button onclick="shareVia('copy')" style="background:rgba(240,165,0,0.12);border:1px solid rgba(240,165,0,0.3);color:#f0a500;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">📋</span>Copy
-      </button>
-      <button onclick="shareVia('native')" id="share-native-btn" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">⬆️</span>More…
-      </button>
-    </div>
-    <button class="btn-sec" onclick="closeModal('m-share-report')">Cancel</button>
-  </div>
-</div>
-
-<!-- ══════════ SHARE APP MODAL ══════════ -->
-<div class="overlay" id="m-share-app">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">📲 Share Agash App</div>
-    <div style="text-align:center;padding:10px 0 14px;">
-      <div style="font-size:48px;margin-bottom:6px;">🚛</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--accent);">Agash Tracker</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:3px;">Truck tracking app · Djibouti</div>
-    </div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
-      <span style="font-size:18px;">🔗</span>
-      <div id="share-app-url" style="font-size:12px;color:var(--accent);word-break:break-all;flex:1;"></div>
-      <button onclick="copyAppUrl()" style="background:rgba(240,165,0,0.12);border:1px solid rgba(240,165,0,0.3);color:var(--accent);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">Copy</button>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-      <button onclick="shareAppVia('whatsapp')" style="background:#25d36622;border:1px solid #25d36655;color:#25d366;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">💬</span>WhatsApp
-      </button>
-      <button onclick="shareAppVia('telegram')" style="background:#2aabee22;border:1px solid #2aabee55;color:#2aabee;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">✈️</span>Telegram
-      </button>
-      <button onclick="shareAppVia('email')" style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">📧</span>Email
-      </button>
-      <button onclick="shareAppVia('native')" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:10px;padding:12px 6px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;">
-        <span style="font-size:22px;">⬆️</span>More…
-      </button>
-    </div>
-    <button class="btn-sec" onclick="closeModal('m-share-app')">Cancel</button>
-  </div>
-</div>
-
-<!-- ══════════ ADD / EDIT WORKER MODAL ══════════ -->
-<div class="overlay" id="m-worker">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="m-worker-title">👷 Add Worker</div>
-    <div class="form-group">
-      <label class="form-label">Full Name</label>
-      <input class="form-input" id="w-name" placeholder="e.g. Ahmed Hassan" autocomplete="off">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Role</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:4px;" id="w-role-grid">
-        <div class="type-opt" id="wrole-sealer" onclick="selectWorkerRole('sealer')" style="border-color:var(--teal);background:rgba(6,182,212,0.1);">
-          <div class="t-icon">🔒</div><div class="t-label" style="color:var(--teal);">Sealer</div>
-        </div>
-        <div class="type-opt" id="wrole-foreman" onclick="selectWorkerRole('foreman')">
-          <div class="t-icon">👷‍♂️</div><div class="t-label" style="color:var(--purple);">Foreman</div>
-        </div>
-        <div class="type-opt" id="wrole-post" onclick="selectWorkerRole('post')">
-          <div class="t-icon">🏗️</div><div class="t-label" style="color:var(--orange);">Post</div>
-        </div>
-      </div>
-      <input type="hidden" id="w-role" value="sealer">
-    </div>
-    <div class="form-group" id="w-post-group" style="display:none;">
-      <label class="form-label">Assign Post</label>
-      <select class="form-select" id="w-post-assign"></select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">PIN (4 digits)</label>
-      <input class="form-input" id="w-pin" type="number" placeholder="e.g. 3344" maxlength="4" autocomplete="off">
-    </div>
-    <button class="btn-pri" onclick="saveWorker()">💾 Save Worker</button>
-    <button class="btn-sec" onclick="closeModal('m-worker')">Cancel</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -874,14 +672,6 @@ function formatWorkDayLabel(dateStr) {
 
 const DEFAULT_CONFIG = {
   apin: '1234',
-  foremen: [
-    { id:'foreman1', pin:'5555', name:'Foreman', perms:{ viewTrucks:true, viewPosts:true, addTruck:false, editTruck:false, deleteTruck:false }}
-  ],
-  sealers: [
-    { id:'sealer1', pin:'7777', name:'Sealer 1', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
-    { id:'sealer2', pin:'8888', name:'Sealer 2', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
-  ],
-  // Keep legacy keys for backward compat (will be migrated on first load)
   foreman: { pin:'5555', name:'Foreman', perms:{ viewTrucks:true, viewPosts:true, addTruck:false, editTruck:false, deleteTruck:false }},
   sealer1: { pin:'7777', name:'Sealer 1', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
   sealer2: { pin:'8888', name:'Sealer 2', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
@@ -917,7 +707,10 @@ const FIREBASE_CONFIG = {
 function initFirebase() {
   try {
     if (!firebase || !firebase.firestore) throw new Error('Firebase SDK not loaded');
-    firebase.initializeApp(FIREBASE_CONFIG);
+    // Only initialize if not already done
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
     db = firebase.firestore();
     db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
     const statusEl = document.getElementById('login-sub-status');
@@ -925,7 +718,6 @@ function initFirebase() {
     listenTrucks();
     listenConfig();
     listenKabIncoming();
-    listenWorkers();
     console.log('🔥 Firestore connected');
   } catch(e) {
     console.warn('Firebase failed:', e.message);
@@ -934,7 +726,6 @@ function initFirebase() {
     if (statusEl) statusEl.textContent = 'Agash · Djibouti · Offline';
     try { _trucks = JSON.parse(localStorage.getItem('kab_trucks_v2') || '[]'); } catch(_e) {}
     try { _config = JSON.parse(localStorage.getItem('kab_config_v2') || 'null'); } catch(_e) {}
-    listenWorkers();  // loads from localStorage when offline
   }
 }
 
@@ -961,8 +752,14 @@ function listenKabIncoming() {
         document.getElementById('s-foreman-incoming').classList.contains('active')) {
       renderForemanIncoming();
     }
-    // Update badge count
+    // Update admin incoming tab if visible
+    if (document.getElementById('s-admin-incoming') &&
+        document.getElementById('s-admin-incoming').classList.contains('active')) {
+      renderAdminIncoming();
+    }
+    // Update badge counts
     updateForemanIncomingBadge();
+    updateAdminIncomingBadge();
   }, err => console.warn('kab_incoming listener error:', err));
 }
 
@@ -983,25 +780,9 @@ function listenConfig() {
 
 // ── Storage helpers ─────────────────────────────────────────────────────────
 function loadConfig() {
-  let c;
-  if (_config) c = JSON.parse(JSON.stringify(_config));
-  else {
-    try { c = JSON.parse(localStorage.getItem('kab_config_v2') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
-    catch(e) { c = JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
-  }
-  // Migrate legacy sealer1/sealer2 → sealers array
-  if (!c.sealers) {
-    c.sealers = [];
-    if (c.sealer1) c.sealers.push({ id:'sealer1', ...c.sealer1 });
-    if (c.sealer2) c.sealers.push({ id:'sealer2', ...c.sealer2 });
-    if (!c.sealers.length) c.sealers = JSON.parse(JSON.stringify(DEFAULT_CONFIG.sealers));
-  }
-  // Migrate legacy foreman → foremen array
-  if (!c.foremen) {
-    c.foremen = c.foreman ? [{ id:'foreman1', ...c.foreman }] : JSON.parse(JSON.stringify(DEFAULT_CONFIG.foremen));
-  }
-  if (!c.posts) c.posts = JSON.parse(JSON.stringify(DEFAULT_CONFIG.posts));
-  return c;
+  if (_config) return JSON.parse(JSON.stringify(_config));
+  try { return JSON.parse(localStorage.getItem('kab_config_v2') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+  catch(e) { return JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
 }
 
 async function saveConfig(c) {
@@ -1103,28 +884,12 @@ document.querySelectorAll('.overlay').forEach(o=>{
 function buildLoginScreen() {
   const cfg = loadConfig();
   const list = document.getElementById('who-list');
-  // Dynamic workers from Firestore merged with built-in roles
-  const workerRoles = (_workers || []).map(w => {
-    const m = WORKER_ROLE_META ? WORKER_ROLE_META[w.role] : null;
-    const color  = m ? m.color : '#06b6d4';
-    const emoji  = m ? m.emoji : '👤';
-    const roleLabel = m ? m.label : w.role;
-    // For post workers, resolve post label
-    let sub = roleLabel + ' · Added by Admin';
-    let postData = null;
-    if (w.role === 'post' && w.postId) {
-      const p = cfg.posts.find(p => p.id === w.postId);
-      if (p) { sub = p.label + ' · Work Post'; postData = p; }
-    }
-    return { emoji, label: w.name, sub, role: w.role === 'post' ? 'post' : w.role, id: w.role === 'post' ? (w.postId || w.id) : w.id, color, _workerId: w.id, _workerPin: w.pin, postData };
-  });
   const roles = [
     { emoji:'👑', label:'Admin', sub:'Full access', role:'admin', id:'admin', color:'#f0a500' },
-    ...cfg.foremen.map(fm => ({ emoji:'👷‍♂️', label:fm.name, sub:'Foreman · Supervisor', role:'foreman', id:fm.id, color:'#8b5cf6', _fmId: fm.id })),
-    ...cfg.sealers.map(s => ({ emoji:'🔒', label:s.name, sub:'Sealer · Trucks overview', role:'sealer', id:s.id, color:'#06b6d4', _sealerId: s.id })),
-    ...cfg.posts.map(p => ({ emoji:'🏗️', label:p.label, sub:'Work Post · My trucks', role:'post', id:p.id, color:p.color, postData:p })),
-    ...workerRoles
+    { emoji:'👷‍♂️', label:cfg.foreman.name, sub:'Foreman · Supervisor', role:'foreman', id:'foreman', color:'#8b5cf6' },
+    ...cfg.posts.map(p => ({ emoji:'🏗️', label:p.label, sub:'Work Post · My trucks', role:'post', id:p.id, color:p.color, postData:p }))
   ];
+  // Sealers removed — they use the Hask app
   list.innerHTML = roles.map(r => {
     const safeR = JSON.stringify(r).replace(/"/g,"'");
     return `<div class="who-btn" onclick="selectUser(${safeR})">
@@ -1162,27 +927,13 @@ function checkPin() {
   const cfg = loadConfig();
   const r   = pinTarget;
   let correct = '';
-  if (r.role === 'admin') {
-    correct = cfg.apin;
-  } else if (r.role === 'foreman') {
-    const fm = cfg.foremen.find(f => f.id === (r._fmId || r.id));
-    correct = fm ? fm.pin : '';
-  } else if (r.role === 'sealer') {
-    const s = cfg.sealers.find(s => s.id === (r._sealerId || r.id));
-    correct = s ? s.pin : '';
-  } else if (r.role === 'post') {
-    // Check worker PIN first (dynamic workers), then fall back to config post PIN
-    if (r._workerId) {
-      const wk = (_workers || []).find(w => w.id === r._workerId);
-      correct = wk ? wk.pin : '';
-    } else {
-      const p = cfg.posts.find(p => p.id === r.id);
-      correct = p ? p.pin : '';
-    }
-  } else if (r._workerId) {
-    // Dynamic worker with sealer/foreman role
-    const wk = (_workers || []).find(w => w.id === r._workerId);
-    correct = wk ? wk.pin : '';
+  if      (r.role === 'admin')   correct = cfg.apin;
+  else if (r.role === 'foreman') correct = cfg.foreman.pin;
+  else if (r.role === 'sealer1') correct = cfg.sealer1.pin;
+  else if (r.role === 'sealer2') correct = cfg.sealer2.pin;
+  else if (r.role === 'post') {
+    const p = cfg.posts.find(p => p.id === r.id);
+    correct = p ? p.pin : '';
   }
   if (pinBuffer === correct) {
     currentUser = { ...r, name: r.label };
@@ -1216,8 +967,6 @@ function loginSuccess() {
     foremanSelectedDate = null;
     updateForemanDateDisplay();
     showScreen('s-foreman'); renderForemanTrucks();
-  } else if (role === 'sealer' || role === 'sealer1' || role === 'sealer2') {
-    showScreen('s-cashier'); renderCashierTrucks();
   } else {
     updateAdminDateDisplay();
     buildAdminPostChips();
@@ -1324,6 +1073,11 @@ function renderTruckList(trucks, elId, canEdit, canDelete) {
   const el  = document.getElementById(elId);
   if (!trucks.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🚛</div><p>No trucks found</p></div>'; return; }
 
+  // Find newest truck (by timestamp) for flash highlight
+  const newestTs = Math.max(...trucks.map(t => t.ts||0));
+  const newestAge = Date.now() - newestTs; // ms since added
+  const showNewBanner = newestAge < 5 * 60 * 1000; // within last 5 minutes
+
   // Group by workDay
   const byDay = {};
   trucks.forEach(t => {
@@ -1344,13 +1098,15 @@ function renderTruckList(trucks, elId, canEdit, canDelete) {
       const dateStr= (dt&&!isNaN(dt)) ? `${dt.getDate()} ${months[dt.getMonth()]} · ${dt.toTimeString().slice(0,5)}` : (t.date||'');
       const acts = [];
       const isPostWorker = currentUser && currentUser.role === 'post';
+      const isNewest = showNewBanner && t.ts === newestTs;
       if (canEdit)   acts.push(`<button class="tc-btn btn-edit" onclick="openEditTruck('${t.id}')">✏️ Edit</button>`);
       if (isPostWorker && t.status !== 'finished') acts.push(`<button class="tc-btn btn-finish" onclick="quickFinish('${t.id}')">✅ Finish</button>`);
       if (canDelete) acts.push(`<button class="tc-btn btn-del" onclick="deleteTruck('${t.id}')">🗑️</button>`);
-      return `<div class="truck-card ${si.cardCls}">
+      const newBadge = isNewest ? `<span style="display:inline-block;background:rgba(16,185,129,0.2);color:var(--green);border:1px solid rgba(16,185,129,0.4);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-left:6px;animation:pulse 1.5s infinite;">🆕 NEW</span>` : '';
+      return `<div class="truck-card ${si.cardCls}" ${isNewest?'style="border-color:var(--green);box-shadow:0 0 0 2px rgba(16,185,129,0.25);"':''}>
         <div class="tc-hdr">
           <div>
-            <div class="tc-plate">${t.plate} <span class="post-pill">${post.label}</span></div>
+            <div class="tc-plate">${t.plate} <span class="post-pill">${post.label}</span>${newBadge}</div>
             <div class="tc-time">${dateStr}</div>
           </div>
           <span class="s-badge ${si.cls}">${si.label}</span>
@@ -1419,7 +1175,7 @@ let foremanSelectedDate = null; // null = today
 
 function renderForemanTrucks() {
   const cfg    = loadConfig();
-  const perms  = (cfg.foremen && cfg.foremen[0] ? cfg.foremen[0].perms : cfg.foreman?.perms) || {};
+  const perms  = cfg.foreman.perms || {};
   document.getElementById('f-add-btn').style.display = perms.addTruck ? '' : 'none';
   const today  = getTodayWorkDay();
   const date   = foremanSelectedDate || today;
@@ -1854,15 +1610,78 @@ function renderAdminStats(trucks, elId, date) {
 function renderAdminPosts()   { document.getElementById('a-posts-list').innerHTML = buildPostsHTML(); }
 function renderAdminReports() { document.getElementById('a-reports-content').innerHTML = buildReportsHTML(); }
 function adminTab(tab, el) {
-  ['s-admin','s-admin-posts','s-admin-reports','s-admin-manage'].forEach(sid=>{
+  ['s-admin','s-admin-posts','s-admin-reports','s-admin-incoming','s-admin-manage'].forEach(sid=>{
     const sc = document.getElementById(sid);
     if(sc) sc.querySelectorAll('.bnav-item').forEach(e=>e.classList.remove('active'));
   });
   if(el) el.classList.add('active');
-  if (tab==='trucks')  { showScreen('s-admin');          renderAdminTrucks();  }
-  if (tab==='posts')   { showScreen('s-admin-posts');    renderAdminPosts();   }
-  if (tab==='reports') { showScreen('s-admin-reports');  renderAdminReports(); }
-  if (tab==='manage')  { showScreen('s-admin-manage');   renderManage();       }
+  if (tab==='trucks')   { showScreen('s-admin');          renderAdminTrucks();    }
+  if (tab==='posts')    { showScreen('s-admin-posts');    renderAdminPosts();     }
+  if (tab==='reports')  { showScreen('s-admin-reports');  renderAdminReports();   }
+  if (tab==='incoming') { showScreen('s-admin-incoming'); renderAdminIncoming();  }
+  if (tab==='manage')   { showScreen('s-admin-manage');   renderManage();         }
+}
+
+function updateAdminIncomingBadge() {
+  const today  = getTodayWorkDay();
+  const unseen = Object.values(_kabIncoming).filter(t => (t.date||'') === today);
+  const navEl  = document.getElementById('a-incoming-nav');
+  if (!navEl) return;
+  const ni = navEl.querySelector('.ni');
+  if (ni) ni.textContent = unseen.length > 0 ? '📥 '+unseen.length : '📥';
+}
+
+function renderAdminIncoming() {
+  const container = document.getElementById('a-incoming-list');
+  const subEl     = document.getElementById('a-incoming-sub');
+  if (!container) return;
+  const today = getTodayWorkDay();
+  const TYPE_LABELS = { shirac:'🚛 Shirac', bilashirac:'🚚 Bila Shirac', metal:'🏗️ Metal' };
+  const TYPE_COLORS = { shirac:'#10b981', bilashirac:'#3b82f6', metal:'#ef4444' };
+
+  const all = Object.entries(_kabIncoming)
+    .map(e => Object.assign({}, e[1], {_id: e[0]}))
+    .sort((a,b) => (b.ts||0) - (a.ts||0));
+
+  const todayItems = all.filter(t => t.date === today);
+  const oldItems   = all.filter(t => t.date !== today);
+
+  if (subEl) subEl.textContent = todayItems.length + ' today · ' + all.length + ' total';
+
+  if (all.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);"><div style="font-size:40px;margin-bottom:10px;">📥</div><div>No trucks from Hask sealers yet</div></div>';
+    return;
+  }
+
+  function renderGroup(items, label) {
+    if (!items.length) return '';
+    return `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);">${label}</div>`
+      + items.map(t => {
+        const isBashal  = t.status === 'bashal';
+        const isSealed  = !!t.sealed;
+        const typeColor = isBashal ? '#e879f9' : (TYPE_COLORS[t.type] || '#6b7280');
+        const typeLabel = isBashal ? '🔮 Bashal' : (TYPE_LABELS[t.type] || t.type || '—');
+        const timeStr   = t.ts ? new Date(t.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '—';
+        const sealBadge = isSealed
+          ? `<span style="font-size:10px;color:var(--green);font-weight:700;">✅ Sealed by ${t.sealedBy||'sealer'}</span>`
+          : `<span style="font-size:10px;color:var(--muted);">⏳ Waiting for sealer</span>`;
+        return `<div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${typeColor};border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:18px;font-weight:800;font-family:monospace;">${t.plate}</div>
+            <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}44;">${typeLabel}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:700;color:${typeColor};">🏗️ ${t.postLabel||t.postId||'—'}</span>
+            <span style="font-size:11px;color:var(--muted);">🕐 ${timeStr}</span>
+          </div>
+          ${sealBadge}
+        </div>`;
+      }).join('');
+  }
+
+  container.innerHTML =
+    renderGroup(todayItems, '📅 Today — ' + todayItems.length + ' truck' + (todayItems.length!==1?'s':''))
+    + renderGroup(oldItems, '📦 Previous Days');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1993,12 +1812,42 @@ function buildReportsHTML() {
       <div style="font-size:11px;color:var(--muted);margin-top:2px;">${total} truck${total!==1?'s':''} total</div>
     </div>
 
-    <!-- Summary stats: 4 boxes -->
+    <!-- Summary stats: 4 type boxes -->
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;margin-top:4px;">🚛 By Load Type</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:16px;">
       ${statBox(shirac,  '🚛 Shirac',   '#10b981', '#10b981')}
       ${statBox(bila,    '🚚 B.Shirac', '#3b82f6', '#3b82f6')}
       ${statBox(metal,   '🏗️ Metal',   '#ef4444', '#ef4444')}
       ${statBox(bashal,  '🔮 Bashal',  '#e879f9', '#e879f9')}
+    </div>
+
+    <!-- All-time type totals -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;">📊 All-Time Type Totals</div>
+      ${(()=>{
+        const all = loadTrucks();
+        const totShirac  = all.filter(t=>t.type==='shirac').length;
+        const totBila    = all.filter(t=>t.type==='bilashirac').length;
+        const totMetal   = all.filter(t=>t.type==='metal').length;
+        const totBashal  = all.filter(t=>t.status==='bashal').length;
+        const totAll     = all.length;
+        const pct = (n) => totAll > 0 ? Math.round(n/totAll*100) : 0;
+        const row = (n, label, color) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:13px;font-weight:700;color:${color};">${label}</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:80px;background:rgba(255,255,255,0.05);border-radius:4px;height:5px;overflow:hidden;">
+                <div style="width:${pct(n)}%;background:${color};height:100%;border-radius:4px;"></div>
+              </div>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;color:${color};min-width:28px;text-align:right;">${n}</span>
+              <span style="font-size:10px;color:var(--muted);min-width:28px;">${pct(n)}%</span>
+            </div>
+          </div>`;
+        return row(totShirac,'🚛 Shirac','#10b981')
+          + row(totBila,'🚚 Bila Shirac','#3b82f6')
+          + row(totMetal,'🏗️ Metal','#ef4444')
+          + row(totBashal,'🔮 Bashal','#e879f9');
+      })()}
     </div>
 
     <!-- Per-post breakdown -->
@@ -2164,39 +2013,22 @@ function renderManage() {
       </div>
       <div class="manage-acts">
         <div class="m-btn m-btn-pin" onclick="openPinChange('post','${p.id}','${p.label}')">🔐 PIN</div>
-        <div class="m-btn m-btn-del" onclick="deletePost('${p.id}','${p.label}')">🗑️</div>
       </div>
     </div>`).join('');
 
   // Foreman — show PIN visible
-  document.getElementById('manage-foreman-section').innerHTML = cfg.foremen.map(fm => `
+  document.getElementById('manage-foreman-section').innerHTML = `
     <div class="manage-row">
       <div class="manage-av" style="background:rgba(139,92,246,0.15);color:#8b5cf6;">👷‍♂️</div>
       <div style="flex:1">
-        <div class="manage-name">${fm.name}</div>
-        <div class="manage-sub">PIN: <span class="pin-reveal">${fm.pin}</span></div>
+        <div class="manage-name">${cfg.foreman.name}</div>
+        <div class="manage-sub">PIN: <span class="pin-reveal">${cfg.foreman.pin}</span></div>
       </div>
       <div class="manage-acts">
-        <div class="m-btn m-btn-perm" onclick="openForemanPerms('${fm.id}')">⚙️ Perms</div>
-        <div class="m-btn m-btn-pin" onclick="openPinChange('foreman','${fm.id}','${fm.name}')">🔐 PIN</div>
-        <div class="m-btn m-btn-del" onclick="deleteForeman('${fm.id}','${fm.name.replace(/'/g,"\\'") }')">🗑️</div>
+        <div class="m-btn m-btn-perm" onclick="openForemanPerms()">⚙️ Perms</div>
+        <div class="m-btn m-btn-pin" onclick="openPinChange('foreman',null,'Foreman')">🔐 PIN</div>
       </div>
-    </div>`).join('') || '<div style="text-align:center;padding:14px;color:var(--muted);font-size:13px;">No foreman added.</div>';
-
-  // Sealers — show PIN visible
-  document.getElementById('manage-cashiers-list').innerHTML = cfg.sealers.map((c,i) => `
-    <div class="manage-row">
-      <div class="manage-av" style="background:rgba(6,182,212,0.15);color:#06b6d4;">🔒</div>
-      <div style="flex:1">
-        <div class="manage-name">${c.name}</div>
-        <div class="manage-sub">Sealer · PIN: <span class="pin-reveal">${c.pin}</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-perm" onclick="openPerms('${c.id}')">⚙️ Perms</div>
-        <div class="m-btn m-btn-pin" onclick="openPinChange('sealer','${c.id}','${c.name.replace(/'/g,"\\'")}')">🔐 PIN</div>
-        <div class="m-btn m-btn-del" onclick="deleteSealer('${c.id}','${c.name.replace(/'/g,"\\'")}')">🗑️</div>
-      </div>
-    </div>`).join('') || '<div style="text-align:center;padding:14px;color:var(--muted);font-size:13px;">No sealers added.</div>';
+    </div>`;
 
   // Admin PIN
   document.getElementById('manage-admin-pin').innerHTML = `
@@ -2210,9 +2042,6 @@ function renderManage() {
         <div class="m-btn m-btn-pin" onclick="openPinChange('admin',null,'Admin')">🔐 PIN</div>
       </div>
     </div>`;
-
-  // Workers from Firestore
-  renderWorkersSection();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2230,14 +2059,14 @@ async function savePinChange() {
   const cfg = loadConfig();
   const { type, id } = pinChangeTarget;
   if      (type === 'admin')   cfg.apin = pin;
-  else if (type === 'foreman') { const f = cfg.foremen.find(f=>f.id===id); if(f) f.pin=pin; }
-  else if (type === 'sealer')  { const s = cfg.sealers.find(s=>s.id===id); if(s) s.pin=pin; }
-  else if (type === 'post')    { const p = cfg.posts.find(p=>p.id===id);   if(p) p.pin=pin; }
+  else if (type === 'foreman') cfg.foreman.pin = pin;
+  else if (type === 'sealer1') cfg.sealer1.pin = pin;
+  else if (type === 'sealer2') cfg.sealer2.pin = pin;
+  else if (type === 'post')    { const p = cfg.posts.find(p=>p.id===id); if(p) p.pin=pin; }
   saveConfig(cfg);
   closeModal('m-pin-change');
   toast('🔐 PIN updated!');
   renderManage();
-  buildLoginScreen();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2248,10 +2077,9 @@ const SEALER_PERM_LABELS = {
   viewPosts:'View Posts', viewReports:'View Reports'
 };
 function openPerms(sealerId) {
-  permsTarget = { type: 'sealer', id: sealerId };
+  permsTarget = sealerId;
   const cfg   = loadConfig();
-  const sealer = cfg.sealers.find(s => s.id === sealerId);
-  const perms = sealer ? (sealer.perms || {}) : {};
+  const perms = cfg[sealerId].perms || {};
   document.getElementById('perms-list').innerHTML = Object.entries(SEALER_PERM_LABELS).map(([k,v])=>`
     <div class="perm-row">
       <span class="perm-label">${v}</span>
@@ -2265,8 +2093,7 @@ function savePerms() {
   Object.keys(SEALER_PERM_LABELS).forEach(k => {
     perms[k] = document.getElementById('perm-'+k)?.classList.contains('on') || false;
   });
-  const sealer = cfg.sealers.find(s => s.id === permsTarget.id);
-  if (sealer) sealer.perms = perms;
+  cfg[permsTarget].perms = perms;
   saveConfig(cfg);
   closeModal('m-perms');
   toast('⚙️ Permissions saved!');
@@ -2277,12 +2104,9 @@ const FOREMAN_PERM_LABELS = {
   viewTrucks:'View All Trucks', viewPosts:'View Posts',
   addTruck:'Add Trucks', editTruck:'Edit Trucks', deleteTruck:'Delete Trucks'
 };
-function openForemanPerms(fmId) {
+function openForemanPerms() {
   const cfg   = loadConfig();
-  const fm    = cfg.foremen.find(f => f.id === fmId) || cfg.foremen[0];
-  if (!fm) return;
-  permsTarget = { type: 'foreman', id: fm.id };
-  const perms = fm.perms || {};
+  const perms = cfg.foreman.perms || {};
   document.getElementById('foreman-perms-list').innerHTML = Object.entries(FOREMAN_PERM_LABELS).map(([k,v])=>`
     <div class="perm-row">
       <span class="perm-label">${v}</span>
@@ -2296,8 +2120,7 @@ async function saveForemanPerms() {
   Object.keys(FOREMAN_PERM_LABELS).forEach(k => {
     perms[k] = document.getElementById('fperm-'+k)?.classList.contains('on') || false;
   });
-  const fm = cfg.foremen.find(f => f.id === permsTarget.id);
-  if (fm) fm.perms = perms;
+  cfg.foreman.perms = perms;
   saveConfig(cfg);
   closeModal('m-foreman-perms');
   toast('⚙️ Foreman permissions saved!');
@@ -2383,425 +2206,6 @@ function toast(msg) {
 }
 
 // ══════════════════════════════════════════════════════════
-// WORKERS — Firestore Collection: kab_workers
-// ══════════════════════════════════════════════════════════
-let _workers = [];
-let _unsubWorkers = null;
-let editingWorkerId = null;
-let _workerRole = 'sealer';
-
-function listenWorkers() {
-  if (!db) {
-    try { _workers = JSON.parse(localStorage.getItem('kab_workers_v1') || '[]'); } catch(e) {}
-    renderWorkersSection();
-    return;
-  }
-  if (_unsubWorkers) _unsubWorkers();
-  _unsubWorkers = db.collection('kab_workers').onSnapshot(snap => {
-    _workers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    localStorage.setItem('kab_workers_v1', JSON.stringify(_workers));
-    renderWorkersSection();
-    buildLoginScreen(); // refresh login list with latest workers
-  }, err => console.warn('Workers listener error:', err));
-}
-
-async function firestoreSaveWorker(worker) {
-  if (!db) { localStorage.setItem('kab_workers_v1', JSON.stringify(_workers)); return; }
-  try { await db.collection('kab_workers').doc(worker.id).set(worker); }
-  catch(e) { console.warn('firestoreSaveWorker error:', e); }
-}
-
-async function firestoreDeleteWorker(id) {
-  _workers = _workers.filter(w => w.id !== id);
-  localStorage.setItem('kab_workers_v1', JSON.stringify(_workers));
-  if (!db) return;
-  try { await db.collection('kab_workers').doc(id).delete(); }
-  catch(e) { console.warn('firestoreDeleteWorker error:', e); }
-}
-
-// Role colours
-const WORKER_ROLE_META = {
-  sealer:  { color:'#06b6d4', bg:'rgba(6,182,212,0.15)',  emoji:'🔒',  label:'Sealer'  },
-  foreman: { color:'#8b5cf6', bg:'rgba(139,92,246,0.15)', emoji:'👷‍♂️', label:'Foreman' },
-  post:    { color:'#f97316', bg:'rgba(249,115,22,0.15)', emoji:'🏗️',  label:'Post'    },
-};
-
-function renderWorkersSection() {
-  const el = document.getElementById('manage-workers-list');
-  if (!el) return;
-  if (!_workers.length) {
-    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No workers yet. Tap <strong style="color:var(--accent);">+ Add Worker</strong> to get started.</div>`;
-    return;
-  }
-  const cfg = loadConfig();
-  el.innerHTML = _workers.map(w => {
-    const m = WORKER_ROLE_META[w.role] || WORKER_ROLE_META.sealer;
-    const postLabel = w.role === 'post' ? ` · ${(cfg.posts.find(p=>p.id===w.postId)||{label:w.postId||''}).label}` : '';
-    return `
-    <div class="manage-row">
-      <div class="manage-av" style="background:${m.bg};color:${m.color};">${m.emoji}</div>
-      <div style="flex:1;min-width:0;">
-        <div class="manage-name">${w.name}</div>
-        <div class="manage-sub">${m.label}${postLabel} · PIN: <span class="pin-reveal">${w.pin}</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-pin" onclick="openEditWorker('${w.id}')">✏️ Edit</div>
-        <div class="m-btn m-btn-del" onclick="deleteWorker('${w.id}','${w.name.replace(/'/g,"\\'")}')">🗑️</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function openAddWorker() {
-  editingWorkerId = null;
-  document.getElementById('m-worker-title').textContent = '👷 Add Worker';
-  document.getElementById('w-name').value = '';
-  document.getElementById('w-pin').value  = '';
-  selectWorkerRole('sealer');
-  populatePostAssign();
-  openModal('m-worker');
-}
-
-function openEditWorker(id) {
-  const w = _workers.find(x => x.id === id);
-  if (!w) return;
-  editingWorkerId = id;
-  document.getElementById('m-worker-title').textContent = '✏️ Edit Worker';
-  document.getElementById('w-name').value = w.name;
-  document.getElementById('w-pin').value  = w.pin;
-  selectWorkerRole(w.role || 'sealer');
-  populatePostAssign(w.postId);
-  openModal('m-worker');
-}
-
-function selectWorkerRole(role) {
-  _workerRole = role;
-  document.getElementById('w-role').value = role;
-  // Reset all role buttons
-  ['sealer','foreman','post'].forEach(r => {
-    const el = document.getElementById('wrole-'+r);
-    if (!el) return;
-    const m = WORKER_ROLE_META[r];
-    if (r === role) {
-      el.style.borderColor = m.color;
-      el.style.background  = m.bg;
-    } else {
-      el.style.borderColor = 'var(--border)';
-      el.style.background  = 'rgba(255,255,255,0.02)';
-    }
-  });
-  // Show/hide post selector
-  document.getElementById('w-post-group').style.display = role === 'post' ? '' : 'none';
-}
-
-function populatePostAssign(selectedId) {
-  const cfg = loadConfig();
-  const sel = document.getElementById('w-post-assign');
-  sel.innerHTML = cfg.posts.map(p =>
-    `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.label}</option>`
-  ).join('');
-}
-
-async function saveWorker() {
-  const name = document.getElementById('w-name').value.trim();
-  const pin  = document.getElementById('w-pin').value.trim();
-  const role = document.getElementById('w-role').value;
-  const postId = document.getElementById('w-post-assign').value;
-
-  if (!name) { toast('⚠️ Enter worker name!'); return; }
-  if (pin.length !== 4 || isNaN(pin)) { toast('⚠️ PIN must be 4 digits!'); return; }
-
-  // Special flows for sealers and foremen via config
-  if (editingWorkerId === '__new_sealer__') {
-    const cfg = loadConfig();
-    const id = 'sealer_' + Date.now();
-    cfg.sealers.push({ id, name, pin, perms: { addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true } });
-    saveConfig(cfg);
-    toast(`✅ ${name} added as Sealer!`);
-    closeModal('m-worker');
-    editingWorkerId = null;
-    renderManage();
-    buildLoginScreen();
-    return;
-  }
-  if (editingWorkerId === '__new_foreman__') {
-    const cfg = loadConfig();
-    const id = 'foreman_' + Date.now();
-    cfg.foremen.push({ id, name, pin, perms: { viewTrucks:true, viewPosts:true, addTruck:false, editTruck:false, deleteTruck:false } });
-    saveConfig(cfg);
-    toast(`✅ ${name} added as Foreman!`);
-    closeModal('m-worker');
-    editingWorkerId = null;
-    renderManage();
-    buildLoginScreen();
-    return;
-  }
-
-  const cfg = loadConfig();
-
-  if (editingWorkerId) {
-    const idx = _workers.findIndex(w => w.id === editingWorkerId);
-    if (idx > -1) {
-      _workers[idx] = { ..._workers[idx], name, pin, role, postId: role === 'post' ? postId : null };
-      await firestoreSaveWorker(_workers[idx]);
-    }
-    toast('✅ Worker updated!');
-  } else {
-    const id = 'w_' + Date.now();
-    const worker = { id, name, pin, role, postId: role === 'post' ? postId : null, createdAt: Date.now() };
-    _workers.push(worker);
-    await firestoreSaveWorker(worker);
-    toast(`✅ ${name} added!`);
-  }
-
-  closeModal('m-worker');
-  renderWorkersSection();
-  buildLoginScreen();
-}
-
-async function deleteWorker(id, name) {
-  if (!confirm(`Delete worker "${name}"? This cannot be undone.`)) return;
-  await firestoreDeleteWorker(id);
-  toast(`🗑️ ${name} removed`);
-  renderWorkersSection();
-  buildLoginScreen();
-}
-
-
-// ══════════════════════════════════════════════════════════
-// ADD / DELETE — SEALERS
-// ══════════════════════════════════════════════════════════
-function openAddSealer() {
-  document.getElementById('m-worker-title').textContent = '🔒 Add Sealer';
-  editingWorkerId = '__new_sealer__';
-  document.getElementById('w-name').value = '';
-  document.getElementById('w-pin').value  = '';
-  selectWorkerRole('sealer');
-  openModal('m-worker');
-}
-
-function deleteSealer(id, name) {
-  if (!confirm(`Delete sealer "${name}"? They won't be able to log in anymore.`)) return;
-  const cfg = loadConfig();
-  cfg.sealers = cfg.sealers.filter(s => s.id !== id);
-  saveConfig(cfg);
-  toast(`🗑️ ${name} removed`);
-  renderManage();
-  buildLoginScreen();
-}
-
-// ══════════════════════════════════════════════════════════
-// ADD / DELETE — FOREMAN
-// ══════════════════════════════════════════════════════════
-function openAddForeman() {
-  document.getElementById('m-worker-title').textContent = '👷‍♂️ Add Foreman';
-  editingWorkerId = '__new_foreman__';
-  document.getElementById('w-name').value = '';
-  document.getElementById('w-pin').value  = '';
-  selectWorkerRole('foreman');
-  openModal('m-worker');
-}
-
-function deleteForeman(id, name) {
-  if (!confirm(`Delete foreman "${name}"? They won't be able to log in anymore.`)) return;
-  const cfg = loadConfig();
-  cfg.foremen = cfg.foremen.filter(f => f.id !== id);
-  saveConfig(cfg);
-  toast(`🗑️ ${name} removed`);
-  renderManage();
-  buildLoginScreen();
-}
-
-// ══════════════════════════════════════════════════════════
-// ADD / DELETE / RENAME — POSTS
-// ══════════════════════════════════════════════════════════
-const POST_COLORS = ['#d97706','#10b981','#3b82f6','#ef4444','#8b5cf6','#06b6d4','#f97316','#e879f9','#14b8a6','#f43f5e'];
-
-function openAddPost() {
-  const cfg = loadConfig();
-  const num = cfg.posts.length + 1;
-  const label = prompt(`New post name (e.g. "Post ${num}"):`);
-  if (!label || !label.trim()) return;
-  const pin = prompt('Set a 4-digit PIN for this post:');
-  if (!pin || pin.length !== 4 || isNaN(pin)) { toast('⚠️ PIN must be 4 digits!'); return; }
-  const id = 'p_' + Date.now();
-  const color = POST_COLORS[(cfg.posts.length) % POST_COLORS.length];
-  cfg.posts.push({ id, label: label.trim(), pin, color });
-  saveConfig(cfg);
-  toast(`✅ ${label.trim()} added!`);
-  renderManage();
-  buildLoginScreen();
-}
-
-function deletePost(id, label) {
-  if (!confirm(`Delete "${label}"? This post will be removed from the login screen.`)) return;
-  const cfg = loadConfig();
-  cfg.posts = cfg.posts.filter(p => p.id !== id);
-  saveConfig(cfg);
-  toast(`🗑️ ${label} removed`);
-  renderManage();
-  buildLoginScreen();
-}
-
-// ══════════════════════════════════════════════════════════
-// INSTALL BUTTON (Manage tab)
-// ══════════════════════════════════════════════════════════
-function managerTriggerInstall() {
-  if (isInStandaloneMode()) {
-    toast('✅ App is already installed!');
-    return;
-  }
-  if (_deferredPrompt) {
-    document.getElementById('pwa-install-banner').classList.remove('show');
-    _deferredPrompt.prompt();
-    _deferredPrompt.userChoice.then(({ outcome }) => {
-      if (outcome === 'accepted') toast('🎉 Installing Agash…');
-      _deferredPrompt = null;
-    });
-  } else if (isIOS()) {
-    const tip = document.getElementById('manage-ios-tip');
-    if (tip) tip.style.display = tip.style.display === 'none' ? 'block' : 'none';
-  } else {
-    toast('ℹ️ Open in Chrome / Edge to install, or use browser menu → "Add to Home Screen"');
-  }
-}
-
-// ══════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════
-let _shareReportText = '';
-
-function buildReportText() {
-  const trucks = loadTrucks();
-  const cfg = loadConfig();
-  const today = getTodayWorkDay();
-  const todayTrucks = trucks.filter(t => (t.workDay || t.date) === today);
-  const total = todayTrucks.length;
-  const finished = todayTrucks.filter(t => t.status === 'finished').length;
-  const half = todayTrucks.filter(t => t.status === 'half').length;
-  const started = todayTrucks.filter(t => t.status === 'started').length;
-  const bashal = todayTrucks.filter(t => t.status === 'bashal').length;
-  const shirac = todayTrucks.filter(t => t.type === 'shirac').length;
-  const bila = todayTrucks.filter(t => t.type === 'bilashirac').length;
-  const metal = todayTrucks.filter(t => t.type === 'metal').length;
-
-  const d = new Date(today + 'T06:00:00');
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const dateLabel = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-
-  let txt = `🚛 AGASH TRACKER — DAILY REPORT\n`;
-  txt += `📅 ${dateLabel}\n`;
-  txt += `${'─'.repeat(30)}\n`;
-  txt += `📦 TOTAL TRUCKS: ${total}\n\n`;
-  txt += `📊 BY STATUS:\n`;
-  txt += `  ✅ Finished : ${finished}\n`;
-  txt += `  ⚡ Half     : ${half}\n`;
-  txt += `  ▶️ Started  : ${started}\n`;
-  txt += `  🔮 Bashal   : ${bashal}\n\n`;
-  txt += `📦 BY TYPE:\n`;
-  txt += `  🚛 Shirac      : ${shirac}\n`;
-  txt += `  🚚 Bila Shirac : ${bila}\n`;
-  txt += `  🏗️ Metal       : ${metal}\n\n`;
-  txt += `🏗️ BY POST:\n`;
-  cfg.posts.forEach(p => {
-    const pt = todayTrucks.filter(t => t.postId === p.id);
-    if (pt.length > 0) {
-      txt += `  ${p.label}: ${pt.length} trucks`;
-      const f = pt.filter(t=>t.status==='finished').length;
-      if (f > 0) txt += ` (${f} done)`;
-      txt += `\n`;
-    }
-  });
-  txt += `${'─'.repeat(30)}\n`;
-  txt += `Agash · Djibouti · ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
-  return txt;
-}
-
-function openShareReport() {
-  _shareReportText = buildReportText();
-  document.getElementById('share-report-preview').textContent = _shareReportText;
-  // Show/hide native share button
-  const nativeBtn = document.getElementById('share-native-btn');
-  if (nativeBtn) nativeBtn.style.display = navigator.share ? '' : 'none';
-  openModal('m-share-report');
-}
-
-function shareVia(method) {
-  const text = _shareReportText;
-  const encoded = encodeURIComponent(text);
-  if (method === 'whatsapp') {
-    window.open(`https://wa.me/?text=${encoded}`, '_blank');
-  } else if (method === 'telegram') {
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encoded}`, '_blank');
-  } else if (method === 'email') {
-    const subject = encodeURIComponent('Agash Daily Report — ' + new Date().toLocaleDateString());
-    window.open(`mailto:?subject=${subject}&body=${encoded}`);
-  } else if (method === 'sms') {
-    window.open(`sms:?body=${encoded}`);
-  } else if (method === 'copy') {
-    navigator.clipboard.writeText(text).then(() => {
-      toast('📋 Report copied!');
-      closeModal('m-share-report');
-    }).catch(() => {
-      const ta = document.createElement('textarea');
-      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
-      document.body.appendChild(ta); ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      toast('📋 Report copied!');
-      closeModal('m-share-report');
-    });
-    return;
-  } else if (method === 'native') {
-    if (navigator.share) {
-      navigator.share({ title: 'Agash Daily Report', text }).catch(() => {});
-    } else {
-      toast('⚠️ Share not supported on this browser');
-    }
-  }
-}
-
-function openShareApp() {
-  const url = window.location.href.split('?')[0].split('#')[0];
-  document.getElementById('share-app-url').textContent = url;
-  openModal('m-share-app');
-}
-
-function copyAppUrl() {
-  const url = window.location.href.split('?')[0].split('#')[0];
-  navigator.clipboard.writeText(url).then(() => {
-    toast('🔗 Link copied!');
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = url; ta.style.position='fixed'; ta.style.opacity='0';
-    document.body.appendChild(ta); ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    toast('🔗 Link copied!');
-  });
-}
-
-function shareAppVia(method) {
-  const url = window.location.href.split('?')[0].split('#')[0];
-  const appMsg = `🚛 *Agash Tracker* — Truck tracking app\n📍 Agash · Djibouti\n\n📲 Open the app:\n${url}\n\n_Works offline, installable on phone_`;
-  const encoded = encodeURIComponent(appMsg);
-  if (method === 'whatsapp') {
-    window.open(`https://wa.me/?text=${encoded}`, '_blank');
-  } else if (method === 'telegram') {
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('🚛 Agash Tracker — Truck tracking app for Agash · Djibouti')}`, '_blank');
-  } else if (method === 'email') {
-    const subject = encodeURIComponent('Agash Tracker App');
-    const body = encodeURIComponent(`Hi,\n\nHere is the link to the Agash Tracker app:\n${url}\n\nIt works offline and can be installed on your phone.\n\nAgash · Djibouti`);
-    window.open(`mailto:?subject=${subject}&body=${body}`);
-  } else if (method === 'native') {
-    if (navigator.share) {
-      navigator.share({ title: 'Agash Tracker', text: 'Truck tracking app for Agash · Djibouti', url }).catch(() => {});
-    } else {
-      copyAppUrl();
-    }
-  }
-}
-
-// ══════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════
 function init() {
@@ -2814,77 +2218,13 @@ function init() {
 init();
 </script>
 <script>
-// ══════════════════════════════════════════════════════════
-// PWA INSTALL LOGIC
-// ══════════════════════════════════════════════════════════
-let _deferredPrompt = null;
-const INSTALL_DISMISSED_KEY = 'agash_install_dismissed';
-
-function isIOS() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
-}
-function isInStandaloneMode() {
-  return window.matchMedia('(display-mode: standalone)').matches ||
-         window.navigator.standalone === true;
-}
-
-// Android / Desktop — capture the native install prompt
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  _deferredPrompt = e;
-  // Only show if not dismissed recently
-  const dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY);
-  if (!dismissed || (Date.now() - parseInt(dismissed)) > 7 * 24 * 60 * 60 * 1000) {
-    setTimeout(() => {
-      document.getElementById('pwa-install-banner').classList.add('show');
-    }, 2000); // show after 2s so login renders first
-  }
-});
-
-window.addEventListener('appinstalled', () => {
-  document.getElementById('pwa-install-banner').classList.remove('show');
-  _deferredPrompt = null;
-  toast('🎉 Agash installed on your device!');
-});
-
-async function pwaInstall() {
-  if (!_deferredPrompt) return;
-  document.getElementById('pwa-install-banner').classList.remove('show');
-  _deferredPrompt.prompt();
-  const { outcome } = await _deferredPrompt.userChoice;
-  if (outcome === 'accepted') toast('🎉 Installing Agash…');
-  _deferredPrompt = null;
-}
-
-function pwaDismiss() {
-  document.getElementById('pwa-install-banner').classList.remove('show');
-  localStorage.setItem(INSTALL_DISMISSED_KEY, Date.now().toString());
-}
-
-// iOS — show manual install tip
-function iosDismiss() {
-  document.getElementById('ios-install-tip').classList.remove('show');
-  localStorage.setItem(INSTALL_DISMISSED_KEY, Date.now().toString());
-}
-
-// Show iOS tip automatically
-if (isIOS() && !isInStandaloneMode()) {
-  const dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY);
-  if (!dismissed || (Date.now() - parseInt(dismissed)) > 7 * 24 * 60 * 60 * 1000) {
-    setTimeout(() => {
-      document.getElementById('ios-install-tip').classList.add('show');
-    }, 2500);
-  }
-}
-
-// ── SERVICE WORKER (real sw.js file) ──
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./sw.js')
-      .then(function(reg) {
-        reg.onupdatefound = function() {
-          var w = reg.installing;
-          w.onstatechange = function() {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => {
+        reg.onupdatefound = () => {
+          const w = reg.installing;
+          w.onstatechange = () => {
             if (w.state === 'installed' && navigator.serviceWorker.controller) {
               if (confirm('🔄 New version available! Reload to update?')) {
                 w.postMessage({ type: 'SKIP_WAITING' });
@@ -2894,7 +2234,7 @@ if ('serviceWorker' in navigator) {
           };
         };
       })
-      .catch(function(e) { console.warn('SW registration failed:', e); });
+      .catch(e => console.warn('SW registration failed:', e));
   });
 }
 </script>
