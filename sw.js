@@ -1,55 +1,58 @@
-// Agash Tracker - Service Worker v2
-const CACHE_NAME = 'agash-v2';
-const ASSETS = [
+// Agash Tracker — Service Worker
+const CACHE_NAME = 'agash-v1';
+const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS.map(url => new Request(url, { cache: 'reload' }))))
-      .catch(() => {})
-  );
+// Install — cache core assets
+self.addEventListener('install', event => {
   self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+  );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
+// Activate — clean up old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+      Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      )
+    ).then(() => clients.claim())
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', e => {
-  // Firebase & Google APIs — network first
-  if (e.request.url.includes('firestore.googleapis.com') ||
-      e.request.url.includes('firebase') ||
-      e.request.url.includes('gstatic.com/firebasejs')) {
-    return e.respondWith(fetch(e.request).catch(() => new Response('', { status: 503 })));
-  }
+// Fetch — network first, fall back to cache
+self.addEventListener('fetch', event => {
+  // Skip non-GET and Firebase/external requests
+  if (event.request.method !== 'GET') return;
+  const url = event.request.url;
+  if (url.includes('firestore.googleapis.com') ||
+      url.includes('firebase') ||
+      url.includes('googleapis.com') ||
+      url.includes('fonts.g') ||
+      url.includes('cdnjs')) return;
 
-  // Everything else — cache first, fallback network
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(response => {
-        if (response && response.status === 200 && response.type !== 'opaque') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+  event.respondWith(
+    fetch(event.request)
+      .then(res => {
+        // Cache fresh response
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
         }
-        return response;
-      }).catch(() => caches.match('./index.html'));
-    })
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
 
-// Handle skip-waiting message from app
-self.addEventListener('message', e => {
-  if (e.data?.type === 'SKIP_WAITING') self.skipWaiting();
+// Message — force update
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
