@@ -9,7 +9,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -2875,14 +2877,14 @@ if (isIOS() && !isInStandaloneMode()) {
   }
 }
 
-// ── Service Worker Registration ──────────────────────────
+// ── SERVICE WORKER (real sw.js file) ──
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => {
-        reg.onupdatefound = () => {
-          const w = reg.installing;
-          w.onstatechange = () => {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(reg) {
+        reg.onupdatefound = function() {
+          var w = reg.installing;
+          w.onstatechange = function() {
             if (w.state === 'installed' && navigator.serviceWorker.controller) {
               if (confirm('🔄 New version available! Reload to update?')) {
                 w.postMessage({ type: 'SKIP_WAITING' });
@@ -2892,7 +2894,7 @@ if ('serviceWorker' in navigator) {
           };
         };
       })
-      .catch(e => console.warn('SW registration failed:', e));
+      .catch(function(e) { console.warn('SW registration failed:', e); });
   });
 }
 </script>
