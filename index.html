@@ -542,6 +542,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div id="manage-admin-pin"></div>
     <div class="section-divider">🔗 Share App</div>
     <div id="manage-share-section"></div>
+    <div class="section-divider">📲 Install App</div>
+    <div id="manage-install-section"></div>
     <div class="section-divider">📊 Export</div>
     <button onclick="exportTrucksExcel()" class="btn-pri" style="margin-bottom:8px;">📊 Export Trucks to Excel</button>
     <div class="section-divider">⚠️ Danger Zone</div>
@@ -1999,23 +2001,45 @@ function buildPostsHTML() {
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border);">🏗️ PER POST — ${dateLabel.toUpperCase()}</div>`;
 
   return daySummary + cfg.posts.map(p => {
-    const myAll  = trucks.filter(t => t.postId === p.id);
-    const myDay  = myAll.filter(t => (t.workDay || t.date || getWorkDay(t.ts)) === date);
-    const shirac = myDay.filter(t => t.type === 'shirac').length;
-    const bila   = myDay.filter(t => t.type === 'bilashirac').length;
-    const metal  = myDay.filter(t => t.type === 'metal').length;
-    const bashal = myDay.filter(t => t.status === 'bashal').length;
-    const typeColors = { shirac:'var(--blue)', bilashirac:'var(--gold)', metal:'#ef4444', bashal:'var(--bashal)' };
-    const plates = myDay.map(t =>
-      `<span class="plate-tag" style="border-left:3px solid ${typeColors[t.type]||'var(--border)'}">🚛 ${t.plate}</span>`
-    ).join('');
+    const myAll        = trucks.filter(t => t.postId === p.id);
+    const myDay        = myAll.filter(t => (t.workDay || t.date || getWorkDay(t.ts)) === date);
+    const shiracTrucks = myDay.filter(t => t.type === 'shirac');
+    const bilaTrucks   = myDay.filter(t => t.type === 'bilashirac');
+    const metalTrucks  = myDay.filter(t => t.type === 'metal');
+    const bashalTrucks = myDay.filter(t => t.status === 'bashal');
+
+    const maxRows = Math.max(shiracTrucks.length, bilaTrucks.length, metalTrucks.length, bashalTrucks.length, 0);
+    const cell = (plate, color) => plate
+      ? `<td style="padding:3px 4px;"><div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--text);background:${color}12;border:1px solid ${color}30;border-radius:5px;padding:2px 5px;text-align:center;letter-spacing:0.4px;">${plate}</div></td>`
+      : `<td style="padding:3px 4px;"><div style="height:22px;"></div></td>`;
+    const plateRows = maxRows === 0 ? '' : Array.from({length:maxRows}, (_,i) => `
+      <tr>
+        ${cell(shiracTrucks[i]?.plate, '#10b981')}
+        ${cell(bilaTrucks[i]?.plate,   '#3b82f6')}
+        ${cell(metalTrucks[i]?.plate,  '#ef4444')}
+        ${cell(bashalTrucks[i]?.plate, '#e879f9')}
+      </tr>`).join('');
+
+    const tableHTML = myDay.length === 0
+      ? `<div style="font-size:12px;color:var(--muted);padding:8px 0;">No trucks ${noTrucksLabel}</div>`
+      : `<table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+          <thead>
+            <tr>
+              <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#10b981;padding:0 4px 6px;text-align:center;border-bottom:2px solid #10b98133;">🚛 Shirac<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${shiracTrucks.length})</span></th>
+              <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#3b82f6;padding:0 4px 6px;text-align:center;border-bottom:2px solid #3b82f633;">🚚 B.Shirac<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${bilaTrucks.length})</span></th>
+              <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#ef4444;padding:0 4px 6px;text-align:center;border-bottom:2px solid #ef444433;">🏗️ Metal<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${metalTrucks.length})</span></th>
+              <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#e879f9;padding:0 4px 6px;text-align:center;border-bottom:2px solid #e879f933;">🔮 Bashal<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${bashalTrucks.length})</span></th>
+            </tr>
+          </thead>
+          <tbody>${plateRows}</tbody>
+        </table>`;
 
     return `<div class="post-card">
       <div class="pc-hdr" onclick="togglePost('pc-${p.id}')">
         <div class="pc-av" style="background:${p.color}22;color:${p.color};">🏗️</div>
         <div style="flex:1">
           <div class="pc-name">${p.label}</div>
-          <div class="pc-sub">${dateLabel}: ${myDay.length} truck${myDay.length!==1?'s':''} · All time: ${myAll.length}</div>
+          <div class="pc-sub">${dateLabel}: ${myDay.length} truck${myDay.length!==1?'s':''}</div>
         </div>
         <div class="pc-right">
           <div class="pc-num" style="color:${p.color}">${myDay.length}</div>
@@ -2023,14 +2047,7 @@ function buildPostsHTML() {
         </div>
       </div>
       <div class="pc-body" id="pc-${p.id}">
-        <div class="pc-stat-row">
-          <div class="pc-stat"><div class="pc-stat-n" style="color:#10b981">${shirac}</div><div class="pc-stat-l">Shirac</div></div>
-          <div class="pc-stat"><div class="pc-stat-n" style="color:#3b82f6">${bila}</div><div class="pc-stat-l">B.Shirac</div></div>
-          <div class="pc-stat"><div class="pc-stat-n" style="color:#ef4444">${metal}</div><div class="pc-stat-l">Metal</div></div>
-          <div class="pc-stat"><div class="pc-stat-n" style="color:var(--bashal)">${bashal}</div><div class="pc-stat-l">Bashal</div></div>
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;margin-top:6px;">All time: ${myAll.length} trucks</div>
-        <div class="plate-tags">${plates || '<span style="font-size:12px;color:var(--muted);">No trucks ' + noTrucksLabel + '</span>'}</div>
+        <div style="margin-top:8px;">${tableHTML}</div>
       </div>
     </div>`;
   }).join('');
@@ -2533,7 +2550,114 @@ function renderManage() {
         </button>
       </div>
     </div>`;
+
+  renderManageInstallSection();
 }
+
+// ══════════════════════════════════════════════════════════
+// PWA INSTALL
+// ══════════════════════════════════════════════════════════
+let _deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  // Refresh install row if manage screen is open
+  renderManageInstallSection();
+});
+
+window.addEventListener('appinstalled', () => {
+  _deferredInstallPrompt = null;
+  toast('✅ Agash installed on your phone!');
+  renderManageInstallSection();
+});
+
+function isAppInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+}
+
+function renderManageInstallSection() {
+  const sec = document.getElementById('manage-install-section');
+  if (!sec) return;
+
+  if (isAppInstalled()) {
+    sec.innerHTML = `
+      <div class="manage-row">
+        <div class="manage-av" style="background:rgba(16,185,129,0.15);color:var(--green);">✅</div>
+        <div style="flex:1">
+          <div class="manage-name">App Already Installed</div>
+          <div class="manage-sub">Running as a standalone app</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  sec.innerHTML = `
+    <div class="manage-row" onclick="openInstallSheet()" style="cursor:pointer;">
+      <div class="manage-av" style="background:rgba(240,165,0,0.12);color:var(--accent);font-size:20px;">📲</div>
+      <div style="flex:1">
+        <div class="manage-name">Install App on Phone</div>
+        <div class="manage-sub">Add Agash to your home screen</div>
+      </div>
+      <span style="color:var(--muted);font-size:18px;font-weight:300;">›</span>
+    </div>`;
+}
+
+function openInstallSheet() {
+  const old = document.getElementById('install-sheet');
+  if (old) old.remove();
+
+  const canNativePrompt = !!_deferredInstallPrompt;
+  const sheet = document.createElement('div');
+  sheet.id = 'install-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-end;justify-content:center;';
+
+  sheet.innerHTML = `
+    <div style="background:var(--surface);border-radius:22px 22px 0 0;padding:20px 16px 36px;width:100%;max-width:500px;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 18px;"></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+        <div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#f0a500,#d48000);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📲</div>
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:0.3px;">Install Agash</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Add to home screen for the best experience</div>
+        </div>
+      </div>
+
+      ${canNativePrompt ? `
+      <button onclick="triggerNativeInstall()" style="width:100%;background:linear-gradient(135deg,#f0a500,#d48000);color:#0a0e1a;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;margin-bottom:10px;">
+        📲 Install Now
+      </button>` : `
+      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">How to install:</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+          <div style="margin-bottom:6px;">🍎 <strong style="color:var(--text);">iPhone/iPad:</strong> Tap the <strong style="color:var(--text);">Share</strong> button in Safari, then <strong style="color:var(--text);">"Add to Home Screen"</strong></div>
+          <div>🤖 <strong style="color:var(--text);">Android:</strong> Tap the browser <strong style="color:var(--text);">menu (⋮)</strong>, then <strong style="color:var(--text);">"Add to Home Screen"</strong> or <strong style="color:var(--text);">"Install App"</strong></div>
+        </div>
+      </div>`}
+
+      <button onclick="document.getElementById('install-sheet').remove()" style="width:100%;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;">
+        Close
+      </button>
+    </div>`;
+
+  sheet.addEventListener('click', e => { if (e.target === sheet) sheet.remove(); });
+  document.body.appendChild(sheet);
+}
+
+async function triggerNativeInstall() {
+  if (!_deferredInstallPrompt) return;
+  document.getElementById('install-sheet')?.remove();
+  _deferredInstallPrompt.prompt();
+  const { outcome } = await _deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    _deferredInstallPrompt = null;
+    toast('✅ Installing Agash...');
+  }
+  renderManageInstallSection();
+}
+
+
 
 // ══════════════════════════════════════════════════════════
 // SHARE APP
