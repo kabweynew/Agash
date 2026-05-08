@@ -353,7 +353,18 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </nav>
 </div>
 <div class="screen" id="s-cashier-reports">
-  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Overview</div></div></div><div class="tb-badge badge-sealer">SEALER</div></div>
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub" id="c-reports-sub">Overview</div></div></div><div class="tb-badge badge-sealer">SEALER</div></div>
+  <!-- Date bar for cashier reports -->
+  <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="cashierReportsSetToday()" style="background:var(--green);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;flex-shrink:0;">🟢 Today</button>
+    <button onclick="cashierReportsPrevDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">‹</button>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0;overflow:hidden;" onclick="openCashierReportsDatePicker()">
+      <span style="font-size:13px;">📅</span>
+      <span id="cr-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;"></span>
+      <span style="color:var(--muted);font-size:11px;flex-shrink:0;">▼</span>
+    </div>
+    <button onclick="cashierReportsNextDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">›</button>
+  </div>
   <div class="scroll" id="c-reports-content"></div>
   <nav class="bnav">
     <div class="bnav-item" onclick="cashierTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
@@ -444,15 +455,11 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </div>
   <!-- Post filter chips for admin -->
   <div class="fchips" id="a-post-chips" style="border-bottom:none;padding-bottom:4px;"></div>
-  <div class="fchips" id="a-chips" style="padding-top:4px;">
-    <div class="chip active" onclick="setFilter('all',this,'a')">All</div>
-    <div class="chip" onclick="setFilter('started',this,'a')">▶ Started</div>
-    <div class="chip" onclick="setFilter('half',this,'a')">⚡ Half</div>
-    <div class="chip" onclick="setFilter('finished',this,'a')">✅ Done</div>
-    <div class="chip" onclick="setFilter('bashal',this,'a')">🔮 Bashal</div>
-  </div>
+  <div class="fchips" id="a-chips" style="padding-top:4px;"></div>
+  <!-- Load type summary bar -->
+  <div id="a-type-bar" style="display:flex;gap:6px;padding:6px 14px 8px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;"></div>
   <div class="scroll">
-    <div class="stats-grid" id="a-stats"></div>
+    <div class="stats-grid" id="a-stats" style="display:none;"></div>
     <div id="a-history-notice"></div>
     <div class="sec-hdr"><span class="sec-title" id="a-sec-title">All Trucks</span><span class="sec-action" id="a-new-btn" onclick="openModal('m-truck')">+ New</span></div>
     <div id="a-trucks-list"></div>
@@ -479,7 +486,22 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </nav>
 </div>
 <div class="screen" id="s-admin-reports">
-  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub">Full Overview</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub" id="a-reports-sub">Full Overview</div></div></div>
+  <div class="tb-right">
+    <button class="tb-btn" onclick="shareReport()" style="background:rgba(37,211,102,0.12);border-color:rgba(37,211,102,0.35);color:#25d366;">📤 Share</button>
+    <div class="tb-badge badge-admin">ADMIN</div>
+  </div></div>
+  <!-- Date bar for reports -->
+  <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="reportsSetToday()" style="background:var(--green);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;flex-shrink:0;">🟢 Today</button>
+    <button onclick="reportsPrevDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">‹</button>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0;overflow:hidden;" onclick="openReportsDatePicker()">
+      <span style="font-size:13px;">📅</span>
+      <span id="r-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;"></span>
+      <span style="color:var(--muted);font-size:11px;flex-shrink:0;">▼</span>
+    </div>
+    <button onclick="reportsNextDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">›</button>
+  </div>
   <div class="scroll" id="a-reports-content"></div>
   <nav class="bnav">
     <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
@@ -512,10 +534,14 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   <div class="scroll">
     <div class="section-divider">🏗️ Work Posts (7)</div>
     <div id="manage-posts-list"></div>
+    <div class="section-divider">🔒 Sealers</div>
+    <div id="manage-sealers-section"></div>
     <div class="section-divider">👷‍♂️ Foreman</div>
     <div id="manage-foreman-section"></div>
     <div class="section-divider">👑 Admin PIN</div>
     <div id="manage-admin-pin"></div>
+    <div class="section-divider">🔗 Share App</div>
+    <div id="manage-share-section"></div>
     <div class="section-divider">📊 Export</div>
     <button onclick="exportTrucksExcel()" class="btn-pri" style="margin-bottom:8px;">📊 Export Trucks to Excel</button>
     <div class="section-divider">⚠️ Danger Zone</div>
@@ -956,8 +982,10 @@ function loginSuccess() {
   });
   buildPostGrid();
   // Reset admin date state on each login
-  adminSelectedDate = null;
-  adminFilterPost   = 'all';
+  adminSelectedDate  = null;
+  adminFilterPost    = 'all';
+  reportsSelectedDate = null;
+  cashierReportsDate  = null;
   if (role === 'post') {
     document.getElementById('w-tb-title').textContent = currentUser.label;
     document.getElementById('w-tb-sub').textContent   = formatWorkDayLabel(today);
@@ -1061,8 +1089,12 @@ function renderStats(trucks, elId) {
   const half     = trucks.filter(t=>t.status==='half').length;
   const finished = trucks.filter(t=>t.status==='finished').length;
   const bashal   = trucks.filter(t=>t.status==='bashal').length;
-  document.getElementById(elId).innerHTML = `
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.style.gridTemplateColumns = 'repeat(5,1fr)';
+  el.innerHTML = `
     <div class="stat-box"><div class="stat-n">${total}</div><div class="stat-l">Total</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--blue)"><div class="stat-n" style="color:var(--blue)">${started}</div><div class="stat-l">Started</div></div>
     <div class="stat-box" style="border-top:2px solid var(--green)"><div class="stat-n" style="color:var(--green)">${finished}</div><div class="stat-l">Done</div></div>
     <div class="stat-box" style="border-top:2px solid var(--gold)"><div class="stat-n" style="color:var(--gold)">${half}</div><div class="stat-l">Half</div></div>
     <div class="stat-box" style="border-top:2px solid var(--bashal)"><div class="stat-n" style="color:var(--bashal)">${bashal}</div><div class="stat-l">Bashal</div></div>`;
@@ -1104,21 +1136,20 @@ function renderTruckList(trucks, elId, canEdit, canDelete) {
       if (canDelete) acts.push(`<button class="tc-btn btn-del" onclick="deleteTruck('${t.id}')">🗑️</button>`);
       const newBadge = isNewest ? `<span style="display:inline-block;background:rgba(16,185,129,0.2);color:var(--green);border:1px solid rgba(16,185,129,0.4);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-left:6px;animation:pulse 1.5s infinite;">🆕 NEW</span>` : '';
       return `<div class="truck-card ${si.cardCls}" ${isNewest?'style="border-color:var(--green);box-shadow:0 0 0 2px rgba(16,185,129,0.25);"':''}>
-        <div class="tc-hdr">
-          <div>
-            <div class="tc-plate">${t.plate} <span class="post-pill">${post.label}</span>${newBadge}</div>
-            <div class="tc-time">${dateStr}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="display:flex;align-items:center;gap:7px;min-width:0;flex:1;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.5px;flex-shrink:0;">${t.plate}</div>
+            <span class="post-pill" style="flex-shrink:0;">${post.label}</span>
+            ${newBadge}
           </div>
-          <span class="s-badge ${si.cls}">${si.label}</span>
+          <span class="s-badge ${si.cls}" style="flex-shrink:0;">${si.label}</span>
         </div>
-        <div class="tc-body">
-          <div class="tc-field"><div class="tc-field-l">Post</div><div class="tc-field-v" style="color:${post.color}">${post.label}</div></div>
-          <div class="tc-field"><div class="tc-field-l">Load Type</div><div class="tc-field-v">${tl}</div></div>
-          <div class="tc-field"><div class="tc-field-l">Work Day</div><div class="tc-field-v">${t.workDay||t.date||''}</div></div>
-          <div class="tc-field"><div class="tc-field-l">Added By</div><div class="tc-field-v">${t.addedBy||'-'}</div></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:5px;flex-wrap:wrap;">
+          <span style="font-size:11px;color:var(--muted);">🕐 ${dateStr}</span>
+          <span style="font-size:11px;font-weight:700;color:var(--sub);">${tl}</span>
+          ${t.notes?`<span style="font-size:11px;color:var(--muted);">📝 ${t.notes}</span>`:''}
         </div>
-        ${t.notes?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">📝 ${t.notes}</div>`:''}
-        ${acts.length?`<div class="tc-acts">${acts.join('')}</div>`:''}
+        ${acts.length?`<div class="tc-acts" style="margin-top:7px;">${acts.join('')}</div>`:''}
       </div>`;
     }).join('');
     return header + cards;
@@ -1157,7 +1188,8 @@ function renderCashierPosts() {
   document.getElementById('c-posts-list').innerHTML = buildPostsHTML();
 }
 function renderCashierReports() {
-  document.getElementById('c-reports-content').innerHTML = buildReportsHTML();
+  updateCashierReportsDateDisplay();
+  document.getElementById('c-reports-content').innerHTML = buildReportsHTML(cashierReportsDate);
 }
 function cashierTab(tab, el) {
   ['s-cashier','s-cashier-posts','s-cashier-reports'].forEach(sid=>{
@@ -1502,6 +1534,275 @@ function buildAdminPostChips() {
       }).join('');
 }
 
+function buildAdminStatusChips(trucks) {
+  const bar = document.getElementById('a-chips');
+  if (!bar) return;
+  const cur     = filterStatus.a || 'all';
+  const total   = trucks.length;
+  const started = trucks.filter(t=>t.status==='started').length;
+  const half    = trucks.filter(t=>t.status==='half').length;
+  const fin     = trucks.filter(t=>t.status==='finished').length;
+  const bashal  = trucks.filter(t=>t.status==='bashal').length;
+  const chip = (val, label, count) => {
+    const active = cur === val ? 'active' : '';
+    return `<div class="chip ${active}" onclick="setFilter('${val}',this,'a')">${label} <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;">(${count})</span></div>`;
+  };
+  bar.innerHTML =
+    chip('all',      'All',        total)   +
+    chip('started',  '▶ Started',  started) +
+    chip('finished', '✅ Done',    fin)     +
+    chip('half',     '⚡ Half',    half)    +
+    chip('bashal',   '🔮 Bashal',  bashal);
+}
+
+// ══════════════════════════════════════════════════════════
+// SHARE REPORT — Step 1: Checklist picker
+// ══════════════════════════════════════════════════════════
+function shareReport() {
+  // Remove any existing sheet first
+  const old = document.getElementById('share-sheet');
+  if (old) old.remove();
+
+  const sheet = document.createElement('div');
+  sheet.id = 'share-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(5px);z-index:500;display:flex;align-items:flex-end;justify-content:center;';
+
+  const SECTIONS = [
+    { id:'sec-date',     label:'📅 Date header',         sub:'Agash Report — Today Fri 8 May',    checked:true },
+    { id:'sec-summary',  label:'📊 Status summary',       sub:'Total / Started / Done / Half / Bashal', checked:true },
+    { id:'sec-loadtype', label:'📦 By Load Type',          sub:'Shirac / B.Shirac / Metal / Bashal counts', checked:true },
+    { id:'sec-perpost',  label:'🏗️ Per Post breakdown',   sub:'Trucks per post with count',        checked:true },
+    { id:'sec-plates',   label:'🚛 Truck plates per post', sub:'Actual plate numbers grouped by type', checked:true },
+    { id:'sec-footer',   label:'🏢 Footer',               sub:'Agash · Djibouti',                  checked:true },
+  ];
+
+  const rows = SECTIONS.map(s => `
+    <div onclick="shareToggleRow('${s.id}')" style="display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;user-select:none;">
+      <div id="${s.id}" data-checked="1" style="width:24px;height:24px;border-radius:7px;background:var(--gold);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;transition:all 0.15s;">✓</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:700;">${s.label}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.sub}</div>
+      </div>
+    </div>`).join('');
+
+  sheet.innerHTML = `
+    <div style="background:var(--surface);border-radius:22px 22px 0 0;padding:18px 16px 32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 14px;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;">📤 Share Report</div>
+        <div onclick="shareToggleAll()" style="font-size:11px;font-weight:700;color:var(--gold);cursor:pointer;padding:4px 8px;background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.25);border-radius:8px;">Toggle All</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Choose what to include:</div>
+      ${rows}
+      <button onclick="shareConfirm()" style="width:100%;margin-top:16px;background:linear-gradient(135deg,#f0a500,#d48000);color:#0a0e1a;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">✅ Continue to Share</button>
+      <button onclick="document.getElementById('share-sheet').remove()" style="width:100%;margin-top:8px;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:12px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+    </div>`;
+
+  document.body.appendChild(sheet);
+  sheet.addEventListener('click', e => { if (e.target === sheet) sheet.remove(); });
+}
+
+function shareToggleRow(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const on = el.dataset.checked === '1';
+  el.dataset.checked = on ? '0' : '1';
+  el.style.background = on ? 'transparent' : 'var(--gold)';
+  el.style.border = on ? '2px solid rgba(255,255,255,0.18)' : '2px solid var(--gold)';
+  el.textContent = on ? '' : '✓';
+}
+
+function shareToggleAll() {
+  const ids = ['sec-date','sec-summary','sec-loadtype','sec-perpost','sec-plates','sec-footer'];
+  const allOn = ids.every(id => document.getElementById(id)?.dataset.checked === '1');
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const turnOn = !allOn;
+    el.dataset.checked = turnOn ? '1' : '0';
+    el.style.background = turnOn ? 'var(--gold)' : 'transparent';
+    el.style.border = turnOn ? '2px solid var(--gold)' : '2px solid rgba(255,255,255,0.18)';
+    el.textContent = turnOn ? '✓' : '';
+  });
+}
+
+// Step 2: Build text from checked sections and show share options
+function shareConfirm() {
+  const inc = id => document.getElementById(id)?.dataset.checked === '1';
+
+  const cfg    = loadConfig();
+  const trucks = loadTrucks();
+  const today  = getTodayWorkDay();
+  const date   = reportsSelectedDate || today;
+  const dt     = trucks.filter(t => (t.workDay||t.date||getWorkDay(t.ts)) === date);
+  const d      = new Date(date + 'T06:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const isToday = date === today;
+  const dateLabel = isToday
+    ? `Today — ${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
+    : `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+  const total  = dt.length;
+  const shirac = dt.filter(t=>t.type==='shirac').length;
+  const bila   = dt.filter(t=>t.type==='bilashirac').length;
+  const metal  = dt.filter(t=>t.type==='metal').length;
+  const bashal = dt.filter(t=>t.status==='bashal').length;
+  const fin    = dt.filter(t=>t.status==='finished').length;
+  const half   = dt.filter(t=>t.status==='half').length;
+  const started= dt.filter(t=>t.status==='started').length;
+
+  const postData = cfg.posts.map(p => {
+    const pt  = dt.filter(t=>t.postId===p.id);
+    if (!pt.length) return null;
+    const ps  = pt.filter(t=>t.type==='shirac');
+    const pb  = pt.filter(t=>t.type==='bilashirac');
+    const pm  = pt.filter(t=>t.type==='metal');
+    const pba = pt.filter(t=>t.status==='bashal');
+    return { label:p.label, count:pt.length, ps, pb, pm, pba };
+  }).filter(Boolean);
+
+  const lines = [];
+
+  // ══════════════════════════════════════
+  // HEADER — "Today — Fri 8 May / 5 trucks total"
+  // ══════════════════════════════════════
+  if (inc('sec-date')) {
+    lines.push(`*${dateLabel}*`);
+    lines.push(`🚛 *${total} truck${total!==1?'s':''} total*`);
+  }
+
+  // ══════════════════════════════════════
+  // STAT BOXES — TOTAL · SHIRAC · B.SHIRAC · METAL · BASHAL
+  // ══════════════════════════════════════
+  if (inc('sec-loadtype')) {
+    lines.push('');
+    lines.push('🚛 *BY LOAD TYPE*');
+    lines.push(`📦 Total: *${total}*   🟢 Shirac: *${shirac}*   🔵 B.Shirac: *${bila}*   🔴 Metal: *${metal}*   🟣 Bashal: *${bashal}*`);
+  }
+
+  if (inc('sec-summary')) {
+    lines.push('');
+    lines.push(`✅ Done: *${fin}*   ▶️ Started: *${started}*   ⚡ Half: *${half}*`);
+  }
+
+  // ══════════════════════════════════════
+  // PER POST — mirrors Image 2 card layout exactly:
+  //   ● Post 1   3 trucks
+  //   🚛 SHIRAC (1)  🚚 B.SHIRAC (2)  🏗️ METAL (0)  🔮 BASHAL (1)
+  //   ──────────────────────────────────
+  //   Shirac col  | B.Shirac col | Metal col | Bashal col
+  //      11       |   123445     |           |  123445
+  //               |   12344      |           |
+  // ══════════════════════════════════════
+  if (inc('sec-perpost') || inc('sec-plates')) {
+    lines.push('');
+    lines.push('〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️');
+    lines.push(`🏗️ *BREAKDOWN PER POST — ${postData.length} post${postData.length!==1?'s':''}*`);
+
+    if (postData.length === 0) {
+      lines.push('_No trucks recorded._');
+    } else {
+      postData.forEach(p => {
+        lines.push('');
+        // ── Post header ──
+        lines.push(`● *${p.label}*   ${p.count} truck${p.count!==1?'s':''}`);
+
+        // ── 4-column type header with counts ──
+        if (inc('sec-perpost')) {
+          lines.push(
+            `   🚛 SHIRAC *(${p.ps.length})*` +
+            `   🚚 B.SHIRAC *(${p.pb.length})*` +
+            `   🏗️ METAL *(${p.pm.length})*` +
+            `   🔮 BASHAL *(${p.pba.length})*`
+          );
+        }
+
+        // ── Plate grid — one column per type, plates stacked vertically ──
+        if (inc('sec-plates')) {
+          const cols = [
+            { icon:'🟢', plates: p.ps.map(t=>t.plate)  },
+            { icon:'🔵', plates: p.pb.map(t=>t.plate)  },
+            { icon:'🔴', plates: p.pm.map(t=>t.plate)  },
+            { icon:'🟣', plates: p.pba.map(t=>t.plate) },
+          ];
+          // Only include columns that have at least one plate
+          const activeCols = cols.filter(c=>c.plates.length>0);
+          if (activeCols.length > 0) {
+            const maxRows = Math.max(...activeCols.map(c=>c.plates.length));
+            // Column width = longest plate in that col + 2 padding
+            activeCols.forEach(col => {
+              col.w = Math.max(...col.plates.map(p=>p.length), 6) + 2;
+            });
+            // Header separator
+            lines.push('   ' + activeCols.map(c => '─'.repeat(c.w)).join('  '));
+            // Plate rows
+            for (let i = 0; i < maxRows; i++) {
+              const row = activeCols.map(col => {
+                const plate = col.plates[i] || '';
+                return plate ? (col.icon + ' ' + plate).padEnd(col.w) : ' '.repeat(col.w);
+              }).join('  ');
+              lines.push('   ' + row.trimEnd());
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // ══════════════════════════════════════
+  // FOOTER
+  // ══════════════════════════════════════
+  if (inc('sec-footer')) {
+    lines.push('');
+    lines.push('〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️');
+    lines.push('🏢 *Agash · Djibouti*');
+  }
+
+  const text = lines.join('\n');
+
+  // Replace checklist sheet with share options sheet
+  const old = document.getElementById('share-sheet');
+  if (old) old.remove();
+
+  if (navigator.share) {
+    navigator.share({ title: `Agash Report — ${dateLabel}`, text }).catch(() => {});
+    return;
+  }
+
+  const enc = encodeURIComponent(text);
+  const sheet2 = document.createElement('div');
+  sheet2.id = 'share-sheet';
+  sheet2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(5px);z-index:500;display:flex;align-items:flex-end;justify-content:center;';
+  sheet2.innerHTML = `
+    <div style="background:var(--surface);border-radius:22px 22px 0 0;padding:18px 16px 36px;width:100%;max-width:500px;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 16px;"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div onclick="shareReport()" style="cursor:pointer;font-size:18px;color:var(--muted);">‹</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;">📤 Share via</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+        <a href="https://wa.me/?text=${enc}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);border-radius:12px;padding:14px 8px;text-decoration:none;color:#25d366;font-size:11px;font-weight:700;">
+          <span style="font-size:28px;">📱</span>WhatsApp
+        </a>
+        <a href="mailto:?subject=Agash Report — ${encodeURIComponent(dateLabel)}&body=${enc}" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:14px 8px;text-decoration:none;color:var(--blue);font-size:11px;font-weight:700;">
+          <span style="font-size:28px;">✉️</span>Email
+        </a>
+        <a href="sms:?body=${enc}" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:14px 8px;text-decoration:none;color:var(--green);font-size:11px;font-weight:700;">
+          <span style="font-size:28px;">💬</span>SMS
+        </a>
+        <div onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('share-text-area').value).then(()=>toast('📋 Copied!'))" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;color:var(--gold);font-size:11px;font-weight:700;grid-column:span 3;">
+          <span style="font-size:22px;">📋</span>Copy to Clipboard
+        </div>
+      </div>
+      <textarea id="share-text-area" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-size:12px;font-family:monospace;resize:none;height:140px;">${text}</textarea>
+      <button onclick="document.getElementById('share-sheet').remove()" style="width:100%;margin-top:10px;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:11px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;">Close</button>
+    </div>`;
+  document.body.appendChild(sheet2);
+  sheet2.addEventListener('click', e => { if (e.target === sheet2) sheet2.remove(); });
+}
+
+
 function setAdminPostFilter(postId, el) {
   adminFilterPost = postId;
   buildAdminPostChips();
@@ -1552,8 +1853,14 @@ function renderAdminTrucks() {
   // Apply post filter
   if (adminFilterPost !== 'all') all = all.filter(t => t.postId === adminFilterPost);
 
-  // Stats based on post-filtered all-for-date
+  // Dynamic status chips with counts
+  buildAdminStatusChips(all);
+
+  // Stats hidden — counts are on chips now
   renderAdminStats(all, 'a-stats', date);
+
+  // Type bar
+  renderAdminTypeBar(getTrucks('all', null, date));
 
   // Apply status filter for list
   const trucks = statusFilter === 'all' ? all : all.filter(t => t.status === statusFilter);
@@ -1562,53 +1869,32 @@ function renderAdminTrucks() {
 }
 
 function renderAdminStats(trucks, elId, date) {
-  const cfg     = loadConfig();
   const total   = trucks.length;
   const fin     = trucks.filter(t=>t.status==='finished').length;
   const half    = trucks.filter(t=>t.status==='half').length;
   const bashal  = trucks.filter(t=>t.status==='bashal').length;
   const started = trucks.filter(t=>t.status==='started').length;
 
-  // Per-post breakdown for stats grid (show top 4 posts with trucks, or all zeros)
-  const postRows = cfg.posts.map(p => {
-    const pt = trucks.filter(t=>t.postId===p.id);
-    return { label: p.label, color: p.color, count: pt.length, fin: pt.filter(t=>t.status==='finished').length };
-  }).filter(p => p.count > 0);
-
-  const mainStats = `
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.style.gridTemplateColumns = 'repeat(5,1fr)';
+  el.innerHTML = `
     <div class="stat-box"><div class="stat-n">${total}</div><div class="stat-l">Total</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--blue)"><div class="stat-n" style="color:var(--blue)">${started}</div><div class="stat-l">Started</div></div>
     <div class="stat-box" style="border-top:2px solid var(--green)"><div class="stat-n" style="color:var(--green)">${fin}</div><div class="stat-l">Done</div></div>
     <div class="stat-box" style="border-top:2px solid var(--gold)"><div class="stat-n" style="color:var(--gold)">${half}</div><div class="stat-l">Half</div></div>
     <div class="stat-box" style="border-top:2px solid var(--bashal)"><div class="stat-n" style="color:var(--bashal)">${bashal}</div><div class="stat-l">Bashal</div></div>`;
 
-  const el = document.getElementById(elId);
-  if (!el) return;
-  el.innerHTML = mainStats;
-
-  // Per-post stats section (below main stats)
-  let postStatsEl = document.getElementById('a-post-stats');
-  if (!postStatsEl) {
-    postStatsEl = document.createElement('div');
-    postStatsEl.id = 'a-post-stats';
-    el.parentNode.insertBefore(postStatsEl, el.nextSibling);
-  }
-  if (postRows.length > 0) {
-    postStatsEl.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(${Math.min(postRows.length,4)},1fr);gap:6px;margin-bottom:12px;">
-        ${postRows.map(p=>`
-          <div style="background:var(--card);border:1px solid var(--border);border-top:2px solid ${p.color};border-radius:8px;padding:8px 4px;text-align:center;">
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:${p.color}">${p.count}</div>
-            <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-top:1px">${p.label}</div>
-            <div style="font-size:9px;color:var(--green);font-weight:700;margin-top:2px">${p.fin}✓</div>
-          </div>`).join('')}
-      </div>`;
-  } else {
-    postStatsEl.innerHTML = '';
-  }
+  // Remove old per-post boxes (no longer needed — post chips show this)
+  const postStatsEl = document.getElementById('a-post-stats');
+  if (postStatsEl) postStatsEl.innerHTML = '';
 }
 
 function renderAdminPosts()   { document.getElementById('a-posts-list').innerHTML = buildPostsHTML(); }
-function renderAdminReports() { document.getElementById('a-reports-content').innerHTML = buildReportsHTML(); }
+function renderAdminReports() {
+  updateReportsDateDisplay();
+  document.getElementById('a-reports-content').innerHTML = buildReportsHTML(reportsSelectedDate);
+}
 function adminTab(tab, el) {
   ['s-admin','s-admin-posts','s-admin-reports','s-admin-incoming','s-admin-manage'].forEach(sid=>{
     const sc = document.getElementById(sid);
@@ -1757,10 +2043,10 @@ function togglePost(id) {
 // ══════════════════════════════════════════════════════════
 // REPORTS
 // ══════════════════════════════════════════════════════════
-function buildReportsHTML() {
+function buildReportsHTML(dateOverride) {
   const trucks  = loadTrucks();
   const today   = getTodayWorkDay();
-  const date    = (typeof adminSelectedDate !== 'undefined' && adminSelectedDate) ? adminSelectedDate : today;
+  const date    = dateOverride || today;
   const isToday = date === today;
   const dt      = trucks.filter(t => (t.workDay || t.date || getWorkDay(t.ts)) === date);
   const cfg     = loadConfig();
@@ -1781,15 +2067,23 @@ function buildReportsHTML() {
 
   // Per-post breakdown for selected date
   const postRows = cfg.posts.map(p => {
-    const pt     = dt.filter(t => t.postId === p.id);
+    const pt          = dt.filter(t => t.postId === p.id);
+    const shiracTrucks = pt.filter(t => t.type === 'shirac');
+    const bilaTrucks   = pt.filter(t => t.type === 'bilashirac');
+    const metalTrucks  = pt.filter(t => t.type === 'metal');
+    const bashalTrucks = pt.filter(t => t.status === 'bashal');
     return {
-      label:  p.label,
-      color:  p.color,
-      total:  pt.length,
-      shirac: pt.filter(t => t.type === 'shirac').length,
-      bila:   pt.filter(t => t.type === 'bilashirac').length,
-      metal:  pt.filter(t => t.type === 'metal').length,
-      bashal: pt.filter(t => t.status === 'bashal').length
+      label:        p.label,
+      color:        p.color,
+      total:        pt.length,
+      shirac:       shiracTrucks.length,
+      bila:         bilaTrucks.length,
+      metal:        metalTrucks.length,
+      bashal:       bashalTrucks.length,
+      shiracPlates: shiracTrucks.map(t => t.plate),
+      bilaPlates:   bilaTrucks.map(t => t.plate),
+      metalPlates:  metalTrucks.map(t => t.plate),
+      bashalPlates: bashalTrucks.map(t => t.plate),
     };
   }).filter(p => p.total > 0);
 
@@ -1812,26 +2106,21 @@ function buildReportsHTML() {
       <div style="font-size:11px;color:var(--muted);margin-top:2px;">${total} truck${total!==1?'s':''} total</div>
     </div>
 
-    <!-- Summary stats: 4 type boxes -->
+    <!-- Summary stats: 5 type boxes including TOTAL -->
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;margin-top:4px;">🚛 By Load Type</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:16px;">
-      ${statBox(shirac,  '🚛 Shirac',   '#10b981', '#10b981')}
-      ${statBox(bila,    '🚚 B.Shirac', '#3b82f6', '#3b82f6')}
-      ${statBox(metal,   '🏗️ Metal',   '#ef4444', '#ef4444')}
-      ${statBox(bashal,  '🔮 Bashal',  '#e879f9', '#e879f9')}
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px;">
+      ${statBox(total,  'Total',      'var(--text)', 'var(--text)')}
+      ${statBox(shirac, '🚛 Shirac',  '#10b981',     '#10b981')}
+      ${statBox(bila,   '🚚 B.Shirac','#3b82f6',     '#3b82f6')}
+      ${statBox(metal,  '🏗️ Metal',  '#ef4444',     '#ef4444')}
+      ${statBox(bashal, '🔮 Bashal', '#e879f9',     '#e879f9')}
     </div>
 
-    <!-- All-time type totals -->
+    <!-- Date load breakdown with progress bars -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;">📊 All-Time Type Totals</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;">📊 Load Breakdown — ${dateLabel}</div>
       ${(()=>{
-        const all = loadTrucks();
-        const totShirac  = all.filter(t=>t.type==='shirac').length;
-        const totBila    = all.filter(t=>t.type==='bilashirac').length;
-        const totMetal   = all.filter(t=>t.type==='metal').length;
-        const totBashal  = all.filter(t=>t.status==='bashal').length;
-        const totAll     = all.length;
-        const pct = (n) => totAll > 0 ? Math.round(n/totAll*100) : 0;
+        const pct = (n) => total > 0 ? Math.round(n/total*100) : 0;
         const row = (n, label, color) => `
           <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
             <span style="font-size:13px;font-weight:700;color:${color};">${label}</span>
@@ -1843,36 +2132,62 @@ function buildReportsHTML() {
               <span style="font-size:10px;color:var(--muted);min-width:28px;">${pct(n)}%</span>
             </div>
           </div>`;
-        return row(totShirac,'🚛 Shirac','#10b981')
-          + row(totBila,'🚚 Bila Shirac','#3b82f6')
-          + row(totMetal,'🏗️ Metal','#ef4444')
-          + row(totBashal,'🔮 Bashal','#e879f9');
+        return row(shirac,'🚛 Shirac','#10b981')
+          + row(bila,'🚚 Bila Shirac','#3b82f6')
+          + row(metal,'🏗️ Metal','#ef4444')
+          + row(bashal,'🔮 Bashal','#e879f9')
+          + `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;">
+              <span style="font-size:13px;font-weight:800;color:var(--text);">📦 Total</span>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--text);">${total}</span>
+             </div>`;
       })()}
     </div>
 
     <!-- Per-post breakdown -->
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">
-      🏗️ Breakdown Per Post
+      🏗️ Breakdown Per Post — ${postRows.length} post${postRows.length!==1?'s':''}
     </div>
 
     ${postRows.length === 0
       ? `<div style="font-size:13px;color:var(--muted);padding:12px 0;text-align:center;">No trucks on this date.</div>`
-      : postRows.map(p => `
-        <div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${p.color};border-radius:10px;padding:11px 12px;margin-bottom:8px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="width:9px;height:9px;border-radius:50%;background:${p.color};display:inline-block;"></span>
-              <span style="font-size:14px;font-weight:700;">${p.label}</span>
+      : postRows.map(p => {
+          // Build rows: zip all 4 type arrays into table rows
+          const maxRows = Math.max(p.shiracPlates.length, p.bilaPlates.length, p.metalPlates.length, p.bashalPlates.length, 1);
+          const cell = (plate, color) => plate
+            ? `<td style="padding:3px 4px;"><div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--text);background:${color}12;border:1px solid ${color}30;border-radius:5px;padding:2px 5px;text-align:center;letter-spacing:0.4px;">${plate}</div></td>`
+            : `<td style="padding:3px 4px;"><div style="height:22px;"></div></td>`;
+          const rows = Array.from({length:maxRows}, (_,i) => `
+            <tr>
+              ${cell(p.shiracPlates[i], '#10b981')}
+              ${cell(p.bilaPlates[i],   '#3b82f6')}
+              ${cell(p.metalPlates[i],  '#ef4444')}
+              ${cell(p.bashalPlates[i], '#e879f9')}
+            </tr>`).join('');
+          return `
+          <div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${p.color};border-radius:10px;padding:11px 12px;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="width:9px;height:9px;border-radius:50%;background:${p.color};display:inline-block;"></span>
+                <span style="font-size:14px;font-weight:700;">${p.label}</span>
+              </div>
+              <div>
+                <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:${p.color};">${p.total}</span>
+                <span style="font-size:10px;color:var(--muted);margin-left:3px;">truck${p.total!==1?'s':''}</span>
+              </div>
             </div>
-            <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:${p.color};">${p.total}</span>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">
-            ${miniBox(p.shirac, 'Shirac',   '#10b981')}
-            ${miniBox(p.bila,   'B.Shirac', '#3b82f6')}
-            ${miniBox(p.metal,  'Metal',    '#ef4444')}
-            ${miniBox(p.bashal, 'Bashal',   '#e879f9')}
-          </div>
-        </div>`).join('')}`;
+            <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+              <thead>
+                <tr>
+                  <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#10b981;padding:0 4px 6px;text-align:center;border-bottom:2px solid #10b98133;">🚛 Shirac<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${p.shirac})</span></th>
+                  <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#3b82f6;padding:0 4px 6px;text-align:center;border-bottom:2px solid #3b82f633;">🚚 B.Shirac<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${p.bila})</span></th>
+                  <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#ef4444;padding:0 4px 6px;text-align:center;border-bottom:2px solid #ef444433;">🏗️ Metal<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${p.metal})</span></th>
+                  <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#e879f9;padding:0 4px 6px;text-align:center;border-bottom:2px solid #e879f933;">🔮 Bashal<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${p.bashal})</span></th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+        }).join('')}`;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1998,8 +2313,138 @@ function refreshCurrentView() {
 }
 
 // ══════════════════════════════════════════════════════════
-// MANAGE (Admin)
+// REPORTS DATE STATE (independent from admin truck date)
 // ══════════════════════════════════════════════════════════
+let reportsSelectedDate   = null; // null = today
+let cashierReportsDate    = null; // null = today
+
+function updateReportsDateDisplay() {
+  const today = getTodayWorkDay();
+  const date  = reportsSelectedDate || today;
+  const isToday = date === today;
+  const d = new Date(date + 'T06:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const lbl = isToday
+    ? `Today · ${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
+    : `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  const el = document.getElementById('r-date-label-text');
+  if (el) el.textContent = lbl;
+  const sub = document.getElementById('a-reports-sub');
+  if (sub) sub.textContent = isToday ? 'Full Overview · Today' : `History · ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function updateCashierReportsDateDisplay() {
+  const today = getTodayWorkDay();
+  const date  = cashierReportsDate || today;
+  const isToday = date === today;
+  const d = new Date(date + 'T06:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const lbl = isToday
+    ? `Today · ${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
+    : `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  const el = document.getElementById('cr-date-label-text');
+  if (el) el.textContent = lbl;
+  const sub = document.getElementById('c-reports-sub');
+  if (sub) sub.textContent = isToday ? 'Overview · Today' : `History · ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function reportsSetToday()        { reportsSelectedDate = null; updateReportsDateDisplay(); renderAdminReports(); }
+function cashierReportsSetToday() { cashierReportsDate  = null; updateCashierReportsDateDisplay(); renderCashierReports(); }
+
+function reportsPrevDay() {
+  const dates = getAvailableDates();
+  const today = getTodayWorkDay();
+  const cur   = reportsSelectedDate || today;
+  const idx   = dates.indexOf(cur);
+  if (idx < dates.length - 1) { reportsSelectedDate = dates[idx + 1]; updateReportsDateDisplay(); renderAdminReports(); }
+}
+function reportsNextDay() {
+  const dates = getAvailableDates();
+  const today = getTodayWorkDay();
+  const cur   = reportsSelectedDate || today;
+  const idx   = dates.indexOf(cur);
+  if (idx > 0) { reportsSelectedDate = dates[idx - 1]; updateReportsDateDisplay(); renderAdminReports(); }
+}
+function cashierReportsPrevDay() {
+  const dates = getAvailableDates();
+  const today = getTodayWorkDay();
+  const cur   = cashierReportsDate || today;
+  const idx   = dates.indexOf(cur);
+  if (idx < dates.length - 1) { cashierReportsDate = dates[idx + 1]; updateCashierReportsDateDisplay(); renderCashierReports(); }
+}
+function cashierReportsNextDay() {
+  const dates = getAvailableDates();
+  const today = getTodayWorkDay();
+  const cur   = cashierReportsDate || today;
+  const idx   = dates.indexOf(cur);
+  if (idx > 0) { cashierReportsDate = dates[idx - 1]; updateCashierReportsDateDisplay(); renderCashierReports(); }
+}
+
+function openReportsDatePicker() {
+  const trucks = loadTrucks();
+  const today  = getTodayWorkDay();
+  const days   = getAvailableDates();
+  const sel    = reportsSelectedDate || today;
+  document.getElementById('date-picker-list').innerHTML = days.map(d => {
+    const count = trucks.filter(t => (t.workDay||t.date||getWorkDay(t.ts)) === d).length;
+    const isToday    = d === today;
+    const isSelected = d === sel;
+    const tag  = isToday ? ' · Today' : '';
+    const bg   = isSelected ? 'var(--accent)' : 'var(--card)';
+    const bdr  = isSelected ? 'var(--accent)' : 'var(--border)';
+    const clr  = isSelected ? '#0a0e1a' : 'var(--text)';
+    return `<div onclick="reportsSelectDate('${d}');closeModal('m-date-picker')"
+      style="background:${bg};border:1.5px solid ${bdr};border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:${clr};font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">${fmtDateShort(d)}${tag}</div>
+        <div style="font-size:11px;color:${isSelected?'rgba(10,14,26,0.7)':'var(--muted)'};margin-top:2px;">${count} truck${count!==1?'s':''}</div>
+      </div>
+      ${isSelected ? '<span style="font-size:18px;color:#0a0e1a;font-weight:900;">✓</span>' : '<span style="color:var(--muted);font-size:16px;">›</span>'}
+    </div>`;
+  }).join('');
+  openModal('m-date-picker');
+}
+
+function reportsSelectDate(d) {
+  reportsSelectedDate = d === getTodayWorkDay() ? null : (d || null);
+  updateReportsDateDisplay();
+  renderAdminReports();
+}
+
+function openCashierReportsDatePicker() {
+  const trucks = loadTrucks();
+  const today  = getTodayWorkDay();
+  const days   = getAvailableDates();
+  const sel    = cashierReportsDate || today;
+  document.getElementById('date-picker-list').innerHTML = days.map(d => {
+    const count = trucks.filter(t => (t.workDay||t.date||getWorkDay(t.ts)) === d).length;
+    const isToday    = d === today;
+    const isSelected = d === sel;
+    const tag  = isToday ? ' · Today' : '';
+    const bg   = isSelected ? 'var(--accent)' : 'var(--card)';
+    const bdr  = isSelected ? 'var(--accent)' : 'var(--border)';
+    const clr  = isSelected ? '#0a0e1a' : 'var(--text)';
+    return `<div onclick="cashierReportsSelectDate('${d}');closeModal('m-date-picker')"
+      style="background:${bg};border:1.5px solid ${bdr};border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:${clr};font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">${fmtDateShort(d)}${tag}</div>
+        <div style="font-size:11px;color:${isSelected?'rgba(10,14,26,0.7)':'var(--muted)'};margin-top:2px;">${count} truck${count!==1?'s':''}</div>
+      </div>
+      ${isSelected ? '<span style="font-size:18px;color:#0a0e1a;font-weight:900;">✓</span>' : '<span style="color:var(--muted);font-size:16px;">›</span>'}
+    </div>`;
+  }).join('');
+  openModal('m-date-picker');
+}
+
+function cashierReportsSelectDate(d) {
+  cashierReportsDate = d === getTodayWorkDay() ? null : (d || null);
+  updateCashierReportsDateDisplay();
+  renderCashierReports();
+}
+
+
 function renderManage() {
   const cfg = loadConfig();
 
@@ -2015,6 +2460,31 @@ function renderManage() {
         <div class="m-btn m-btn-pin" onclick="openPinChange('post','${p.id}','${p.label}')">🔐 PIN</div>
       </div>
     </div>`).join('');
+
+  // Sealers — show PIN visible
+  document.getElementById('manage-sealers-section').innerHTML = `
+    <div class="manage-row">
+      <div class="manage-av" style="background:rgba(6,182,212,0.15);color:var(--teal);">🔒</div>
+      <div style="flex:1">
+        <div class="manage-name">${cfg.sealer1.name || 'Sealer 1'}</div>
+        <div class="manage-sub">PIN: <span class="pin-reveal">${cfg.sealer1.pin}</span></div>
+      </div>
+      <div class="manage-acts">
+        <div class="m-btn m-btn-perm" onclick="openPerms('sealer1')">⚙️ Perms</div>
+        <div class="m-btn m-btn-pin" onclick="openPinChange('sealer1',null,'${cfg.sealer1.name || 'Sealer 1'}')">🔐 PIN</div>
+      </div>
+    </div>
+    <div class="manage-row">
+      <div class="manage-av" style="background:rgba(6,182,212,0.15);color:var(--teal);">🔒</div>
+      <div style="flex:1">
+        <div class="manage-name">${cfg.sealer2.name || 'Sealer 2'}</div>
+        <div class="manage-sub">PIN: <span class="pin-reveal">${cfg.sealer2.pin}</span></div>
+      </div>
+      <div class="manage-acts">
+        <div class="m-btn m-btn-perm" onclick="openPerms('sealer2')">⚙️ Perms</div>
+        <div class="m-btn m-btn-pin" onclick="openPinChange('sealer2',null,'${cfg.sealer2.name || 'Sealer 2'}')">🔐 PIN</div>
+      </div>
+    </div>`;
 
   // Foreman — show PIN visible
   document.getElementById('manage-foreman-section').innerHTML = `
@@ -2042,11 +2512,75 @@ function renderManage() {
         <div class="m-btn m-btn-pin" onclick="openPinChange('admin',null,'Admin')">🔐 PIN</div>
       </div>
     </div>`;
+
+  // Share section
+  const appUrl = window.location.href.split('?')[0];
+  document.getElementById('manage-share-section').innerHTML = `
+    <div class="manage-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <div class="manage-av" style="background:rgba(37,211,102,0.15);color:#25d366;">📲</div>
+        <div>
+          <div class="manage-name">App Link</div>
+          <div class="manage-sub" style="word-break:break-all;font-size:10px;">${appUrl}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:7px;">
+        <button onclick="shareViaWhatsApp()" style="flex:1;background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);color:#25d366;border-radius:9px;padding:9px 6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;">
+          📱 Share via WhatsApp
+        </button>
+        <button onclick="copyAppLink()" style="flex:1;background:var(--blue2);border:1px solid rgba(59,130,246,0.3);color:var(--blue);border-radius:9px;padding:9px 6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;">
+          🔗 Copy Link
+        </button>
+      </div>
+    </div>`;
 }
 
 // ══════════════════════════════════════════════════════════
-// PIN CHANGE
+// SHARE APP
 // ══════════════════════════════════════════════════════════
+function shareViaWhatsApp() {
+  const url = window.location.href.split('?')[0];
+  const msg = encodeURIComponent('📱 Agash App — Truck Management\n' + url);
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
+function copyAppLink() {
+  const url = window.location.href.split('?')[0];
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => toast('🔗 Link copied!')).catch(() => { prompt('Copy this link:', url); });
+  } else {
+    prompt('Copy this link:', url);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// TYPE BAR (admin trucks screen)
+// ══════════════════════════════════════════════════════════
+function renderAdminTypeBar(trucks) {
+  const bar = document.getElementById('a-type-bar');
+  if (!bar) return;
+  const shirac  = trucks.filter(t => t.type === 'shirac').length;
+  const bila    = trucks.filter(t => t.type === 'bilashirac').length;
+  const metal   = trucks.filter(t => t.type === 'metal').length;
+  const bashal  = trucks.filter(t => t.status === 'bashal').length;
+  const total   = trucks.length;
+  const item = (icon, label, n, color) =>
+    `<div style="display:flex;align-items:center;gap:5px;background:${color}14;border:1px solid ${color}33;border-radius:8px;padding:4px 10px;white-space:nowrap;">
+      <span style="font-size:13px;">${icon}</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:${color};">${n}</span>
+      <span style="font-size:10px;font-weight:700;color:${color};opacity:0.8;">${label}</span>
+    </div>`;
+  bar.innerHTML =
+    item('🚛', 'Shirac',   shirac, '#10b981') +
+    item('🚚', 'B.Shirac', bila,   '#3b82f6') +
+    item('🏗️', 'Metal',    metal,  '#ef4444') +
+    item('🔮', 'Bashal',   bashal, '#e879f9') +
+    (total > 0 ? `<div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:4px 10px;white-space:nowrap;margin-left:auto;">
+      <span style="font-size:10px;font-weight:700;color:var(--muted);">TOTAL</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:var(--text);">${total}</span>
+    </div>` : '');
+}
+
+
 function openPinChange(type, id, name) {
   pinChangeTarget = { type, id };
   document.getElementById('pin-change-label').textContent = `New PIN for ${name} (4 digits)`;
@@ -2214,6 +2748,8 @@ function init() {
   buildPostGrid();
   initFirebase();
   buildLoginScreen();
+  updateReportsDateDisplay();
+  updateCashierReportsDateDisplay();
 }
 init();
 </script>
