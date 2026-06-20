@@ -35,8 +35,22 @@ html{overflow:hidden;position:fixed;width:100%;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 
 /* SCREENS */
-.screen{display:none;flex-direction:column;height:100vh;height:100dvh;position:fixed;inset:0;z-index:1;overflow:hidden;}
+.screen{display:none;flex-direction:column;height:100vh;height:100dvh;position:fixed;top:24px;left:0;right:0;bottom:0;z-index:1;overflow:hidden;}
 .screen.active{display:flex;}
+
+/* SYNC BAR — global, sits above every screen for every user */
+#sync-bar{position:fixed;top:0;left:0;right:0;height:24px;z-index:2000;display:flex;align-items:center;justify-content:space-between;
+  padding:0 10px;background:var(--surface);border-bottom:1px solid var(--border);font-size:10.5px;font-weight:600;color:var(--sub);
+  -webkit-user-select:none;user-select:none;}
+#sync-bar .sb-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden;}
+#sync-bar .sb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--gold);}
+#sync-bar .sb-dot.pulse{animation:pulse 1.2s infinite;}
+#sync-bar .sb-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sync-bar .sb-refresh{display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0;color:var(--sub);cursor:pointer;font-size:13px;}
+#sync-bar .sb-refresh.spin{animation:sbspin 0.7s linear infinite;}
+@keyframes sbspin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+#pull-indicator{position:fixed;top:24px;left:0;right:0;height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--sub);background:var(--surface);z-index:1500;transition:height 0.15s ease;}
 
 /* TOPBAR */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;min-height:54px;}
@@ -250,6 +264,18 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 </style>
 </head>
 <body>
+
+<!-- ══════════════════════ GLOBAL SYNC BAR ══════════════════════ -->
+<!-- Always visible, on every screen, for every role. Shows live connection
+     status + last-synced time, and doubles as a tap-to-refresh button. -->
+<div id="sync-bar" onclick="manualRefresh()">
+  <div class="sb-left">
+    <span class="sb-dot" id="sb-dot"></span>
+    <span class="sb-text" id="sb-text">Connecting…</span>
+  </div>
+  <span class="sb-refresh" id="sb-refresh-icon">↻</span>
+</div>
+<div id="pull-indicator">↓ Pull to refresh</div>
 
 <!-- ══════════════════════ LOGIN ══════════════════════ -->
 <div class="screen active" id="s-login">
@@ -731,8 +757,10 @@ const DEFAULT_CONFIG = {
 // ══════════════════════════════════════════════════════════
 let db           = null;
 let _syncStatus  = 'syncing'; // 'online' | 'syncing' | 'offline'
-function setSyncStatus(s) { _syncStatus = s; renderManageSyncSection(); }
-window.addEventListener('online',  () => setSyncStatus('online'));
+let _lastSyncTs  = null;      // Date.now() of last confirmed server sync
+let _pendingCount = 0;        // trucks saved locally but not yet confirmed by the server
+function setSyncStatus(s) { _syncStatus = s; renderManageSyncSection(); updateSyncBar(); }
+window.addEventListener('online',  () => setSyncStatus(_pendingCount>0 ? 'syncing' : 'online'));
 window.addEventListener('offline', () => setSyncStatus('offline'));
 let _trucks      = [];
 let _config      = null;
@@ -776,9 +804,12 @@ function initFirebase() {
 function listenTrucks() {
   if (!db) return;
   if (_unsubTrucks) _unsubTrucks();
-  _unsubTrucks = db.collection('kab_trucks').orderBy('ts','desc').onSnapshot(snap => {
-    _trucks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    setSyncStatus(snap.metadata.fromCache ? 'syncing' : 'online');
+  _unsubTrucks = db.collection('kab_trucks').orderBy('ts','desc')
+    .onSnapshot({ includeMetadataChanges: true }, snap => {
+    _trucks = snap.docs.map(d => ({ id: d.id, ...d.data(), _pending: d.metadata.hasPendingWrites }));
+    _pendingCount = _trucks.filter(t => t._pending).length;
+    _lastSyncTs = Date.now();
+    setSyncStatus(_pendingCount > 0 ? 'syncing' : (snap.metadata.fromCache ? 'syncing' : 'online'));
     refreshCurrentView();
   }, err => { console.warn('Trucks listener error:', err); setSyncStatus('offline'); });
 }
@@ -792,6 +823,8 @@ function listenKabIncoming() {
   _unsubKabIncoming = db.collection('kab_incoming').onSnapshot(snap => {
     _kabIncoming = {};
     snap.forEach(d => { _kabIncoming[d.id] = d.data(); });
+    _lastSyncTs = Date.now();
+    updateSyncBar();
     // Update foreman incoming tab if visible
     if (document.getElementById('s-foreman-incoming') &&
         document.getElementById('s-foreman-incoming').classList.contains('active')) {
@@ -820,6 +853,8 @@ function listenConfig() {
       _config = def;
     }
     buildLoginScreen();
+    _lastSyncTs = Date.now();
+    updateSyncBar();
   }, err => console.warn('Config listener error:', err));
 }
 
@@ -1166,12 +1201,14 @@ function renderTruckList(trucks, elId, canEdit, canDelete) {
       if (isPostWorker && t.status !== 'finished') acts.push(`<button class="tc-btn btn-finish" onclick="quickFinish('${t.id}')">✅ Finish</button>`);
       if (canDelete) acts.push(`<button class="tc-btn btn-del" onclick="deleteTruck('${t.id}')">🗑️</button>`);
       const newBadge = isNewest ? `<span style="display:inline-block;background:rgba(16,185,129,0.2);color:var(--green);border:1px solid rgba(16,185,129,0.4);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-left:6px;animation:pulse 1.5s infinite;">🆕 NEW</span>` : '';
+      const pendingBadge = t._pending ? `<span style="display:inline-block;background:rgba(240,165,0,0.15);color:var(--gold);border:1px solid rgba(240,165,0,0.35);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-left:6px;">⏳ Not synced yet</span>` : '';
       return `<div class="truck-card ${si.cardCls}" ${isNewest?'style="border-color:var(--green);box-shadow:0 0 0 2px rgba(16,185,129,0.25);"':''}>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <div style="display:flex;align-items:center;gap:7px;min-width:0;flex:1;">
             <div style="font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.5px;flex-shrink:0;">${t.plate}</div>
             <span class="post-pill" style="flex-shrink:0;">${post.label}</span>
             ${newBadge}
+            ${pendingBadge}
           </div>
           <span class="s-badge ${si.cls}" style="flex-shrink:0;">${si.label}</span>
         </div>
@@ -2710,27 +2747,138 @@ async function toggleSuspend() {
 function renderManageSyncSection() {
   const sec = document.getElementById('manage-sync-section');
   if (!sec) return;
-  const map = {
-    online:  { dot:'var(--green)', text:'Connected to Firebase', pulse:false },
-    syncing: { dot:'#f0a500',      text:'Syncing…',               pulse:true  },
-    offline: { dot:'var(--red)',   text:'Offline — check internet connection', pulse:false },
-  };
-  const s = map[_syncStatus] || map.syncing;
+  const s = computeSyncDisplay();
   sec.innerHTML = `
     <div class="manage-row">
-      <div class="manage-av" style="background:${s.dot}22;color:${s.dot};">☁️</div>
+      <div class="manage-av" style="background:${s.color}22;color:${s.color};">☁️</div>
       <div style="flex:1">
         <div class="manage-name" style="display:flex;align-items:center;gap:6px;">
-          <span style="width:9px;height:9px;border-radius:50%;background:${s.dot};display:inline-block;${s.pulse?'animation:pulse 1.2s infinite;':''}"></span>
+          <span style="width:9px;height:9px;border-radius:50%;background:${s.color};display:inline-block;${s.pulse?'animation:pulse 1.2s infinite;':''}"></span>
           ${s.text}
         </div>
-        <div class="manage-sub">Project: haaa-3b06e</div>
+        <div class="manage-sub">Project: haaa-3b06e · ${relativeTime(_lastSyncTs)}</div>
       </div>
     </div>`;
 }
 
 // ══════════════════════════════════════════════════════════
-// EXCEL IMPORT
+// GLOBAL SYNC BAR — visible to every user, every role, every screen.
+// Reflects live Firestore connection state + last-synced time, and
+// provides two ways to manually refresh: tap-to-refresh and pull-to-refresh.
+// Also surfaces offline writes: trucks added with no connection are saved
+// instantly to the local device and queued by Firestore, then flushed
+// automatically the moment the device reconnects — this combines that
+// queue state with live connectivity into one readable line.
+// ══════════════════════════════════════════════════════════
+function relativeTime(ts) {
+  if (!ts) return 'never synced';
+  const secs = Math.floor((Date.now() - ts) / 1000);
+  if (secs < 2)   return 'synced just now';
+  if (secs < 60)  return `synced ${secs}s ago`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60)  return `synced ${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  return `synced ${hrs}h ago`;
+}
+
+function computeSyncDisplay() {
+  const online = navigator.onLine;
+  if (_pendingCount > 0) {
+    const n = _pendingCount;
+    return online
+      ? { color:'var(--gold)', pulse:true,  text:`Syncing ${n} truck${n!==1?'s':''}…` }
+      : { color:'var(--gold)', pulse:false, text:`Offline · ${n} truck${n!==1?'s':''} saved, will sync` };
+  }
+  if (!online || _syncStatus === 'offline') return { color:'var(--red)',   pulse:false, text:'Offline' };
+  if (_syncStatus === 'syncing')             return { color:'var(--gold)', pulse:true,  text:'Syncing…' };
+  return { color:'var(--green)', pulse:false, text:'Online' };
+}
+
+function updateSyncBar() {
+  const dot  = document.getElementById('sb-dot');
+  const text = document.getElementById('sb-text');
+  if (!dot || !text) return;
+  const s = computeSyncDisplay();
+  dot.style.background = s.color;
+  dot.className = 'sb-dot' + (s.pulse ? ' pulse' : '');
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  text.textContent = `${s.text} · ${relativeTime(_lastSyncTs)} · ${hh}:${mm}:${ss}`;
+}
+
+// Tick the bar every second so "Xs ago" and the clock stay live for everyone.
+setInterval(updateSyncBar, 1000);
+
+let _refreshing = false;
+async function manualRefresh(silent) {
+  if (_refreshing) return;
+  _refreshing = true;
+  const icon = document.getElementById('sb-refresh-icon');
+  if (icon) icon.classList.add('spin');
+  if (!silent) toast('🔄 Refreshing…');
+  if (!db) {
+    // Offline fallback — just re-render from whatever local data we have.
+    refreshCurrentView();
+    setSyncStatus('offline');
+    _refreshing = false;
+    if (icon) icon.classList.remove('spin');
+    return;
+  }
+  try {
+    const [trucksSnap, configSnap, incomingSnap] = await Promise.all([
+      db.collection('kab_trucks').orderBy('ts','desc').get({ source: 'server' }),
+      db.collection('kab_config').doc('main').get({ source: 'server' }),
+      db.collection('kab_incoming').get({ source: 'server' }),
+    ]);
+    _trucks = trucksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (configSnap.exists) _config = configSnap.data();
+    _kabIncoming = {};
+    incomingSnap.forEach(d => { _kabIncoming[d.id] = d.data(); });
+    _lastSyncTs = Date.now();
+    setSyncStatus('online');
+    refreshCurrentView();
+    updateForemanIncomingBadge();
+    updateAdminIncomingBadge();
+    if (!silent) toast('✅ Up to date');
+  } catch(e) {
+    console.warn('manualRefresh error:', e);
+    setSyncStatus('offline');
+    if (!silent) toast('⚠️ Could not refresh — offline');
+  } finally {
+    _refreshing = false;
+    if (icon) icon.classList.remove('spin');
+  }
+}
+
+// ── Pull-to-refresh on every scrollable list ────────────────────────────────
+function initPullToRefresh() {
+  const indicator = document.getElementById('pull-indicator');
+  let startY = 0, pulling = false, triggered = false;
+  document.querySelectorAll('.scroll').forEach(el => {
+    el.addEventListener('touchstart', e => {
+      if (el.scrollTop <= 0) { startY = e.touches[0].clientY; pulling = true; triggered = false; }
+      else pulling = false;
+    }, { passive: true });
+    el.addEventListener('touchmove', e => {
+      if (!pulling) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy > 0 && el.scrollTop <= 0) {
+        const h = Math.min(dy * 0.5, 56);
+        indicator.style.height = h + 'px';
+        indicator.textContent = h > 44 ? '↻ Release to refresh' : '↓ Pull to refresh';
+        triggered = h > 44;
+      }
+    }, { passive: true });
+    el.addEventListener('touchend', () => {
+      if (pulling && triggered) manualRefresh();
+      indicator.style.height = '0px';
+      pulling = false; triggered = false;
+    }, { passive: true });
+  });
+}
+
 // ══════════════════════════════════════════════════════════
 function importExcel(input) {
   const file = input.files && input.files[0];
@@ -3079,6 +3227,8 @@ function init() {
   buildLoginScreen();
   updateReportsDateDisplay();
   updateCashierReportsDateDisplay();
+  updateSyncBar();
+  initPullToRefresh();
 }
 init();
 </script>
