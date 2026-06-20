@@ -8,8 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<link rel="manifest" id="pwa-manifest"/>
+<link rel="apple-touch-icon" id="pwa-icon"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -261,6 +261,51 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 .incoming-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
 .incoming-text{font-size:12px;font-weight:700;color:var(--green);}
+
+/* ── PWA INSTALL BANNER ── */
+#pwaInstallBanner{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#1a1000,#3a2500);
+  border:1px solid rgba(240,165,0,0.45);
+  border-radius:18px;padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  z-index:9000;box-shadow:0 8px 32px rgba(0,0,0,0.7);
+  max-width:390px;width:calc(100% - 24px);
+  animation:bannerUp 0.4s ease;
+}
+@keyframes bannerUp{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+#pwaInstallBanner.hidden{display:none;}
+#pwaInstallBanner.on-login{bottom:24px;}
+.pwa-banner-icon{font-size:28px;flex-shrink:0;}
+.pwa-banner-text{flex:1;}
+.pwa-banner-title{font-size:15px;font-weight:700;color:#fff;}
+.pwa-banner-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.pwa-inst-btn{
+  background:linear-gradient(135deg,#f0a500,#d48000);
+  border:none;color:#0a0e1a;border-radius:11px;
+  padding:9px 15px;font-size:13px;font-weight:800;
+  cursor:pointer;white-space:nowrap;font-family:'Barlow',sans-serif;
+}
+.pwa-close-btn{
+  background:none;border:none;color:rgba(255,255,255,0.3);
+  font-size:20px;cursor:pointer;padding:2px 6px;flex-shrink:0;
+}
+
+/* ── SPLASH SCREEN ── */
+#splashScreen{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:#0a0e1a;transition:opacity 0.6s ease;
+}
+#splashScreen.hide{opacity:0;pointer-events:none;}
+.splash-content{display:flex;flex-direction:column;align-items:center;gap:16px;}
+.splash-icon{border-radius:24%;box-shadow:0 16px 48px rgba(0,0,0,0.8);}
+.splash-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;letter-spacing:1px;}
+.splash-sub{font-size:13px;color:rgba(255,255,255,0.45);}
+.splash-loader{width:48px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;overflow:hidden;margin-top:6px;}
+.splash-loader-bar{height:100%;width:0%;background:linear-gradient(90deg,#f0a500,#fbbf24);border-radius:2px;animation:loadBar 2s ease forwards;}
+@keyframes loadBar{0%{width:0%}60%{width:70%}100%{width:100%}}
 </style>
 </head>
 <body>
@@ -715,6 +760,27 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 
 <div class="toast" id="toast"></div>
 
+<!-- ══ SPLASH SCREEN ══ -->
+<div id="splashScreen">
+  <div class="splash-content">
+    <canvas id="splashIcon" width="120" height="120" class="splash-icon"></canvas>
+    <div class="splash-title">AGASH</div>
+    <div class="splash-sub">Truck Management</div>
+    <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+  </div>
+</div>
+
+<!-- ══ PWA INSTALL BANNER ══ -->
+<div id="pwaInstallBanner" class="hidden">
+  <div class="pwa-banner-icon">📲</div>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Install Agash App</div>
+    <div class="pwa-banner-sub">Tap Install to add to home screen</div>
+  </div>
+  <button class="pwa-inst-btn" onclick="doInstallPWA()">Install</button>
+  <button class="pwa-close-btn" onclick="dismissPWABanner()">✕</button>
+</div>
+
 <script>
 // ══════════════════════════════════════════════════════════
 // CONSTANTS & DATA
@@ -918,23 +984,24 @@ async function firestoreUpdateTruck(id, fields) {
 async function notifyHSK(truck) {
   if (!db) return;
   try {
-    await db.collection('kab_incoming').doc(truck.id).set({
+    await db.collection('kab_trucks').doc(truck.id).set({
       plate:     truck.plate,
       type:      truck.type,
       status:    truck.status,
       postId:    truck.postId,
       postLabel: truck.postLabel || truck.postId,
+      workDay:   truck.workDay || truck.date,
       date:      truck.workDay || truck.date,
       ts:        truck.ts,
       addedBy:   truck.addedBy || ''
-    });
+    }, { merge: true });
   } catch(e) { console.warn('notifyHSK error:', e); }
 }
 
-// Remove from kab_incoming when truck is deleted
+// Remove from kab_trucks when truck is deleted
 async function removeHSKNotification(id) {
   if (!db) return;
-  try { await db.collection('kab_incoming').doc(id).delete(); }
+  try { await db.collection('kab_trucks').doc(id).delete(); }
   catch(e) { console.warn('removeHSKNotification error:', e); }
 }
 
@@ -2347,7 +2414,7 @@ function saveTruck() {
     trucks.unshift(newTruck);
     saveTrucks(trucks);
     firestoreSaveTruck(newTruck);
-    // Notify HSK app via kab_incoming collection
+    // Notify HSK/WKABE app via shared kab_trucks collection
     notifyHSK(newTruck);
     toast(`✅ ${plate} added!`);
   }
@@ -2608,32 +2675,127 @@ function renderManage() {
 }
 
 // ══════════════════════════════════════════════════════════
+// AGASH ICON — drawn via canvas (no image file needed)
+// ══════════════════════════════════════════════════════════
+function drawAgashIcon(canvas) {
+  const ctx = canvas.getContext('2d');
+  const s = canvas.width;
+  // Background
+  ctx.fillStyle = '#0a0e1a';
+  ctx.beginPath();
+  const r = s * 0.22;
+  ctx.moveTo(r,0); ctx.lineTo(s-r,0);
+  ctx.quadraticCurveTo(s,0,s,r);
+  ctx.lineTo(s,s-r); ctx.quadraticCurveTo(s,s,s-r,s);
+  ctx.lineTo(r,s); ctx.quadraticCurveTo(0,s,0,s-r);
+  ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0);
+  ctx.fill();
+  // Gold inner square
+  const g = ctx.createLinearGradient(s*0.15, s*0.15, s*0.85, s*0.85);
+  g.addColorStop(0, '#f0a500'); g.addColorStop(1, '#d48000');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  const ir = s * 0.14, ix = s * 0.14;
+  ctx.moveTo(ix+ir,ix); ctx.lineTo(s-ix-ir,ix);
+  ctx.quadraticCurveTo(s-ix,ix,s-ix,ix+ir);
+  ctx.lineTo(s-ix,s-ix-ir); ctx.quadraticCurveTo(s-ix,s-ix,s-ix-ir,s-ix);
+  ctx.lineTo(ix+ir,s-ix); ctx.quadraticCurveTo(ix,s-ix,ix,s-ix-ir);
+  ctx.lineTo(ix,ix+ir); ctx.quadraticCurveTo(ix,ix,ix+ir,ix);
+  ctx.fill();
+  // Letter A
+  ctx.fillStyle = '#0a0e1a';
+  ctx.font = `900 ${s*0.52}px 'Arial Black', sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('A', s/2, s*0.52);
+}
+
+// Wire icon into manifest + apple-touch-icon
+(function initPWAAssets() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  drawAgashIcon(c);
+  const iconURL = c.toDataURL('image/png');
+
+  // Apple touch icon
+  const appleLink = document.getElementById('pwa-icon');
+  if (appleLink) appleLink.href = iconURL;
+
+  // Inline manifest
+  const manifest = {
+    name: 'Agash', short_name: 'Agash',
+    description: 'Agash Truck Management',
+    start_url: './', display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#0a0e1a', theme_color: '#0a0e1a',
+    icons: [
+      { src: iconURL, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: iconURL, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  };
+  const mblob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  const mLink = document.getElementById('pwa-manifest');
+  if (mLink) mLink.href = URL.createObjectURL(mblob);
+})();
+
+// ── SPLASH ──────────────────────────────────────────────────
+function showSplash() {
+  const sc = document.getElementById('splashIcon');
+  if (sc) drawAgashIcon(sc);
+  setTimeout(() => {
+    const splash = document.getElementById('splashScreen');
+    if (splash) {
+      splash.classList.add('hide');
+      setTimeout(() => splash.remove(), 700);
+    }
+  }, 2000);
+}
+
+// ══════════════════════════════════════════════════════════
 // PWA INSTALL
 // ══════════════════════════════════════════════════════════
 let _deferredInstallPrompt = null;
+let _appInstalled = false;
 
-window.addEventListener('beforeinstallprompt', e => {
+// Auto-show banner 1.5s after install prompt fires
+// Capture Android native prompt
+window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   _deferredInstallPrompt = e;
-  // Refresh install row if manage screen is open
   renderManageInstallSection();
+  _maybeShowBanner();
 });
 
-window.addEventListener('appinstalled', () => {
+window.addEventListener('appinstalled', function() {
+  _appInstalled = true;
   _deferredInstallPrompt = null;
+  dismissPWABanner();
   toast('✅ Agash installed on your phone!');
   renderManageInstallSection();
 });
 
+// Show banner proactively — works on iOS too (no beforeinstallprompt there)
+function _maybeShowBanner() {
+  if (isAppInstalled()) return;                          // already running standalone
+  if (sessionStorage.getItem('pwa-dismissed')) return;  // user dismissed this session
+  const banner = document.getElementById('pwaInstallBanner');
+  if (!banner) return;
+  banner.classList.remove('hidden');
+}
+
+// Show banner 2s after page load regardless of beforeinstallprompt
+window.addEventListener('load', function() {
+  setTimeout(_maybeShowBanner, 2000);
+});
+
 function isAppInstalled() {
-  return window.matchMedia('(display-mode: standalone)').matches ||
+  return _appInstalled ||
+         window.matchMedia('(display-mode: standalone)').matches ||
          window.navigator.standalone === true;
 }
 
 function renderManageInstallSection() {
   const sec = document.getElementById('manage-install-section');
   if (!sec) return;
-
   if (isAppInstalled()) {
     sec.innerHTML = `
       <div class="manage-row">
@@ -2645,70 +2807,111 @@ function renderManageInstallSection() {
       </div>`;
     return;
   }
-
   sec.innerHTML = `
-    <div class="manage-row" onclick="openInstallSheet()" style="cursor:pointer;">
+    <div class="manage-row" onclick="doInstallPWA()" style="cursor:pointer;">
       <div class="manage-av" style="background:rgba(240,165,0,0.12);color:var(--accent);font-size:20px;">📲</div>
       <div style="flex:1">
         <div class="manage-name">Install App on Phone</div>
-        <div class="manage-sub">Add Agash to your home screen</div>
+        <div class="manage-sub">${_deferredInstallPrompt ? 'Tap to install Agash instantly' : 'Add Agash to your home screen'}</div>
       </div>
       <span style="color:var(--muted);font-size:18px;font-weight:300;">›</span>
     </div>`;
 }
 
-function openInstallSheet() {
+window.doInstallPWA = function() {
+  if (isAppInstalled()) {
+    toast('✅ App is already installed');
+    return;
+  }
+
+  // Android: native install prompt available — use it directly
+  if (_deferredInstallPrompt) {
+    dismissPWABanner();
+    _deferredInstallPrompt.prompt();
+    _deferredInstallPrompt.userChoice.then(function(r) {
+      if (r.outcome === 'accepted') toast('✅ Installing Agash...');
+      else toast('ℹ️ Tap Install anytime to install');
+      _deferredInstallPrompt = null;
+      renderManageInstallSection();
+    });
+    return;
+  }
+
+  // iOS / manual instructions sheet
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isSamsung = /SamsungBrowser/.test(navigator.userAgent);
+
   const old = document.getElementById('install-sheet');
   if (old) old.remove();
-
-  const canNativePrompt = !!_deferredInstallPrompt;
   const sheet = document.createElement('div');
   sheet.id = 'install-sheet';
-  sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-end;justify-content:center;';
+  sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);z-index:9100;display:flex;align-items:flex-end;justify-content:center;';
+
+  let steps = '';
+  if (isIOS) {
+    steps = `
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">1</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap the <strong style="color:var(--accent);">Share</strong> button <strong style="font-size:18px;">⎋</strong> at the bottom of Safari</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">2</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Scroll down and tap <strong style="color:var(--accent);">"Add to Home Screen"</strong></div>
+      </div>`;
+  } else if (isSamsung) {
+    steps = `
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">1</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap the <strong style="color:var(--accent);">⋮ menu</strong> in the top-right corner</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">2</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap <strong style="color:var(--accent);">"Add page to"</strong> → <strong style="color:var(--accent);">"Home screen"</strong></div>
+      </div>`;
+  } else {
+    steps = `
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">1</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap the <strong style="color:var(--accent);">⋮ menu</strong> in Chrome's top-right corner</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">2</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap <strong style="color:var(--accent);">"Install App"</strong> or <strong style="color:var(--accent);">"Add to Home Screen"</strong></div>
+      </div>`;
+  }
 
   sheet.innerHTML = `
-    <div style="background:var(--surface);border-radius:22px 22px 0 0;padding:20px 16px 36px;width:100%;max-width:500px;">
-      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 18px;"></div>
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
-        <div style="width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#f0a500,#d48000);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📲</div>
+    <div style="background:var(--surface);border-radius:22px 22px 0 0;padding:20px 16px 40px;width:100%;max-width:500px;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 20px;"></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+        <canvas id="install-sheet-icon" width="56" height="56" style="border-radius:14px;flex-shrink:0;"></canvas>
         <div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:0.3px;">Install Agash</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Add to home screen for the best experience</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:0.3px;">Install Agash</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Add to your home screen</div>
         </div>
       </div>
-
-      ${canNativePrompt ? `
-      <button onclick="triggerNativeInstall()" style="width:100%;background:linear-gradient(135deg,#f0a500,#d48000);color:#0a0e1a;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;margin-bottom:10px;">
-        📲 Install Now
-      </button>` : `
-      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">How to install:</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.8;">
-          <div style="margin-bottom:6px;">🍎 <strong style="color:var(--text);">iPhone/iPad:</strong> Tap the <strong style="color:var(--text);">Share</strong> button in Safari, then <strong style="color:var(--text);">"Add to Home Screen"</strong></div>
-          <div>🤖 <strong style="color:var(--text);">Android:</strong> Tap the browser <strong style="color:var(--text);">menu (⋮)</strong>, then <strong style="color:var(--text);">"Add to Home Screen"</strong> or <strong style="color:var(--text);">"Install App"</strong></div>
-        </div>
-      </div>`}
-
-      <button onclick="document.getElementById('install-sheet').remove()" style="width:100%;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;">
+      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;">
+        ${steps}
+      </div>
+      <button onclick="document.getElementById('install-sheet').remove()" style="width:100%;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:12px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;">
         Close
       </button>
     </div>`;
 
-  sheet.addEventListener('click', e => { if (e.target === sheet) sheet.remove(); });
+  sheet.addEventListener('click', function(e) { if (e.target === sheet) sheet.remove(); });
   document.body.appendChild(sheet);
-}
+  const ic = document.getElementById('install-sheet-icon');
+  if (ic) drawAgashIcon(ic);
+};
 
-async function triggerNativeInstall() {
-  if (!_deferredInstallPrompt) return;
-  document.getElementById('install-sheet')?.remove();
-  _deferredInstallPrompt.prompt();
-  const { outcome } = await _deferredInstallPrompt.userChoice;
-  if (outcome === 'accepted') {
-    _deferredInstallPrompt = null;
-    toast('✅ Installing Agash...');
-  }
-  renderManageInstallSection();
-}
+window.dismissPWABanner = function() {
+  const b = document.getElementById('pwaInstallBanner');
+  if (b) b.classList.add('hidden');
+  sessionStorage.setItem('pwa-dismissed', '1');
+};
+
+// Also expose openInstallSheet as alias for any existing callers
+window.openInstallSheet = window.doInstallPWA;
 
 
 
@@ -3231,11 +3434,47 @@ function init() {
   initPullToRefresh();
 }
 init();
+showSplash();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
+    // ── Inline Service Worker via Blob — no sw.js file needed ──
+    const swCode = `
+const CACHE = 'agash-v1';
+const PRECACHE = ['./'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return;
+  e.respondWith(
+    fetch(e.request)
+      .then(res => { caches.open(CACHE).then(c => c.put(e.request, res.clone())); return res; })
+      .catch(() => caches.match(e.request))
+  );
+});
+
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+`;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swURL = URL.createObjectURL(blob);
+
+    navigator.serviceWorker.register(swURL, { type: 'classic' })
       .then(reg => {
         reg.onupdatefound = () => {
           const w = reg.installing;
