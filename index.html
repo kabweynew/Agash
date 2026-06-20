@@ -296,7 +296,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
       <div class="kab-logo">AGS</div>
       <div><div class="tb-title" id="w-tb-title">My Trucks</div><div class="tb-sub" id="w-tb-sub">Post View</div></div>
     </div>
-    <div class="tb-right"><div class="tb-badge badge-post" id="w-post-badge">POST</div><button class="tb-btn" onclick="openModal('m-truck')">+ Add</button></div>
+    <div class="tb-right"><div class="tb-badge badge-post" id="w-post-badge">POST</div><button class="tb-btn" onclick="openAddTruck()">+ Add</button></div>
   </div>
   <div class="fchips" id="w-chips">
     <div class="chip active" onclick="setFilter('all',this,'w')">All</div>
@@ -307,7 +307,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </div>
   <div class="scroll">
     <div class="stats-grid" id="w-stats"></div>
-    <div class="sec-hdr"><span class="sec-title" id="w-day-label">Today's Trucks</span><span class="sec-action" onclick="openModal('m-truck')">+ New</span></div>
+    <div class="sec-hdr"><span class="sec-title" id="w-day-label">Today's Trucks</span><span class="sec-action" onclick="openAddTruck()">+ New</span></div>
     <div id="w-trucks-list"></div>
   </div>
   <nav class="bnav">
@@ -320,7 +320,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 <div class="screen" id="s-cashier">
   <div class="topbar">
     <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Incoming Trucks</div><div class="tb-sub" id="c-day-label">Sealer View</div></div></div>
-    <div class="tb-right"><div class="tb-badge badge-sealer">SEALER</div><button class="tb-btn" onclick="openModal('m-truck')">+ Add</button></div>
+    <div class="tb-right"><div class="tb-badge badge-sealer">SEALER</div><button class="tb-btn" onclick="openAddTruck()">+ Add</button></div>
   </div>
   <div class="fchips" id="c-chips">
     <div class="chip active" onclick="setFilter('all',this,'c')">All</div>
@@ -332,7 +332,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   <div class="scroll">
     <div id="c-incoming-banner"></div>
     <div class="stats-grid" id="c-stats"></div>
-    <div class="sec-hdr"><span class="sec-title">All Trucks</span><span class="sec-action" onclick="openModal('m-truck')">+ New</span></div>
+    <div class="sec-hdr"><span class="sec-title">All Trucks</span><span class="sec-action" onclick="openAddTruck()">+ New</span></div>
     <div id="c-trucks-list"></div>
   </div>
   <nav class="bnav">
@@ -378,7 +378,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 <div class="screen" id="s-foreman">
   <div class="topbar">
     <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">All Trucks</div><div class="tb-sub" id="f-day-label">Foreman View</div></div></div>
-    <div class="tb-right"><div class="tb-badge badge-foreman">FOREMAN</div><button class="tb-btn" id="f-add-btn" onclick="openModal('m-truck')" style="display:none;">+ Add</button></div>
+    <div class="tb-right"><div class="tb-badge badge-foreman">FOREMAN</div><button class="tb-btn" id="f-add-btn" onclick="openAddTruck()" style="display:none;">+ Add</button></div>
   </div>
   <!-- Foreman date bar -->
   <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
@@ -440,7 +440,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 <div class="screen" id="s-admin">
   <div class="topbar">
     <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">All Trucks</div><div class="tb-sub" id="a-day-label">Admin — Full View</div></div></div>
-    <div class="tb-right"><div class="tb-badge badge-admin">ADMIN</div><button class="tb-btn" onclick="openModal('m-truck')">+ Add</button></div>
+    <div class="tb-right"><div class="tb-badge badge-admin">ADMIN</div><button class="tb-btn" onclick="openAddTruck()">+ Add</button></div>
   </div>
   <!-- Date bar for admin -->
   <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
@@ -461,7 +461,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   <div class="scroll">
     <div class="stats-grid" id="a-stats" style="display:none;"></div>
     <div id="a-history-notice"></div>
-    <div class="sec-hdr"><span class="sec-title" id="a-sec-title">All Trucks</span><span class="sec-action" id="a-new-btn" onclick="openModal('m-truck')">+ New</span></div>
+    <div class="sec-hdr"><span class="sec-title" id="a-sec-title">All Trucks</span><span class="sec-action" id="a-new-btn" onclick="openAddTruck()">+ New</span></div>
     <div id="a-trucks-list"></div>
   </div>
   <nav class="bnav">
@@ -534,8 +534,6 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   <div class="scroll">
     <div class="section-divider">🏗️ Work Posts (7)</div>
     <div id="manage-posts-list"></div>
-    <div class="section-divider">🔒 Sealers</div>
-    <div id="manage-sealers-section"></div>
     <div class="section-divider">👷‍♂️ Foreman</div>
     <div id="manage-foreman-section"></div>
     <div class="section-divider">👑 Admin PIN</div>
@@ -544,8 +542,16 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div id="manage-share-section"></div>
     <div class="section-divider">📲 Install App</div>
     <div id="manage-install-section"></div>
-    <div class="section-divider">📊 Export</div>
+    <div class="section-divider">🚫 Adding Control</div>
+    <div id="manage-suspend-section"></div>
+    <div class="section-divider">☁️ Cloud Sync</div>
+    <div id="manage-sync-section"></div>
+    <div class="section-divider">📊 Export &amp; Import</div>
     <button onclick="exportTrucksExcel()" class="btn-pri" style="margin-bottom:8px;">📊 Export Trucks to Excel</button>
+    <input type="file" id="import-excel-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importExcel(this)">
+    <button onclick="document.getElementById('import-excel-input').click()" class="btn-sec" style="margin-bottom:8px;">📥 Import Trucks from Excel</button>
+    <button onclick="downloadHTML()" class="btn-sec" style="margin-bottom:8px;">📥 Download HTML Backup</button>
+    <button onclick="openShareReport()" class="btn-sec" style="margin-bottom:8px;">📤 Share Daily Report (Image)</button>
     <div class="section-divider">⚠️ Danger Zone</div>
     <button onclick="clearAllTrucks()" class="btn-danger" style="margin-bottom:8px;">🗑️ Clear All Truck Data</button>
     <button onclick="logout()" class="btn-sec">🚪 Logout</button>
@@ -621,10 +627,28 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="modal-title">🔐 Change PIN</div>
     <div class="form-group">
       <label class="form-label" id="pin-change-label">New PIN (4 digits)</label>
-      <input class="form-input" id="new-pin-val" type="number" placeholder="e.g. 1234" maxlength="4">
+      <div style="position:relative;">
+        <input class="form-input" id="new-pin-val" type="password" placeholder="e.g. 1234" maxlength="4" inputmode="numeric">
+        <span onclick="togglePinVisibility()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;" id="pin-eye">👁</span>
+      </div>
     </div>
     <button class="btn-pri" onclick="savePinChange()">💾 Save PIN</button>
+    <button class="btn-sec" id="pin-reset-default-btn" style="display:none;" onclick="resetPinToDefault()">↩️ Reset to Default</button>
     <button class="btn-sec" onclick="closeModal('m-pin-change')">Cancel</button>
+  </div>
+</div>
+
+<!-- Share Daily Report -->
+<div class="overlay" id="m-share-report">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📤 Share Daily Report</div>
+    <div style="max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:10px;margin-bottom:14px;">
+      <canvas id="report-canvas" style="width:100%;display:block;"></canvas>
+    </div>
+    <button class="btn-pri" onclick="downloadReportImage()" style="margin-bottom:8px;">📥 Download Image</button>
+    <button class="btn-sec" onclick="shareReportImage()" style="margin-bottom:8px;">📱 Share via WhatsApp</button>
+    <button class="btn-sec" onclick="closeModal('m-share-report')">Close</button>
   </div>
 </div>
 
@@ -636,17 +660,6 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div id="foreman-perms-list"></div>
     <button class="btn-pri" onclick="saveForemanPerms()" style="margin-top:14px;">💾 Save</button>
     <button class="btn-sec" onclick="closeModal('m-foreman-perms')">Cancel</button>
-  </div>
-</div>
-
-<!-- Sealer Permissions -->
-<div class="overlay" id="m-perms">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">⚙️ Sealer Permissions</div>
-    <div id="perms-list"></div>
-    <button class="btn-pri" onclick="savePerms()" style="margin-top:14px;">💾 Save Permissions</button>
-    <button class="btn-sec" onclick="closeModal('m-perms')">Cancel</button>
   </div>
 </div>
 
@@ -700,9 +713,8 @@ function formatWorkDayLabel(dateStr) {
 
 const DEFAULT_CONFIG = {
   apin: '1234',
+  addingSuspended: false,
   foreman: { pin:'5555', name:'Foreman', perms:{ viewTrucks:true, viewPosts:true, addTruck:false, editTruck:false, deleteTruck:false }},
-  sealer1: { pin:'7777', name:'Sealer 1', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
-  sealer2: { pin:'8888', name:'Sealer 2', perms:{ addTruck:true, editTruck:true, deleteTruck:false, viewPosts:true, viewReports:true }},
   posts: [
     {id:'p1', label:'Post 1', pin:'1111', color:'#d97706'},
     {id:'p2', label:'Post 2', pin:'2222', color:'#10b981'},
@@ -718,6 +730,10 @@ const DEFAULT_CONFIG = {
 // FIREBASE / FIRESTORE SETUP
 // ══════════════════════════════════════════════════════════
 let db           = null;
+let _syncStatus  = 'syncing'; // 'online' | 'syncing' | 'offline'
+function setSyncStatus(s) { _syncStatus = s; renderManageSyncSection(); }
+window.addEventListener('online',  () => setSyncStatus('online'));
+window.addEventListener('offline', () => setSyncStatus('offline'));
 let _trucks      = [];
 let _config      = null;
 let _unsubTrucks = null;
@@ -762,8 +778,9 @@ function listenTrucks() {
   if (_unsubTrucks) _unsubTrucks();
   _unsubTrucks = db.collection('kab_trucks').orderBy('ts','desc').onSnapshot(snap => {
     _trucks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    setSyncStatus(snap.metadata.fromCache ? 'syncing' : 'online');
     refreshCurrentView();
-  }, err => console.warn('Trucks listener error:', err));
+  }, err => { console.warn('Trucks listener error:', err); setSyncStatus('offline'); });
 }
 
 let _kabIncoming = {}; // incoming trucks cache for foreman view
@@ -808,9 +825,14 @@ function listenConfig() {
 
 // ── Storage helpers ─────────────────────────────────────────────────────────
 function loadConfig() {
-  if (_config) return JSON.parse(JSON.stringify(_config));
-  try { return JSON.parse(localStorage.getItem('kab_config_v2') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
-  catch(e) { return JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+  let c;
+  if (_config) c = JSON.parse(JSON.stringify(_config));
+  else {
+    try { c = JSON.parse(localStorage.getItem('kab_config_v2') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+    catch(e) { c = JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+  }
+  if (typeof c.addingSuspended === 'undefined') c.addingSuspended = false;
+  return c;
 }
 
 async function saveConfig(c) {
@@ -900,7 +922,16 @@ let permsTarget   = null;
 // ══════════════════════════════════════════════════════════
 // MODAL HELPERS
 // ══════════════════════════════════════════════════════════
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function openModal(id)  {
+  if (id === 'm-truck' && !editingTruckId) {
+    const cfg = loadConfig();
+    if (cfg.addingSuspended && (!currentUser || currentUser.role !== 'admin')) {
+      toast('🚫 Adding trucks is currently suspended by Admin');
+      return;
+    }
+  }
+  document.getElementById(id).classList.add('open');
+}
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o=>{
   o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('open'); });
@@ -957,8 +988,6 @@ function checkPin() {
   let correct = '';
   if      (r.role === 'admin')   correct = cfg.apin;
   else if (r.role === 'foreman') correct = cfg.foreman.pin;
-  else if (r.role === 'sealer1') correct = cfg.sealer1.pin;
-  else if (r.role === 'sealer2') correct = cfg.sealer2.pin;
   else if (r.role === 'post') {
     const p = cfg.posts.find(p => p.id === r.id);
     correct = p ? p.pin : '';
@@ -2272,6 +2301,7 @@ function saveTruck() {
       trucks[idx] = updated;
       saveTrucks(trucks);
       firestoreUpdateTruck(editingTruckId, { plate, postId, postLabel:post?.label||'', type, status, date, notes });
+      notifyHSK(updated);
     }
     editingTruckId = null;
     toast('✅ Truck updated!');
@@ -2295,6 +2325,7 @@ function quickFinish(id) {
   t.status = 'finished';
   saveTrucks(trucks);
   firestoreUpdateTruck(id, { status: 'finished' });
+  notifyHSK(t);
   toast('✅ Marked as Finished!');
   refreshCurrentView();
 }
@@ -2462,6 +2493,14 @@ function cashierReportsSelectDate(d) {
 }
 
 
+function toggleAdminPinReveal() {
+  const h = document.getElementById('admin-pin-hidden');
+  const s = document.getElementById('admin-pin-shown');
+  if (!h || !s) return;
+  const show = s.style.display === 'none';
+  h.style.display = show ? 'none' : 'inline';
+  s.style.display = show ? 'inline' : 'none';
+}
 function renderManage() {
   const cfg = loadConfig();
 
@@ -2477,31 +2516,6 @@ function renderManage() {
         <div class="m-btn m-btn-pin" onclick="openPinChange('post','${p.id}','${p.label}')">🔐 PIN</div>
       </div>
     </div>`).join('');
-
-  // Sealers — show PIN visible
-  document.getElementById('manage-sealers-section').innerHTML = `
-    <div class="manage-row">
-      <div class="manage-av" style="background:rgba(6,182,212,0.15);color:var(--teal);">🔒</div>
-      <div style="flex:1">
-        <div class="manage-name">${cfg.sealer1.name || 'Sealer 1'}</div>
-        <div class="manage-sub">PIN: <span class="pin-reveal">${cfg.sealer1.pin}</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-perm" onclick="openPerms('sealer1')">⚙️ Perms</div>
-        <div class="m-btn m-btn-pin" onclick="openPinChange('sealer1',null,'${cfg.sealer1.name || 'Sealer 1'}')">🔐 PIN</div>
-      </div>
-    </div>
-    <div class="manage-row">
-      <div class="manage-av" style="background:rgba(6,182,212,0.15);color:var(--teal);">🔒</div>
-      <div style="flex:1">
-        <div class="manage-name">${cfg.sealer2.name || 'Sealer 2'}</div>
-        <div class="manage-sub">PIN: <span class="pin-reveal">${cfg.sealer2.pin}</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-perm" onclick="openPerms('sealer2')">⚙️ Perms</div>
-        <div class="m-btn m-btn-pin" onclick="openPinChange('sealer2',null,'${cfg.sealer2.name || 'Sealer 2'}')">🔐 PIN</div>
-      </div>
-    </div>`;
 
   // Foreman — show PIN visible
   document.getElementById('manage-foreman-section').innerHTML = `
@@ -2523,7 +2537,7 @@ function renderManage() {
       <div class="manage-av" style="background:rgba(240,165,0,0.15);color:#f0a500;">👑</div>
       <div style="flex:1">
         <div class="manage-name">Admin</div>
-        <div class="manage-sub">PIN: <span class="pin-reveal">${cfg.apin}</span></div>
+        <div class="manage-sub">PIN: <span id="admin-pin-hidden">••••</span><span id="admin-pin-shown" style="display:none;" class="pin-reveal">${cfg.apin}</span> <span onclick="toggleAdminPinReveal()" style="cursor:pointer;">👁</span></div>
       </div>
       <div class="manage-acts">
         <div class="m-btn m-btn-pin" onclick="openPinChange('admin',null,'Admin')">🔐 PIN</div>
@@ -2552,6 +2566,8 @@ function renderManage() {
     </div>`;
 
   renderManageInstallSection();
+  renderManageSuspendSection();
+  renderManageSyncSection();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2660,6 +2676,210 @@ async function triggerNativeInstall() {
 
 
 // ══════════════════════════════════════════════════════════
+// ADDING CONTROL (SUSPEND)
+// ══════════════════════════════════════════════════════════
+function renderManageSuspendSection() {
+  const sec = document.getElementById('manage-suspend-section');
+  if (!sec) return;
+  const cfg = loadConfig();
+  const suspended = !!cfg.addingSuspended;
+  sec.innerHTML = `
+    <div class="manage-row">
+      <div class="manage-av" style="background:${suspended?'rgba(16,185,129,0.15)':'rgba(239,68,68,0.15)'};color:${suspended?'var(--green)':'var(--red)'};">${suspended?'▶️':'🚫'}</div>
+      <div style="flex:1">
+        <div class="manage-name">${suspended ? 'Resume Adding Trucks' : 'Suspend Adding Trucks'}</div>
+        <div class="manage-sub">Blocks all non-admin users from adding new trucks</div>
+      </div>
+      <div class="manage-acts">
+        <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;padding:4px 10px;border-radius:20px;background:${suspended?'rgba(239,68,68,0.15)':'rgba(16,185,129,0.15)'};color:${suspended?'var(--red)':'var(--green)'};margin-right:6px;">${suspended?'SUSPENDED':'ACTIVE'}</span>
+        <div class="m-btn ${suspended?'m-btn-pin':'m-btn-perm'}" onclick="toggleSuspend()">${suspended?'▶️ Resume':'🚫 Suspend'}</div>
+      </div>
+    </div>`;
+}
+async function toggleSuspend() {
+  const cfg = loadConfig();
+  cfg.addingSuspended = !cfg.addingSuspended;
+  await saveConfig(cfg);
+  toast(cfg.addingSuspended ? '🚫 Adding trucks suspended' : '✅ Adding trucks resumed');
+  renderManageSuspendSection();
+}
+
+// ══════════════════════════════════════════════════════════
+// CLOUD SYNC STATUS
+// ══════════════════════════════════════════════════════════
+function renderManageSyncSection() {
+  const sec = document.getElementById('manage-sync-section');
+  if (!sec) return;
+  const map = {
+    online:  { dot:'var(--green)', text:'Connected to Firebase', pulse:false },
+    syncing: { dot:'#f0a500',      text:'Syncing…',               pulse:true  },
+    offline: { dot:'var(--red)',   text:'Offline — check internet connection', pulse:false },
+  };
+  const s = map[_syncStatus] || map.syncing;
+  sec.innerHTML = `
+    <div class="manage-row">
+      <div class="manage-av" style="background:${s.dot}22;color:${s.dot};">☁️</div>
+      <div style="flex:1">
+        <div class="manage-name" style="display:flex;align-items:center;gap:6px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:${s.dot};display:inline-block;${s.pulse?'animation:pulse 1.2s infinite;':''}"></span>
+          ${s.text}
+        </div>
+        <div class="manage-sub">Project: haaa-3b06e</div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// EXCEL IMPORT
+// ══════════════════════════════════════════════════════════
+function importExcel(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'binary' });
+      const sheetName = wb.SheetNames.find(n => /all trucks/i.test(n)) || wb.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
+      if (!rows.length) { toast('⚠️ No rows found in file'); return; }
+      const cfg = loadConfig();
+      const typeMap = { 'Shirac':'shirac', 'Bila Shirac':'bilashirac', 'Metal':'metal' };
+      const statMap = { 'Started':'started', 'Half':'half', 'Finished':'finished', 'BASHAL':'bashal' };
+      const existing = loadTrucks();
+      let added = 0, skipped = 0;
+      rows.forEach(row => {
+        const plate = (row['Plate']||'').toString().trim().toUpperCase();
+        if (!plate) { skipped++; return; }
+        const workDay = (row['Work Day']||'').toString().trim() || new Date().toISOString().split('T')[0];
+        const dup = existing.find(t => t.plate === plate && (t.workDay||t.date) === workDay);
+        if (dup) { skipped++; return; }
+        const postLabel = (row['Post']||'').toString().trim();
+        const post = cfg.posts.find(p => p.label === postLabel) || cfg.posts[0];
+        const now = Date.now();
+        const newTruck = {
+          id: 't_' + now + '_' + Math.random().toString(36).slice(2,7),
+          ts: now, plate, postId: post.id, postLabel: post.label,
+          type: typeMap[(row['Load Type']||'').toString().trim()] || 'shirac',
+          status: statMap[(row['Load Status']||'').toString().trim()] || 'started',
+          date: workDay, workDay, notes: (row['Notes']||'').toString(),
+          addedBy: (row['Added By']||'Import').toString()
+        };
+        existing.unshift(newTruck);
+        firestoreSaveTruck(newTruck);
+        added++;
+      });
+      saveTrucks(existing);
+      toast(`📥 Imported ${added} truck${added===1?'':'s'}${skipped?`, skipped ${skipped} duplicate/invalid`:''}`);
+    } catch (err) {
+      console.warn('importExcel error:', err);
+      toast('⚠️ Could not read file — check format');
+    }
+    input.value = '';
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ══════════════════════════════════════════════════════════
+// HTML BACKUP DOWNLOAD
+// ══════════════════════════════════════════════════════════
+function downloadHTML() {
+  try {
+    const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `agash-backup-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast('📥 Backup downloaded!');
+  } catch (err) {
+    console.warn('downloadHTML error:', err);
+    toast('⚠️ Backup failed');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// SHARE DAILY REPORT (CANVAS IMAGE)
+// ══════════════════════════════════════════════════════════
+function openShareReport() {
+  drawReportCanvas(reportsSelectedDate || getTodayWorkDay());
+  openModal('m-share-report');
+}
+function drawReportCanvas(date) {
+  const trucks = loadTrucks();
+  const dt = trucks.filter(t => (t.workDay || t.date || getWorkDay(t.ts)) === date);
+  const cfg = loadConfig();
+  const postRows = cfg.posts.map(p => {
+    const pt = dt.filter(t => t.postId === p.id);
+    return { label: p.label, color: p.color, total: pt.length,
+      finished: pt.filter(t=>t.status==='finished').length,
+      bashal:   pt.filter(t=>t.status==='bashal').length };
+  }).filter(p => p.total > 0);
+
+  const canvas = document.getElementById('report-canvas');
+  const W = 720, rowH = 34, headH = 130, footH = 40;
+  const H = headH + Math.max(postRows.length,1)*rowH + footH;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#0a0e1a'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#f0a500';
+  ctx.font = '900 30px Arial';
+  ctx.fillText('AGASH — Daily Report', 24, 44);
+  ctx.fillStyle = '#9aa3b2';
+  ctx.font = '600 15px Arial';
+  ctx.fillText(date, 24, 70);
+
+  const total = dt.length;
+  const finished = dt.filter(t=>t.status==='finished').length;
+  const bashal = dt.filter(t=>t.status==='bashal').length;
+  ctx.fillStyle = '#fff';
+  ctx.font = '700 16px Arial';
+  ctx.fillText(`Total: ${total}   Finished: ${finished}   BASHAL: ${bashal}`, 24, 100);
+
+  let y = headH;
+  ctx.font = '600 14px Arial';
+  postRows.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(24, y-16, 8, 18);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(p.label, 42, y);
+    ctx.fillStyle = '#9aa3b2';
+    ctx.fillText(`${p.total} trucks  ·  ${p.finished} finished  ·  ${p.bashal} BASHAL`, 220, y);
+    y += rowH;
+  });
+  if (!postRows.length) {
+    ctx.fillStyle = '#9aa3b2';
+    ctx.fillText('No trucks recorded for this day.', 24, y);
+  }
+  ctx.fillStyle = '#5a6272';
+  ctx.font = '500 11px Arial';
+  ctx.fillText('Generated by Agash Truck Management', 24, H-16);
+}
+function downloadReportImage() {
+  const canvas = document.getElementById('report-canvas');
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `Agash_Report_${reportsSelectedDate || getTodayWorkDay()}.png`;
+  a.click();
+}
+function shareReportImage() {
+  const canvas = document.getElementById('report-canvas');
+  canvas.toBlob(blob => {
+    const file = new File([blob], 'agash-report.png', { type: 'image/png' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files:[file] })) {
+      navigator.share({ files:[file], title:'Agash Daily Report' }).catch(()=>{});
+    } else {
+      downloadReportImage();
+      toast('📥 Image downloaded — attach it in WhatsApp');
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
 // SHARE APP
 // ══════════════════════════════════════════════════════════
 function shareViaWhatsApp() {
@@ -2709,7 +2929,21 @@ function openPinChange(type, id, name) {
   pinChangeTarget = { type, id };
   document.getElementById('pin-change-label').textContent = `New PIN for ${name} (4 digits)`;
   document.getElementById('new-pin-val').value = '';
+  document.getElementById('new-pin-val').type = 'password';
+  document.getElementById('pin-eye').textContent = '👁';
+  document.getElementById('pin-reset-default-btn').style.display = (type === 'admin') ? 'block' : 'none';
   openModal('m-pin-change');
+}
+function togglePinVisibility() {
+  const inp = document.getElementById('new-pin-val');
+  const eye = document.getElementById('pin-eye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
+}
+function resetPinToDefault() {
+  document.getElementById('new-pin-val').value = DEFAULT_CONFIG.apin;
+  document.getElementById('new-pin-val').type = 'text';
+  document.getElementById('pin-eye').textContent = '🙈';
 }
 async function savePinChange() {
   const pin = document.getElementById('new-pin-val').value.trim();
@@ -2718,8 +2952,6 @@ async function savePinChange() {
   const { type, id } = pinChangeTarget;
   if      (type === 'admin')   cfg.apin = pin;
   else if (type === 'foreman') cfg.foreman.pin = pin;
-  else if (type === 'sealer1') cfg.sealer1.pin = pin;
-  else if (type === 'sealer2') cfg.sealer2.pin = pin;
   else if (type === 'post')    { const p = cfg.posts.find(p=>p.id===id); if(p) p.pin=pin; }
   saveConfig(cfg);
   closeModal('m-pin-change');
@@ -2730,33 +2962,6 @@ async function savePinChange() {
 // ══════════════════════════════════════════════════════════
 // PERMISSIONS
 // ══════════════════════════════════════════════════════════
-const SEALER_PERM_LABELS = {
-  addTruck:'Add Trucks', editTruck:'Edit Trucks', deleteTruck:'Delete Trucks',
-  viewPosts:'View Posts', viewReports:'View Reports'
-};
-function openPerms(sealerId) {
-  permsTarget = sealerId;
-  const cfg   = loadConfig();
-  const perms = cfg[sealerId].perms || {};
-  document.getElementById('perms-list').innerHTML = Object.entries(SEALER_PERM_LABELS).map(([k,v])=>`
-    <div class="perm-row">
-      <span class="perm-label">${v}</span>
-      <div class="toggle ${perms[k]?'on':''}" id="perm-${k}" onclick="this.classList.toggle('on')"></div>
-    </div>`).join('');
-  openModal('m-perms');
-}
-function savePerms() {
-  const cfg = loadConfig();
-  const perms = {};
-  Object.keys(SEALER_PERM_LABELS).forEach(k => {
-    perms[k] = document.getElementById('perm-'+k)?.classList.contains('on') || false;
-  });
-  cfg[permsTarget].perms = perms;
-  saveConfig(cfg);
-  closeModal('m-perms');
-  toast('⚙️ Permissions saved!');
-  renderManage();
-}
 
 const FOREMAN_PERM_LABELS = {
   viewTrucks:'View All Trucks', viewPosts:'View Posts',
