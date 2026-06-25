@@ -328,7 +328,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="login-logo">AGS</div>
     <div class="login-title">Agash</div>
     <div class="login-sub" id="login-sub-status">Agash · Djibouti · Connecting...</div>
-    <div id="who-list" style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px;"></div>
+    <div id="who-list" style="width:100%;max-width:360px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;"></div>
   </div>
 </div>
 
@@ -603,6 +603,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 <div class="screen" id="s-admin-manage">
   <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Manage</div><div class="tb-sub">Users & Permissions</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
   <div class="scroll">
+    <div class="section-divider">👷 Arrimeurs</div>
+    <div id="manage-arrimeurs-section"></div>
     <div class="section-divider">🏗️ Work Posts (7)</div>
     <div id="manage-posts-list"></div>
     <div class="section-divider">👷‍♂️ Foreman</div>
@@ -681,6 +683,11 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="form-group">
       <label class="form-label">Date</label>
       <input class="form-input" id="f-date" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Arrimeurs <span style="color:var(--muted);font-weight:500;font-size:9px;">(optionnel)</span></label>
+      <div id="f-arrimeurs-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;min-height:32px;"></div>
+      <input type="hidden" id="f-arrimeurs" value="">
     </div>
     <div class="form-group">
       <label class="form-label">Notes (optional)</label>
@@ -806,6 +813,7 @@ function formatWorkDayLabel(dateStr) {
 const DEFAULT_CONFIG = {
   apin: '1234',
   addingSuspended: false,
+  arrimeurs: [], // list of arrimeur names, managed by Admin
   foreman: { pin:'5555', name:'Foreman', perms:{ viewTrucks:true, viewPosts:true, addTruck:false, editTruck:false, deleteTruck:false }},
   posts: [
     {id:'p1', label:'Post 1', pin:'1111', color:'#d97706'},
@@ -1046,18 +1054,46 @@ function buildLoginScreen() {
   const cfg = loadConfig();
   const list = document.getElementById('who-list');
   const roles = [
-    { emoji:'👑', label:'Admin', sub:'Full access', role:'admin', id:'admin', color:'#f0a500' },
-    { emoji:'👷‍♂️', label:cfg.foreman.name, sub:'Foreman · Supervisor', role:'foreman', id:'foreman', color:'#8b5cf6' },
-    ...cfg.posts.map(p => ({ emoji:'🏗️', label:p.label, sub:'Work Post · My trucks', role:'post', id:p.id, color:p.color, postData:p }))
+    { emoji:'👑', label:'Admin',          sub:'Accès total',   role:'admin',   id:'admin',   color:'#f0a500', big:true },
+    { emoji:'👷', label:cfg.foreman.name, sub:'Superviseur',   role:'foreman', id:'foreman', color:'#8b5cf6', big:true },
+    ...cfg.posts.map(p => ({ emoji:null, label:p.label, sub:'Poste', role:'post', id:p.id, color:p.color, postData:p }))
   ];
   // Sealers removed — they use the Hask app
   list.innerHTML = roles.map(r => {
     const safeR = JSON.stringify(r).replace(/"/g,"'");
-    return `<div class="who-btn" onclick="selectUser(${safeR})">
-      <div class="who-av" style="background:${r.color}22;color:${r.color};">${r.emoji}</div>
-      <div><div class="who-name">${r.label}</div><div class="who-role">${r.sub}</div></div>
-      <div class="who-arrow">›</div>
-    </div>`;
+    if (r.big) {
+      // Admin & Foreman: elevated tile with emoji
+      return `<div onclick="selectUser(${safeR})" style="
+        background:${r.color}18;border:1.5px solid ${r.color}44;border-radius:16px;
+        padding:14px 6px 12px;text-align:center;cursor:pointer;
+        display:flex;flex-direction:column;align-items:center;gap:5px;
+        transition:border-color 0.15s,background 0.15s;
+        -webkit-tap-highlight-color:transparent;" ontouchstart="" >
+        <div style="font-size:32px;line-height:1;margin-bottom:2px;">${r.emoji}</div>
+        <div style="font-size:13px;font-weight:800;color:${r.color};font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">${r.label}</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;letter-spacing:0.2px;">${r.sub}</div>
+      </div>`;
+    } else {
+      // Posts: big colored number tile
+      const num = r.label.replace(/\D/g,'') || r.label;
+      return `<div onclick="selectUser(${safeR})" style="
+        background:${r.color}18;border:1.5px solid ${r.color}44;border-radius:16px;
+        padding:14px 6px 12px;text-align:center;cursor:pointer;
+        display:flex;flex-direction:column;align-items:center;gap:4px;
+        transition:border-color 0.15s,background 0.15s;
+        -webkit-tap-highlight-color:transparent;" ontouchstart="">
+        <div style="
+          width:46px;height:46px;border-radius:12px;
+          background:${r.color};
+          display:flex;align-items:center;justify-content:center;
+          font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
+          color:#0a0e1a;line-height:1;margin-bottom:2px;">
+          ${num}
+        </div>
+        <div style="font-size:12px;font-weight:800;color:${r.color};font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">${r.label}</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;">Poste</div>
+      </div>`;
+    }
   }).join('');
 }
 
@@ -1163,6 +1199,54 @@ function buildPostGrid() {
       <div class="post-opt ${p.id===document.getElementById('f-post')?.value?'active-post':''}"
         id="postopt-${p.id}" onclick="selectPost('${p.id}')">${p.label}</div>`).join('');
   }
+}
+
+// ══════════════════════════════════════════════════════════
+// ARRIMEURS CHIPS
+// ══════════════════════════════════════════════════════════
+function buildArrimeursChips(selected) {
+  const cfg = loadConfig();
+  const names = cfg.arrimeurs || [];
+  const container = document.getElementById('f-arrimeurs-chips');
+  if (!container) return;
+  if (!names.length) {
+    container.innerHTML = `<div style="font-size:11px;color:var(--muted);padding:4px 0;">Aucun arrimeur configuré — ajoutez-les dans Gérer.</div>`;
+    document.getElementById('f-arrimeurs').value = '';
+    return;
+  }
+  const sel = new Set(selected || []);
+  container.innerHTML = names.map(n => {
+    const active = sel.has(n);
+    return `<div id="arc-${CSS.escape(n)}" onclick="toggleArrimeur('${n.replace(/'/g,"\\'")}',this)"
+      style="
+        padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+        border:1.5px solid ${active ? 'var(--teal)' : 'var(--border)'};
+        background:${active ? 'rgba(6,182,212,0.15)' : 'rgba(255,255,255,0.04)'};
+        color:${active ? 'var(--teal)' : 'var(--muted)'};
+        transition:all 0.15s;
+        font-family:'Barlow',sans-serif;
+      ">${active ? '✓ ' : ''}${n}</div>`;
+  }).join('');
+  document.getElementById('f-arrimeurs').value = [...sel].join(',');
+}
+
+function toggleArrimeur(name, el) {
+  const hiddenInput = document.getElementById('f-arrimeurs');
+  const sel = new Set(hiddenInput.value ? hiddenInput.value.split(',') : []);
+  if (sel.has(name)) {
+    sel.delete(name);
+    el.style.border = '1.5px solid var(--border)';
+    el.style.background = 'rgba(255,255,255,0.04)';
+    el.style.color = 'var(--muted)';
+    el.textContent = name;
+  } else {
+    sel.add(name);
+    el.style.border = '1.5px solid var(--teal)';
+    el.style.background = 'rgba(6,182,212,0.15)';
+    el.style.color = 'var(--teal)';
+    el.textContent = '✓ ' + name;
+  }
+  hiddenInput.value = [...sel].join(',');
 }
 
 function selectPost(id) {
@@ -1282,6 +1366,7 @@ function renderTruckList(trucks, elId, canEdit, canDelete) {
         <div style="display:flex;align-items:center;gap:10px;margin-top:5px;flex-wrap:wrap;">
           <span style="font-size:11px;color:var(--muted);">🕐 ${dateStr}</span>
           <span style="font-size:11px;font-weight:700;color:var(--sub);">${tl}</span>
+          ${t.arrimeurs&&t.arrimeurs.length?`<span style="font-size:11px;color:var(--teal);">👷 ${t.arrimeurs.join(', ')}</span>`:''}
           ${t.notes?`<span style="font-size:11px;color:var(--muted);">📝 ${t.notes}</span>`:''}
         </div>
         ${acts.length?`<div class="tc-acts" style="margin-top:7px;">${acts.join('')}</div>`:''}
@@ -2352,6 +2437,7 @@ function openAddTruck() {
   buildPostGrid();
   selectType('shirac');
   selectStatus('started');
+  buildArrimeursChips([]);
   // Auto-select post user's post
   if (currentUser?.role === 'post') selectPost(currentUser.id);
   openModal('m-truck');
@@ -2369,6 +2455,7 @@ function openEditTruck(id) {
   selectPost(t.postId||'p1');
   selectType(t.type||'shirac');
   selectStatus(t.status||'started');
+  buildArrimeursChips(t.arrimeurs||[]);
   openModal('m-truck');
 }
 
@@ -2379,6 +2466,8 @@ function saveTruck() {
   const status = document.getElementById('f-status').value;
   const date   = document.getElementById('f-date').value || new Date().toISOString().split('T')[0];
   const notes  = document.getElementById('f-notes').value.trim();
+  const arrimeursRaw = document.getElementById('f-arrimeurs').value;
+  const arrimeurs = arrimeursRaw ? arrimeursRaw.split(',').filter(Boolean) : [];
   if (!plate)  { toast('⚠️ Enter plate number!'); return; }
   if (!postId) { toast('⚠️ Select a post!'); return; }
   const cfg    = loadConfig();
@@ -2400,17 +2489,17 @@ function saveTruck() {
   }
   if (editingTruckId) {
     const idx = trucks.findIndex(t=>t.id===editingTruckId);
-    const updated = idx>-1 ? {...trucks[idx], plate, postId, postLabel:post?.label, type, status, date, notes} : null;
+    const updated = idx>-1 ? {...trucks[idx], plate, postId, postLabel:post?.label, type, status, date, notes, arrimeurs} : null;
     if (updated) {
       trucks[idx] = updated;
       saveTrucks(trucks);
-      firestoreUpdateTruck(editingTruckId, { plate, postId, postLabel:post?.label||'', type, status, date, notes });
+      firestoreUpdateTruck(editingTruckId, { plate, postId, postLabel:post?.label||'', type, status, date, notes, arrimeurs });
       notifyHSK(updated);
     }
     editingTruckId = null;
     toast('✅ Truck updated!');
   } else {
-    const newTruck = { id:'t_'+now, ts:now, plate, postId, postLabel:post?.label||'', type, status, date, workDay, notes, addedBy: currentUser.name };
+    const newTruck = { id:'t_'+now, ts:now, plate, postId, postLabel:post?.label||'', type, status, date, workDay, notes, arrimeurs, addedBy: currentUser.name };
     trucks.unshift(newTruck);
     saveTrucks(trucks);
     firestoreSaveTruck(newTruck);
@@ -2672,6 +2761,57 @@ function renderManage() {
   renderManageInstallSection();
   renderManageSuspendSection();
   renderManageSyncSection();
+  renderManageArrimeurs();
+}
+
+// ══════════════════════════════════════════════════════════
+// ARRIMEURS MANAGEMENT (Admin)
+// ══════════════════════════════════════════════════════════
+function renderManageArrimeurs() {
+  const sec = document.getElementById('manage-arrimeurs-section');
+  if (!sec) return;
+  const cfg = loadConfig();
+  const list = cfg.arrimeurs || [];
+  const tags = list.length
+    ? list.map(n => `
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.25);border-radius:8px;padding:5px 10px;">
+          <span style="font-size:12px;font-weight:700;color:var(--teal);">${n}</span>
+          <span onclick="deleteArrimeur('${n.replace(/'/g,"\\'")}',this)" style="color:var(--red);font-size:14px;cursor:pointer;line-height:1;margin-left:2px;">×</span>
+        </div>`).join('')
+    : `<div style="font-size:12px;color:var(--muted);">Aucun arrimeur ajouté.</div>`;
+  sec.innerHTML = `
+    <div class="manage-row" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;flex-wrap:wrap;gap:7px;min-height:28px;">${tags}</div>
+      <div style="display:flex;gap:8px;">
+        <input id="new-arrimeur-input" class="form-input" placeholder="Nom de l'arrimeur…" autocomplete="off"
+          style="flex:1;padding:9px 12px;font-size:13px;"
+          onkeydown="if(event.key==='Enter')addArrimeur()">
+        <button onclick="addArrimeur()" style="background:var(--teal);color:#0a0e1a;border:none;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Barlow',sans-serif;white-space:nowrap;">+ Ajouter</button>
+      </div>
+    </div>`;
+}
+
+async function addArrimeur() {
+  const inp = document.getElementById('new-arrimeur-input');
+  if (!inp) return;
+  const name = inp.value.trim();
+  if (!name) { toast('⚠️ Entrez un nom!'); return; }
+  const cfg = loadConfig();
+  if (!cfg.arrimeurs) cfg.arrimeurs = [];
+  if (cfg.arrimeurs.includes(name)) { toast('⚠️ Déjà dans la liste!'); return; }
+  cfg.arrimeurs.push(name);
+  await saveConfig(cfg);
+  inp.value = '';
+  toast(`✅ ${name} ajouté!`);
+  renderManageArrimeurs();
+}
+
+async function deleteArrimeur(name) {
+  const cfg = loadConfig();
+  cfg.arrimeurs = (cfg.arrimeurs || []).filter(n => n !== name);
+  await saveConfig(cfg);
+  toast(`🗑️ ${name} supprimé`);
+  renderManageArrimeurs();
 }
 
 // ══════════════════════════════════════════════════════════
