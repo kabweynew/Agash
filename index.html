@@ -1,0 +1,3701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Agash</title>
+<meta name="theme-color" content="#0a0e1a"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="manifest" id="pwa-manifest"/>
+<link rel="apple-touch-icon" id="pwa-icon"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+:root{
+  --bg:#0a0e1a;--surface:#111827;--card:#1a2235;--card2:#1f2a3d;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#e8edf8;--muted:#5a6a8a;--sub:#7a8aaa;
+  --accent:#f0a500;--accent2:#fbbf24;
+  --green:#10b981;--green2:rgba(16,185,129,0.15);
+  --red:#ef4444;--red2:rgba(239,68,68,0.15);
+  --gold:#f0a500;--gold2:rgba(240,165,0,0.15);
+  --blue:#3b82f6;--blue2:rgba(59,130,246,0.15);
+  --purple:#8b5cf6;--teal:#06b6d4;
+  --orange:#f97316;--orange2:rgba(249,115,22,0.15);
+  --bashal:#e879f9;--bashal2:rgba(232,121,249,0.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;height:100dvh;overflow:hidden;}
+html{overflow:hidden;position:fixed;width:100%;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;height:100vh;height:100dvh;position:fixed;top:24px;left:0;right:0;bottom:0;z-index:1;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* SYNC BAR — global, sits above every screen for every user */
+#sync-bar{position:fixed;top:0;left:0;right:0;height:24px;z-index:2000;display:flex;align-items:center;justify-content:space-between;
+  padding:0 10px;background:var(--surface);border-bottom:1px solid var(--border);font-size:10.5px;font-weight:600;color:var(--sub);
+  -webkit-user-select:none;user-select:none;}
+#sync-bar .sb-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden;}
+#sync-bar .sb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--gold);}
+#sync-bar .sb-dot.pulse{animation:pulse 1.2s infinite;}
+#sync-bar .sb-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#sync-bar .sb-refresh{display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0;color:var(--sub);cursor:pointer;font-size:13px;}
+#sync-bar .sb-refresh.spin{animation:sbspin 0.7s linear infinite;}
+@keyframes sbspin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+#pull-indicator{position:fixed;top:24px;left:0;right:0;height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--sub);background:var(--surface);z-index:1500;transition:height 0.15s ease;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;min-height:54px;}
+.tb-left{display:flex;align-items:center;gap:10px;}
+.kab-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#f0a500,#d48000);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;color:#0a0e1a;flex-shrink:0;}
+.tb-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:0.5px;line-height:1.1;}
+.tb-sub{font-size:10px;color:var(--muted);font-weight:500;}
+.tb-right{display:flex;align-items:center;gap:6px;}
+.tb-badge{border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:0.3px;}
+.badge-admin{background:rgba(240,165,0,0.15);color:var(--gold);border:1px solid rgba(240,165,0,0.3);}
+.badge-sealer{background:rgba(6,182,212,0.15);color:var(--teal);border:1px solid rgba(6,182,212,0.3);}
+.badge-foreman{background:rgba(139,92,246,0.15);color:var(--purple);border:1px solid rgba(139,92,246,0.3);}
+.badge-post{background:rgba(249,115,22,0.15);color:var(--orange);border:1px solid rgba(249,115,22,0.3);}
+.tb-btn{background:rgba(240,165,0,0.12);border:1px solid rgba(240,165,0,0.3);color:var(--accent);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;padding:12px 14px 90px;}
+.scroll::-webkit-scrollbar{width:2px;}
+.scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px;}
+
+/* BOTTOM NAV */
+.bnav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding:4px 0 env(safe-area-inset-bottom,6px);flex-shrink:0;min-height:56px;position:relative;z-index:10;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:5px 2px;cursor:pointer;color:var(--muted);font-size:9px;font-weight:700;gap:2px;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.5px;transition:color 0.2s;}
+.bnav-item .ni{font-size:19px;}
+.bnav-item.active{color:var(--accent);}
+
+/* FILTER CHIPS */
+.fchips{display:flex;gap:6px;padding:8px 14px;flex-shrink:0;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);}
+.fchips::-webkit-scrollbar{display:none;}
+.chip{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--muted);transition:all 0.2s;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;}
+.chip.active{background:var(--gold2);border-color:rgba(240,165,0,0.4);color:var(--gold);}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.stat-box{background:var(--card);border-radius:10px;padding:10px 6px;text-align:center;border:1px solid var(--border);}
+.stat-n{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;line-height:1;}
+.stat-l{font-size:9px;color:var(--muted);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* TRUCK CARD */
+.truck-card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:9px;border:1px solid var(--border);border-left:3px solid var(--border);transition:border-color 0.2s;}
+.truck-card.started{border-left-color:var(--blue);}
+.truck-card.half{border-left-color:var(--gold);}
+.truck-card.finished{border-left-color:var(--green);}
+.truck-card.bashal{border-left-color:var(--bashal);}
+.tc-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.tc-plate{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:1px;}
+.tc-time{font-size:10px;color:var(--muted);margin-top:2px;}
+.tc-body{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;}
+.tc-field{background:rgba(255,255,255,0.03);border-radius:7px;padding:6px 8px;}
+.tc-field-l{font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;}
+.tc-field-v{font-size:13px;font-weight:700;margin-top:1px;}
+.tc-acts{display:flex;gap:6px;flex-wrap:wrap;}
+.tc-btn{border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;font-family:'Barlow',sans-serif;transition:opacity 0.2s;}
+.tc-btn:active{opacity:0.7;}
+.btn-edit{background:var(--blue2);border-color:rgba(59,130,246,0.3);color:var(--blue);}
+.btn-del{background:var(--red2);border-color:rgba(239,68,68,0.3);color:var(--red);}
+.btn-finish{background:var(--green2);border-color:rgba(16,185,129,0.3);color:var(--green);}
+
+/* LOAD STATUS BADGES */
+.s-badge{display:inline-flex;align-items:center;gap:4px;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;}
+.s-started{background:var(--blue2);color:var(--blue);}
+.s-half{background:var(--gold2);color:var(--gold);}
+.s-finished{background:var(--green2);color:var(--green);}
+.s-bashal{background:var(--bashal2);color:var(--bashal);}
+
+/* POST BADGE in card */
+.post-pill{display:inline-block;background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.3);color:var(--orange);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:800;font-family:'Barlow Condensed',sans-serif;}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.sec-action{font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;}
+
+/* POST CARD (replaces worker card) */
+.post-card{background:var(--card);border-radius:12px;margin-bottom:10px;border:1px solid var(--border);overflow:hidden;}
+.pc-hdr{display:flex;align-items:center;gap:10px;padding:13px;cursor:pointer;}
+.pc-av{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;flex-shrink:0;}
+.pc-name{font-size:15px;font-weight:700;}
+.pc-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.pc-right{margin-left:auto;text-align:right;}
+.pc-num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;line-height:1;}
+.pc-numl{font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:700;}
+.pc-body{padding:0 13px 13px;border-top:1px solid var(--border);display:none;}
+.pc-body.open{display:block;}
+.pc-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 0;}
+.pc-stat{background:rgba(255,255,255,0.03);border-radius:8px;padding:8px;text-align:center;}
+.pc-stat-n{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;}
+.pc-stat-l{font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:600;margin-top:2px;}
+.plate-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.plate-tag{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;}
+
+/* DAY HEADER */
+.day-header{background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.2);border-radius:8px;padding:6px 12px;margin-bottom:8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--gold);letter-spacing:0.5px;}
+
+/* MANAGE */
+.manage-row{background:var(--card);border-radius:10px;padding:11px 13px;margin-bottom:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.manage-av{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;flex-shrink:0;}
+.manage-name{font-size:14px;font-weight:700;flex:1;}
+.manage-sub{font-size:10px;color:var(--muted);}
+.manage-acts{display:flex;gap:5px;}
+.m-btn{border-radius:7px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;}
+.m-btn-pin{background:var(--blue2);border-color:rgba(59,130,246,0.3);color:var(--blue);}
+.m-btn-del{background:var(--red2);border-color:rgba(239,68,68,0.3);color:var(--red);}
+.m-btn-perm{background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.3);color:var(--purple);}
+/* PIN reveal */
+.pin-reveal{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--accent);background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.25);border-radius:6px;padding:2px 8px;letter-spacing:1px;}
+
+/* LOGIN */
+.login-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:10px;overflow-y:auto;}
+.login-logo{width:70px;height:70px;border-radius:18px;background:linear-gradient(135deg,#f0a500,#d48000);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:#0a0e1a;margin-bottom:4px;}
+.login-title{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:900;letter-spacing:1px;}
+.login-sub{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.who-btn{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:12px 14px;cursor:pointer;width:100%;max-width:340px;transition:border-color 0.15s;}
+.who-btn:active{border-color:var(--accent);}
+.who-av{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;flex-shrink:0;}
+.who-name{font-size:15px;font-weight:700;line-height:1;}
+.who-role{font-size:11px;color:var(--muted);margin-top:2px;}
+.who-arrow{margin-left:auto;color:var(--muted);font-size:16px;}
+
+/* PIN */
+.pin-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.pin-face{font-size:50px;margin-bottom:6px;}
+.pin-name{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;}
+.pin-role{font-size:12px;color:var(--muted);margin-bottom:16px;}
+.pin-dots{display:flex;gap:14px;margin:10px 0;}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.1);transition:background 0.15s;}
+.pin-dot.filled{background:var(--accent);}
+.pin-err{color:var(--red);font-size:12px;min-height:16px;font-weight:600;margin-bottom:6px;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:270px;}
+.pin-key{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:15px;font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;cursor:pointer;text-align:center;transition:background 0.1s,transform 0.1s;}
+.pin-key:active{background:var(--gold2);transform:scale(0.94);}
+.pin-back{font-size:13px;font-family:'Barlow',sans-serif;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:22px 22px 0 0;padding:18px 16px 30px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;}
+.modal::-webkit-scrollbar{width:2px;}
+.modal-handle{width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 14px;}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;margin-bottom:14px;}
+.form-group{margin-bottom:12px;}
+.form-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;}
+.form-input,.form-select{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-size:14px;outline:none;font-family:'Barlow',sans-serif;transition:border-color 0.2s;}
+.form-input:focus,.form-select:focus{border-color:var(--accent);}
+.form-row{display:flex;gap:10px;}
+.form-row .form-group{flex:1;}
+
+/* TYPE GRID (3 types) */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;}
+.type-opt{cursor:pointer;border:2px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;background:rgba(255,255,255,0.02);transition:all 0.15s;}
+.type-opt .t-icon{font-size:24px;}
+.type-opt .t-label{font-size:9px;font-weight:800;margin-top:4px;text-transform:uppercase;letter-spacing:0.4px;}
+.type-opt.active-shirac{border-color:#10b981;background:rgba(16,185,129,0.1);}
+.type-opt.active-bilashirac{border-color:#3b82f6;background:rgba(59,130,246,0.1);}
+.type-opt.active-metal{border-color:#e74c3c;background:rgba(231,76,60,0.1);}
+
+/* STATUS GRID (4 load statuses) */
+.status-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px;}
+.status-opt{cursor:pointer;border:2px solid var(--border);border-radius:10px;padding:9px 4px;text-align:center;font-size:11px;font-weight:700;transition:all 0.15s;color:var(--muted);}
+.status-opt.active-started{border-color:var(--blue);background:var(--blue2);color:var(--blue);}
+.status-opt.active-half{border-color:var(--gold);background:var(--gold2);color:var(--gold);}
+.status-opt.active-finished{border-color:var(--green);background:var(--green2);color:var(--green);}
+.status-opt.active-bashal{border-color:var(--bashal);background:var(--bashal2);color:var(--bashal);}
+
+/* POST GRID (for selecting post in form) */
+.post-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px;}
+.post-opt{cursor:pointer;border:2px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;font-size:11px;font-weight:800;font-family:'Barlow Condensed',sans-serif;transition:all 0.15s;color:var(--muted);}
+.post-opt.active-post{border-color:var(--orange);background:var(--orange2);color:var(--orange);}
+
+.btn-pri{width:100%;background:linear-gradient(135deg,#f0a500,#d48000);color:#0a0e1a;border:none;border-radius:11px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:8px;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;}
+.btn-sec{width:100%;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:11px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;}
+.btn-danger{width:100%;background:var(--red2);color:var(--red);border:1px solid rgba(239,68,68,0.3);border-radius:11px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;}
+.perm-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);}
+.perm-row:last-child{border-bottom:none;}
+.perm-label{font-size:13px;font-weight:600;}
+.toggle{width:44px;height:24px;background:rgba(255,255,255,0.1);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:left 0.2s;}
+.toggle.on::after{left:23px;}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-icon{font-size:44px;margin-bottom:10px;}
+.empty p{font-size:13px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);background:rgba(26,34,53,0.97);color:var(--text);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;border:1px solid var(--border2);box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.toast.show{opacity:1;}
+
+/* DIVIDER */
+.section-divider{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+
+/* REPORT */
+.rep-card{background:var(--card);border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid var(--border);}
+.rep-card-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--sub);margin-bottom:10px;}
+.rep-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.rep-row:last-child{border-bottom:none;}
+.rep-k{font-size:12px;color:var(--sub);}
+.rep-v{font-size:15px;font-weight:800;}
+.big-stat{text-align:center;padding:16px;background:var(--card);border-radius:12px;border:1px solid var(--border);margin-bottom:12px;}
+.big-n{font-family:'Barlow Condensed',sans-serif;font-size:52px;font-weight:900;line-height:1;}
+.big-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+.prog-bar{background:rgba(255,255,255,0.06);border-radius:4px;height:6px;overflow:hidden;margin-top:6px;}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#10b981,#06b6d4);transition:width 0.6s;}
+
+/* SEALER INCOMING BANNER */
+.incoming-banner{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:10px 13px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.incoming-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.incoming-text{font-size:12px;font-weight:700;color:var(--green);}
+
+/* ── PWA INSTALL BANNER ── */
+#pwaInstallBanner{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#1a1000,#3a2500);
+  border:1px solid rgba(240,165,0,0.45);
+  border-radius:18px;padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  z-index:9000;box-shadow:0 8px 32px rgba(0,0,0,0.7);
+  max-width:390px;width:calc(100% - 24px);
+  animation:bannerUp 0.4s ease;
+}
+@keyframes bannerUp{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+#pwaInstallBanner.hidden{display:none;}
+#pwaInstallBanner.on-login{bottom:24px;}
+.pwa-banner-icon{font-size:28px;flex-shrink:0;}
+.pwa-banner-text{flex:1;}
+.pwa-banner-title{font-size:15px;font-weight:700;color:#fff;}
+.pwa-banner-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.pwa-inst-btn{
+  background:linear-gradient(135deg,#f0a500,#d48000);
+  border:none;color:#0a0e1a;border-radius:11px;
+  padding:9px 15px;font-size:13px;font-weight:800;
+  cursor:pointer;white-space:nowrap;font-family:'Barlow',sans-serif;
+}
+.pwa-close-btn{
+  background:none;border:none;color:rgba(255,255,255,0.3);
+  font-size:20px;cursor:pointer;padding:2px 6px;flex-shrink:0;
+}
+
+/* ── SPLASH SCREEN ── */
+#splashScreen{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:#0a0e1a;transition:opacity 0.6s ease;
+}
+#splashScreen.hide{opacity:0;pointer-events:none;}
+.splash-content{display:flex;flex-direction:column;align-items:center;gap:16px;}
+.splash-icon{border-radius:24%;box-shadow:0 16px 48px rgba(0,0,0,0.8);}
+.splash-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;letter-spacing:1px;}
+.splash-sub{font-size:13px;color:rgba(255,255,255,0.45);}
+.splash-loader{width:48px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;overflow:hidden;margin-top:6px;}
+.splash-loader-bar{height:100%;width:0%;background:linear-gradient(90deg,#f0a500,#fbbf24);border-radius:2px;animation:loadBar 2s ease forwards;}
+@keyframes loadBar{0%{width:0%}60%{width:70%}100%{width:100%}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ GLOBAL SYNC BAR ══════════════════════ -->
+<!-- Always visible, on every screen, for every role. Shows live connection
+     status + last-synced time, and doubles as a tap-to-refresh button. -->
+<div id="sync-bar" onclick="manualRefresh()">
+  <div class="sb-left">
+    <span class="sb-dot" id="sb-dot"></span>
+    <span class="sb-text" id="sb-text">Connecting…</span>
+  </div>
+  <span class="sb-refresh" id="sb-refresh-icon">↻</span>
+</div>
+<div id="pull-indicator">↓ Pull to refresh</div>
+
+<!-- ══════════════════════ LOGIN ══════════════════════ -->
+<div class="screen active" id="s-login">
+  <div class="login-wrap">
+    <div class="login-logo">AGS</div>
+    <div class="login-title">Agash</div>
+    <div class="login-sub" id="login-sub-status">Agash · Djibouti · Connecting...</div>
+    <div id="who-list" style="width:100%;max-width:360px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ PIN ══════════════════════ -->
+<div class="screen" id="s-pin">
+  <div class="pin-wrap">
+    <div class="pin-face" id="pin-face">👤</div>
+    <div class="pin-name" id="pin-name-lbl">Name</div>
+    <div class="pin-role" id="pin-role-lbl">Role</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-err" id="pin-err"></div>
+    <div class="pin-pad">
+      <div class="pin-key" onclick="pk('1')">1</div>
+      <div class="pin-key" onclick="pk('2')">2</div>
+      <div class="pin-key" onclick="pk('3')">3</div>
+      <div class="pin-key" onclick="pk('4')">4</div>
+      <div class="pin-key" onclick="pk('5')">5</div>
+      <div class="pin-key" onclick="pk('6')">6</div>
+      <div class="pin-key" onclick="pk('7')">7</div>
+      <div class="pin-key" onclick="pk('8')">8</div>
+      <div class="pin-key" onclick="pk('9')">9</div>
+      <div class="pin-key pin-back" onclick="showLogin()">← Back</div>
+      <div class="pin-key" onclick="pk('0')">0</div>
+      <div class="pin-key pin-back" onclick="pk('del')">⌫</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ POST WORKER ══════════════════════ -->
+<div class="screen" id="s-worker">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="kab-logo">AGS</div>
+      <div><div class="tb-title" id="w-tb-title">My Trucks</div><div class="tb-sub" id="w-tb-sub">Post View</div></div>
+    </div>
+    <div class="tb-right"><div class="tb-badge badge-post" id="w-post-badge">POST</div><button class="tb-btn" onclick="openAddTruck()">+ Add</button></div>
+  </div>
+  <div class="fchips" id="w-chips">
+    <div class="chip active" onclick="setFilter('all',this,'w')">All</div>
+    <div class="chip" onclick="setFilter('started',this,'w')">▶ Started</div>
+    <div class="chip" onclick="setFilter('half',this,'w')">⚡ Half</div>
+    <div class="chip" onclick="setFilter('finished',this,'w')">✅ Done</div>
+    <div class="chip" onclick="setFilter('bashal',this,'w')">🔮 Bashal</div>
+  </div>
+  <div class="scroll">
+    <div class="stats-grid" id="w-stats"></div>
+    <div class="sec-hdr"><span class="sec-title" id="w-day-label">Today's Trucks</span><span class="sec-action" onclick="openAddTruck()">+ New</span></div>
+    <div id="w-trucks-list"></div>
+  </div>
+  <nav class="bnav">
+    <div class="bnav-item active" onclick="showScreen('s-worker');renderWorkerTrucks()"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+
+<!-- ══════════════════════ SEALER (Cashier) ══════════════════════ -->
+<div class="screen" id="s-cashier">
+  <div class="topbar">
+    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Incoming Trucks</div><div class="tb-sub" id="c-day-label">Sealer View</div></div></div>
+    <div class="tb-right"><div class="tb-badge badge-sealer">SEALER</div><button class="tb-btn" onclick="openAddTruck()">+ Add</button></div>
+  </div>
+  <div class="fchips" id="c-chips">
+    <div class="chip active" onclick="setFilter('all',this,'c')">All</div>
+    <div class="chip" onclick="setFilter('started',this,'c')">▶ Started</div>
+    <div class="chip" onclick="setFilter('half',this,'c')">⚡ Half</div>
+    <div class="chip" onclick="setFilter('finished',this,'c')">✅ Done</div>
+    <div class="chip" onclick="setFilter('bashal',this,'c')">🔮 Bashal</div>
+  </div>
+  <div class="scroll">
+    <div id="c-incoming-banner"></div>
+    <div class="stats-grid" id="c-stats"></div>
+    <div class="sec-hdr"><span class="sec-title">All Trucks</span><span class="sec-action" onclick="openAddTruck()">+ New</span></div>
+    <div id="c-trucks-list"></div>
+  </div>
+  <nav class="bnav">
+    <div class="bnav-item active" onclick="cashierTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="cashierTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item" onclick="cashierTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+<div class="screen" id="s-cashier-posts">
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Posts Overview</div><div class="tb-sub">All 7 Posts</div></div></div><div class="tb-badge badge-sealer">SEALER</div></div>
+  <div class="scroll" id="c-posts-list"></div>
+  <nav class="bnav">
+    <div class="bnav-item" onclick="cashierTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item active" onclick="cashierTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item" onclick="cashierTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+<div class="screen" id="s-cashier-reports">
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub" id="c-reports-sub">Overview</div></div></div><div class="tb-badge badge-sealer">SEALER</div></div>
+  <!-- Date bar for cashier reports -->
+  <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="cashierReportsSetToday()" style="background:var(--green);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;flex-shrink:0;">🟢 Today</button>
+    <button onclick="cashierReportsPrevDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">‹</button>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0;overflow:hidden;" onclick="openCashierReportsDatePicker()">
+      <span style="font-size:13px;">📅</span>
+      <span id="cr-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;"></span>
+      <span style="color:var(--muted);font-size:11px;flex-shrink:0;">▼</span>
+    </div>
+    <button onclick="cashierReportsNextDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">›</button>
+  </div>
+  <div class="scroll" id="c-reports-content"></div>
+  <nav class="bnav">
+    <div class="bnav-item" onclick="cashierTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="cashierTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item active" onclick="cashierTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+
+<!-- ══════════════════════ FOREMAN ══════════════════════ -->
+<div class="screen" id="s-foreman">
+  <div class="topbar">
+    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">All Trucks</div><div class="tb-sub" id="f-day-label">Foreman View</div></div></div>
+    <div class="tb-right"><div class="tb-badge badge-foreman">FOREMAN</div><button class="tb-btn" id="f-add-btn" onclick="openAddTruck()" style="display:none;">+ Add</button></div>
+  </div>
+  <!-- Foreman date bar -->
+  <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="foremanSetToday()" id="f-today-btn" style="background:var(--green);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;flex-shrink:0;">🟢 Today</button>
+    <button onclick="foremanPrevDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">‹</button>
+    <div id="f-date-display" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0;overflow:hidden;" onclick="openForemanDatePicker()">
+      <span style="font-size:13px;">📅</span>
+      <span id="f-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;"></span>
+      <span style="color:var(--muted);font-size:11px;flex-shrink:0;">▼</span>
+    </div>
+    <button onclick="foremanNextDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">›</button>
+  </div>
+  <div class="fchips" id="f-chips">
+    <div class="chip active" onclick="setFilter('all',this,'f')">All</div>
+    <div class="chip" onclick="setFilter('started',this,'f')">▶ Started</div>
+    <div class="chip" onclick="setFilter('half',this,'f')">⚡ Half</div>
+    <div class="chip" onclick="setFilter('finished',this,'f')">✅ Done</div>
+    <div class="chip" onclick="setFilter('bashal',this,'f')">🔮 Bashal</div>
+  </div>
+  <div class="scroll">
+    <div class="stats-grid" id="f-stats"></div>
+    <div class="sec-hdr"><span class="sec-title">All Trucks</span></div>
+    <div id="f-trucks-list"></div>
+  </div>
+  <nav class="bnav">
+    <div class="bnav-item active" onclick="foremanTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="foremanTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item" id="f-incoming-nav" onclick="foremanTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+<div class="screen" id="s-foreman-posts">
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Posts</div><div class="tb-sub">Foreman View</div></div></div><div class="tb-badge badge-foreman">FOREMAN</div></div>
+  <div class="scroll" id="f-posts-list"></div>
+  <nav class="bnav">
+    <div class="bnav-item" onclick="foremanTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item active" onclick="foremanTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item" onclick="foremanTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+
+<!-- Foreman Incoming Screen -->
+<div class="screen" id="s-foreman-incoming">
+  <div class="topbar">
+    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Incoming</div><div class="tb-sub" id="f-incoming-sub">Today's trucks sent to sealers</div></div></div>
+    <div class="tb-badge badge-foreman">FOREMAN</div>
+  </div>
+  <div class="scroll" id="f-incoming-list" style="padding:12px 14px 100px;"></div>
+  <nav class="bnav">
+    <div class="bnav-item" onclick="foremanTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="foremanTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item active" onclick="foremanTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+
+<!-- ══════════════════════ ADMIN ══════════════════════ -->
+<div class="screen" id="s-admin">
+  <div class="topbar">
+    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">All Trucks</div><div class="tb-sub" id="a-day-label">Admin — Full View</div></div></div>
+    <div class="tb-right"><div class="tb-badge badge-admin">ADMIN</div><button class="tb-btn" onclick="openAddTruck()">+ Add</button></div>
+  </div>
+  <!-- Date bar for admin -->
+  <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="adminSetToday()" id="a-today-btn" style="background:var(--green);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;flex-shrink:0;">🟢 Today</button>
+    <button onclick="adminPrevDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">‹</button>
+    <div id="a-date-display" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0;overflow:hidden;" onclick="openAdminDatePicker()">
+      <span style="font-size:13px;">📅</span>
+      <span id="a-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;"></span>
+      <span style="color:var(--muted);font-size:11px;flex-shrink:0;">▼</span>
+    </div>
+    <button onclick="adminNextDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">›</button>
+  </div>
+  <!-- Post filter chips for admin -->
+  <div class="fchips" id="a-post-chips" style="border-bottom:none;padding-bottom:4px;"></div>
+  <div class="fchips" id="a-chips" style="padding-top:4px;"></div>
+  <!-- Load type summary bar -->
+  <div id="a-type-bar" style="display:flex;gap:6px;padding:6px 14px 8px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;"></div>
+  <div class="scroll">
+    <div class="stats-grid" id="a-stats" style="display:none;"></div>
+    <div id="a-history-notice"></div>
+    <div class="sec-hdr"><span class="sec-title" id="a-sec-title">All Trucks</span><span class="sec-action" id="a-new-btn" onclick="openAddTruck()">+ New</span></div>
+    <div id="a-trucks-list"></div>
+  </div>
+  <nav class="bnav">
+    <div class="bnav-item active" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" id="a-incoming-nav" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+<div class="screen" id="s-admin-posts">
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Posts</div><div class="tb-sub">All 7 Posts</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
+  <div class="scroll" id="a-posts-list"></div>
+  <nav class="bnav">
+    <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item active" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+<div class="screen" id="s-admin-reports">
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub" id="a-reports-sub">Full Overview</div></div></div>
+  <div class="tb-right">
+    <button class="tb-btn" onclick="shareReport()" style="background:rgba(37,211,102,0.12);border-color:rgba(37,211,102,0.35);color:#25d366;">📤 Share</button>
+    <div class="tb-badge badge-admin">ADMIN</div>
+  </div></div>
+  <!-- Date bar for reports -->
+  <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="reportsSetToday()" style="background:var(--green);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;flex-shrink:0;">🟢 Today</button>
+    <button onclick="reportsPrevDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">‹</button>
+    <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0;overflow:hidden;" onclick="openReportsDatePicker()">
+      <span style="font-size:13px;">📅</span>
+      <span id="r-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;"></span>
+      <span style="color:var(--muted);font-size:11px;flex-shrink:0;">▼</span>
+    </div>
+    <button onclick="reportsNextDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">›</button>
+  </div>
+  <div class="scroll" id="a-reports-content"></div>
+  <nav class="bnav">
+    <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item active" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+
+<!-- ══════════════════════ ADMIN INCOMING ══════════════════════ -->
+<div class="screen" id="s-admin-incoming">
+  <div class="topbar">
+    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Incoming from Hask</div><div class="tb-sub" id="a-incoming-sub">Trucks sent to sealers</div></div></div>
+    <div class="tb-badge badge-admin">ADMIN</div>
+  </div>
+  <div class="scroll" id="a-incoming-list" style="padding:12px 14px 100px;"></div>
+  <nav class="bnav">
+    <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item active" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+<div class="screen" id="s-admin-manage">
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Manage</div><div class="tb-sub">Users & Permissions</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
+  <div class="scroll">
+    <div class="section-divider">👷 Arrimeurs</div>
+    <div id="manage-arrimeurs-section"></div>
+    <div class="section-divider">🏗️ Work Posts (7)</div>
+    <div id="manage-posts-list"></div>
+    <div class="section-divider">👷‍♂️ Foreman</div>
+    <div id="manage-foreman-section"></div>
+    <div class="section-divider">👑 Admin PIN</div>
+    <div id="manage-admin-pin"></div>
+    <div class="section-divider">🔗 Share App</div>
+    <div id="manage-share-section"></div>
+    <div class="section-divider">📲 Install App</div>
+    <div id="manage-install-section"></div>
+    <div class="section-divider">🚫 Adding Control</div>
+    <div id="manage-suspend-section"></div>
+    <div class="section-divider">☁️ Cloud Sync</div>
+    <div id="manage-sync-section"></div>
+    <div class="section-divider">📊 Export &amp; Import</div>
+    <button onclick="exportTrucksExcel()" class="btn-pri" style="margin-bottom:8px;">📊 Export Trucks to Excel</button>
+    <input type="file" id="import-excel-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importExcel(this)">
+    <button onclick="document.getElementById('import-excel-input').click()" class="btn-sec" style="margin-bottom:8px;">📥 Import Trucks from Excel</button>
+    <button onclick="downloadHTML()" class="btn-sec" style="margin-bottom:8px;">📥 Download HTML Backup</button>
+    <button onclick="openShareReport()" class="btn-sec" style="margin-bottom:8px;">📤 Share Daily Report (Image)</button>
+    <div class="section-divider">⚠️ Danger Zone</div>
+    <button onclick="clearAllTrucks()" class="btn-danger" style="margin-bottom:8px;">🗑️ Clear All Truck Data</button>
+    <button onclick="logout()" class="btn-sec">🚪 Logout</button>
+  </div>
+  <nav class="bnav">
+    <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item active" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
+    <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
+  </nav>
+</div>
+
+<!-- ══════════════════════ MODALS ══════════════════════ -->
+
+<!-- Add/Edit Truck -->
+<div class="overlay" id="m-truck">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-truck-title">🚛 Add Truck</div>
+    <div class="form-group">
+      <label class="form-label">Plate Number</label>
+      <input class="form-input" id="f-plate" placeholder="e.g. DJ-1234" style="text-transform:uppercase;" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Work Post</label>
+      <div class="post-grid" id="post-grid"></div>
+      <input type="hidden" id="f-post" value="1">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Load Type</label>
+      <div class="type-grid">
+        <div class="type-opt active-shirac" id="type-shirac" onclick="selectType('shirac')">
+          <div class="t-icon">🚛</div><div class="t-label" style="color:#10b981;">Shirac</div>
+        </div>
+        <div class="type-opt" id="type-bilashirac" onclick="selectType('bilashirac')">
+          <div class="t-icon">🚚</div><div class="t-label" style="color:#3b82f6;">Bila Shirac</div>
+        </div>
+        <div class="type-opt" id="type-metal" onclick="selectType('metal')">
+          <div class="t-icon">🏗️</div><div class="t-label" style="color:#e74c3c;">Metal</div>
+        </div>
+      </div>
+      <input type="hidden" id="f-type" value="shirac">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Load Status</label>
+      <div class="status-grid">
+        <div class="status-opt active-started" id="status-started" onclick="selectStatus('started')">▶ Started</div>
+        <div class="status-opt" id="status-half" onclick="selectStatus('half')">⚡ Half</div>
+        <div class="status-opt" id="status-finished" onclick="selectStatus('finished')">✅ Finished</div>
+        <div class="status-opt" id="status-bashal" onclick="selectStatus('bashal')">🔮 BASHAL</div>
+      </div>
+      <input type="hidden" id="f-status" value="started">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" id="f-date" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Arrimeurs <span style="color:var(--muted);font-weight:500;font-size:9px;">(optionnel)</span></label>
+      <div id="f-arrimeurs-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;min-height:32px;"></div>
+      <input type="hidden" id="f-arrimeurs" value="">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <input class="form-input" id="f-notes" placeholder="Any notes..." autocomplete="off">
+    </div>
+    <button class="btn-pri" onclick="saveTruck()">💾 Save Truck</button>
+    <button class="btn-sec" onclick="closeModal('m-truck')">Cancel</button>
+  </div>
+</div>
+
+<!-- Change PIN -->
+<div class="overlay" id="m-pin-change">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔐 Change PIN</div>
+    <div class="form-group">
+      <label class="form-label" id="pin-change-label">New PIN (4 digits)</label>
+      <div style="position:relative;">
+        <input class="form-input" id="new-pin-val" type="password" placeholder="e.g. 1234" maxlength="4" inputmode="numeric">
+        <span onclick="togglePinVisibility()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;" id="pin-eye">👁</span>
+      </div>
+    </div>
+    <button class="btn-pri" onclick="savePinChange()">💾 Save PIN</button>
+    <button class="btn-sec" id="pin-reset-default-btn" style="display:none;" onclick="resetPinToDefault()">↩️ Reset to Default</button>
+    <button class="btn-sec" onclick="closeModal('m-pin-change')">Cancel</button>
+  </div>
+</div>
+
+<!-- Share Daily Report -->
+<div class="overlay" id="m-share-report">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📤 Share Daily Report</div>
+    <div style="max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:10px;margin-bottom:14px;">
+      <canvas id="report-canvas" style="width:100%;display:block;"></canvas>
+    </div>
+    <button class="btn-pri" onclick="downloadReportImage()" style="margin-bottom:8px;">📥 Download Image</button>
+    <button class="btn-sec" onclick="shareReportImage()" style="margin-bottom:8px;">📱 Share via WhatsApp</button>
+    <button class="btn-sec" onclick="closeModal('m-share-report')">Close</button>
+  </div>
+</div>
+
+<!-- Foreman Permissions -->
+<div class="overlay" id="m-foreman-perms">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">👷‍♂️ Foreman Permissions</div>
+    <div id="foreman-perms-list"></div>
+    <button class="btn-pri" onclick="saveForemanPerms()" style="margin-top:14px;">💾 Save</button>
+    <button class="btn-sec" onclick="closeModal('m-foreman-perms')">Cancel</button>
+  </div>
+</div>
+
+<!-- BASHAL info modal -->
+<div class="overlay" id="m-bashal-info">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔮 BASHAL Status</div>
+    <p style="font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:16px;">
+      <strong style="color:var(--bashal);">BASHAL</strong> means the truck is partially or almost fully loaded, 
+      but is <em>not expected to finish loading today</em> — it will carry over to the next work day 
+      due to a load shortage, logistics issue, or any other reason.
+    </p>
+    <button class="btn-pri" onclick="closeModal('m-bashal-info')">Got it</button>
+  </div>
+</div>
+
+<!-- Admin Date Picker Modal -->
+<div class="overlay" id="m-date-picker">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📅 Select Date</div>
+    <div id="date-picker-list" style="display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow-y:auto;padding-right:4px;"></div>
+    <button class="btn-sec" style="margin-top:12px;" onclick="closeModal('m-date-picker')">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══ SPLASH SCREEN ══ -->
+<div id="splashScreen">
+  <div class="splash-content">
+    <canvas id="splashIcon" width="120" height="120" class="splash-icon"></canvas>
+    <div class="splash-title">AGASH</div>
+    <div class="splash-sub">Truck Management</div>
+    <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+  </div>
+</div>
+
+<!-- ══ PWA INSTALL BANNER ══ -->
+<div id="pwaInstallBanner" class="hidden">
+  <div class="pwa-banner-icon">📲</div>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Install Agash App</div>
+    <div class="pwa-banner-sub">Tap Install to add to home screen</div>
+  </div>
+  <button class="pwa-inst-btn" onclick="doInstallPWA()">Install</button>
+  <button class="pwa-close-btn" onclick="dismissPWABanner()">✕</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONSTANTS & DATA
+// ══════════════════════════════════════════════════════════
+const NUM_POSTS = 7;
+
+// Work day: 6am → next day 5:59am
+function getWorkDay(ts) {
+  const d = new Date(ts || Date.now());
+  // If before 6am, it belongs to previous day
+  if (d.getHours() < 6) d.setDate(d.getDate() - 1);
+  return d.toISOString().split('T')[0];
+}
+
+function getTodayWorkDay() { return getWorkDay(Date.now()); }
+
+function formatWorkDayLabel(dateStr) {
+  const d = new Date(dateStr + 'T06:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `Day: ${d.getDate()} ${months[d.getMonth()]} · 06:00 → 06:00`;
+}
+
+const DEFAULT_CONFIG = {
+  apin: '1234',
+  addingSuspended: false,
+  arrimeurs: [], // list of arrimeur names, managed by Admin
+  foreman: { pin:'5555', name:'Foreman', perms:{ viewTrucks:true, viewPosts:true, addTruck:false, editTruck:false, deleteTruck:false }},
+  posts: [
+    {id:'p1', label:'Post 1', pin:'1111', color:'#d97706'},
+    {id:'p2', label:'Post 2', pin:'2222', color:'#10b981'},
+    {id:'p3', label:'Post 3', pin:'3333', color:'#3b82f6'},
+    {id:'p4', label:'Post 4', pin:'4444', color:'#ef4444'},
+    {id:'p5', label:'Post 5', pin:'5555', color:'#8b5cf6'},
+    {id:'p6', label:'Post 6', pin:'6666', color:'#06b6d4'},
+    {id:'p7', label:'Post 7', pin:'7777', color:'#f97316'},
+  ]
+};
+
+// ══════════════════════════════════════════════════════════
+// FIREBASE / FIRESTORE SETUP
+// ══════════════════════════════════════════════════════════
+let db           = null;
+let _syncStatus  = 'syncing'; // 'online' | 'syncing' | 'offline'
+let _lastSyncTs  = null;      // Date.now() of last confirmed server sync
+let _pendingCount = 0;        // trucks saved locally but not yet confirmed by the server
+function setSyncStatus(s) { _syncStatus = s; renderManageSyncSection(); updateSyncBar(); }
+window.addEventListener('online',  () => setSyncStatus(_pendingCount>0 ? 'syncing' : 'online'));
+window.addEventListener('offline', () => setSyncStatus('offline'));
+let _trucks      = [];
+let _config      = null;
+let _unsubTrucks = null;
+let _unsubConfig = null;
+
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDlMIQekGsMTZlPqNWddeL2tqPwNCknetg",
+  authDomain:        "haaa-3b06e.firebaseapp.com",
+  projectId:         "haaa-3b06e",
+  storageBucket:     "haaa-3b06e.firebasestorage.app",
+  messagingSenderId: "172639268578",
+  appId:             "1:172639268578:web:ab7b25bab6bca71e33b8bb"
+};
+
+function initFirebase() {
+  try {
+    if (!firebase || !firebase.firestore) throw new Error('Firebase SDK not loaded');
+    // Only initialize if not already done
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+    db = firebase.firestore();
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+    const statusEl = document.getElementById('login-sub-status');
+    if (statusEl) statusEl.textContent = 'Agash · Djibouti · Live 🟢 · haaa-3b06e';
+    listenTrucks();
+    listenConfig();
+    listenKabIncoming();
+    console.log('🔥 Firestore connected');
+  } catch(e) {
+    console.warn('Firebase failed:', e.message);
+    db = null;
+    const statusEl = document.getElementById('login-sub-status');
+    if (statusEl) statusEl.textContent = 'Agash · Djibouti · Offline';
+    try { _trucks = JSON.parse(localStorage.getItem('kab_trucks_v2') || '[]'); } catch(_e) {}
+    try { _config = JSON.parse(localStorage.getItem('kab_config_v2') || 'null'); } catch(_e) {}
+  }
+}
+
+// ── READINESS TRACKER ──
+// Goes Live only after trucks AND config have both fired their first snapshot.
+// No timers — the sync bar shows Live exactly when real data is loaded.
+var _ready = {};
+function _markReady(key) {
+  _ready[key] = true;
+  if (_ready['trucks'] && _ready['config']) {
+    _lastSyncTs = Date.now();
+    setSyncStatus(_pendingCount > 0 ? 'syncing' : 'online');
+    refreshCurrentView();
+    buildLoginScreen();
+  }
+}
+
+function listenTrucks() {
+  if (!db) return;
+  if (_unsubTrucks) _unsubTrucks();
+  _unsubTrucks = db.collection('kab_trucks').orderBy('ts','desc')
+    .onSnapshot({ includeMetadataChanges: true }, snap => {
+      _trucks = snap.docs.map(d => ({ id: d.id, ...d.data(), _pending: d.metadata.hasPendingWrites }));
+      _pendingCount = _trucks.filter(t => t._pending).length;
+      _lastSyncTs = Date.now();
+      _markReady('trucks');
+      // On subsequent live updates (after first load), re-render and update status
+      if (_ready['config']) {
+        setSyncStatus(_pendingCount > 0 ? 'syncing' : (snap.metadata.fromCache ? 'syncing' : 'online'));
+        refreshCurrentView();
+      }
+    }, err => {
+      console.warn('Trucks listener error:', err);
+      _markReady('trucks'); // don't block Live on error
+      setSyncStatus('offline');
+    });
+}
+
+let _kabIncoming = {}; // incoming trucks cache for foreman view
+let _unsubKabIncoming = null;
+
+function listenKabIncoming() {
+  if (!db) return;
+  if (_unsubKabIncoming) _unsubKabIncoming();
+  // Non-critical — doesn't block Live status
+  _unsubKabIncoming = db.collection('kab_incoming').onSnapshot(snap => {
+    _kabIncoming = {};
+    snap.forEach(d => { _kabIncoming[d.id] = d.data(); });
+    _lastSyncTs = Date.now();
+    updateSyncBar();
+    if (document.getElementById('s-foreman-incoming') &&
+        document.getElementById('s-foreman-incoming').classList.contains('active')) {
+      renderForemanIncoming();
+    }
+    if (document.getElementById('s-admin-incoming') &&
+        document.getElementById('s-admin-incoming').classList.contains('active')) {
+      renderAdminIncoming();
+    }
+    updateForemanIncomingBadge();
+    updateAdminIncomingBadge();
+  }, err => console.warn('kab_incoming listener error:', err));
+}
+
+function listenConfig() {
+  if (!db) return;
+  if (_unsubConfig) _unsubConfig();
+  _unsubConfig = db.collection('kab_config').doc('main').onSnapshot(async snap => {
+    if (snap.exists) {
+      _config = snap.data();
+    } else {
+      const def = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      await db.collection('kab_config').doc('main').set(def);
+      _config = def;
+    }
+    _markReady('config');
+    // On subsequent live updates, keep login and sync bar fresh
+    if (_ready['trucks']) {
+      buildLoginScreen();
+      _lastSyncTs = Date.now();
+      updateSyncBar();
+    }
+  }, err => {
+    console.warn('Config listener error:', err);
+    _markReady('config'); // don't block Live on error
+  });
+}
+
+// ── Storage helpers ─────────────────────────────────────────────────────────
+function loadConfig() {
+  let c;
+  if (_config) c = JSON.parse(JSON.stringify(_config));
+  else {
+    try { c = JSON.parse(localStorage.getItem('kab_config_v2') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+    catch(e) { c = JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
+  }
+  if (typeof c.addingSuspended === 'undefined') c.addingSuspended = false;
+  return c;
+}
+
+async function saveConfig(c) {
+  // Always update in-memory and Firestore first — localStorage is only a cache.
+  // This ensures PIN changes are reflected immediately on the same device,
+  // and propagated to all other devices via the listenConfig snapshot.
+  _config = c;
+  if (db) {
+    try {
+      await db.collection('kab_config').doc('main').set(c);
+    } catch(e) {
+      console.warn('saveConfig Firestore error:', e);
+    }
+  }
+  // localStorage as offline fallback only
+  try { localStorage.setItem('kab_config_v2', JSON.stringify(c)); } catch(e) {}
+}
+
+function loadTrucks() {
+  return [..._trucks].sort((a,b) => (b.ts||0) - (a.ts||0));
+}
+
+async function saveTrucks(arr) {
+  _trucks = arr;
+  localStorage.setItem('kab_trucks_v2', JSON.stringify(arr));
+}
+
+async function firestoreSaveTruck(truck) {
+  if (!db) return;
+  try { await db.collection('kab_trucks').doc(truck.id).set(truck); }
+  catch(e) { console.warn('firestoreSaveTruck error:', e); }
+}
+
+async function firestoreDeleteTruck(id) {
+  _trucks = _trucks.filter(t => t.id !== id);
+  localStorage.setItem('kab_trucks_v2', JSON.stringify(_trucks));
+  if (!db) return;
+  try {
+    await db.collection('kab_trucks').doc(id).delete();
+    await removeHSKNotification(id);
+  }
+  catch(e) { console.warn('firestoreDeleteTruck error:', e); }
+}
+
+async function firestoreUpdateTruck(id, fields) {
+  const idx = _trucks.findIndex(t => t.id === id);
+  if (idx > -1) _trucks[idx] = { ..._trucks[idx], ...fields };
+  localStorage.setItem('kab_trucks_v2', JSON.stringify(_trucks));
+  if (!db) return;
+  try { await db.collection('kab_trucks').doc(id).update(fields); }
+  catch(e) { console.warn('firestoreUpdateTruck error:', e); }
+}
+
+// Notify HSK sealer app of incoming truck via shared Firestore
+async function notifyHSK(truck) {
+  if (!db) return;
+  try {
+    await db.collection('kab_trucks').doc(truck.id).set({
+      plate:     truck.plate,
+      type:      truck.type,
+      status:    truck.status,
+      postId:    truck.postId,
+      postLabel: truck.postLabel || truck.postId,
+      workDay:   truck.workDay || truck.date,
+      date:      truck.workDay || truck.date,
+      ts:        truck.ts,
+      addedBy:   truck.addedBy || ''
+    }, { merge: true });
+  } catch(e) { console.warn('notifyHSK error:', e); }
+}
+
+// Remove from kab_trucks when truck is deleted
+async function removeHSKNotification(id) {
+  if (!db) return;
+  try { await db.collection('kab_trucks').doc(id).delete(); }
+  catch(e) { console.warn('removeHSKNotification error:', e); }
+}
+
+function getAvailableDates() {
+  const today = getTodayWorkDay();
+  const dates = [...new Set(_trucks.map(t => t.workDay || t.date || getWorkDay(t.ts)))].filter(Boolean);
+  if (!dates.includes(today)) dates.unshift(today);
+  return dates.sort().reverse();
+}
+
+// ── State ──────────────────────────────────────────────────
+let currentUser   = null;
+let pinBuffer     = '';
+let pinTarget     = null;
+let filterStatus  = { w:'all', c:'all', f:'all', a:'all' };
+let editingTruckId= null;
+let pinChangeTarget = null;
+let permsTarget   = null;
+
+// ══════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════════════════════
+function openModal(id)  {
+  if (id === 'm-truck' && !editingTruckId) {
+    const cfg = loadConfig();
+    if (cfg.addingSuspended && (!currentUser || currentUser.role !== 'admin')) {
+      toast('🚫 Adding trucks is currently suspended by Admin');
+      return;
+    }
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+// ══════════════════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════════════════
+function buildLoginScreen() {
+  const cfg = loadConfig();
+  const list = document.getElementById('who-list');
+  const roles = [
+    { emoji:'👑', label:'Admin',          sub:'Accès total',   role:'admin',   id:'admin',   color:'#f0a500', big:true },
+    { emoji:'👷', label:cfg.foreman.name, sub:'Superviseur',   role:'foreman', id:'foreman', color:'#8b5cf6', big:true },
+    ...cfg.posts.map(p => ({ emoji:null, label:p.label, sub:'Poste', role:'post', id:p.id, color:p.color, postData:p }))
+  ];
+  // Sealers removed — they use the Hask app
+  list.innerHTML = roles.map(r => {
+    const safeR = JSON.stringify(r).replace(/"/g,"'");
+    if (r.big) {
+      // Admin & Foreman: elevated tile with emoji
+      return `<div onclick="selectUser(${safeR})" style="
+        background:${r.color}18;border:1.5px solid ${r.color}44;border-radius:16px;
+        padding:14px 6px 12px;text-align:center;cursor:pointer;
+        display:flex;flex-direction:column;align-items:center;gap:5px;
+        transition:border-color 0.15s,background 0.15s;
+        -webkit-tap-highlight-color:transparent;" ontouchstart="" >
+        <div style="font-size:32px;line-height:1;margin-bottom:2px;">${r.emoji}</div>
+        <div style="font-size:13px;font-weight:800;color:${r.color};font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">${r.label}</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;letter-spacing:0.2px;">${r.sub}</div>
+      </div>`;
+    } else {
+      // Posts: big colored number tile
+      const num = r.label.replace(/\D/g,'') || r.label;
+      return `<div onclick="selectUser(${safeR})" style="
+        background:${r.color}18;border:1.5px solid ${r.color}44;border-radius:16px;
+        padding:14px 6px 12px;text-align:center;cursor:pointer;
+        display:flex;flex-direction:column;align-items:center;gap:4px;
+        transition:border-color 0.15s,background 0.15s;
+        -webkit-tap-highlight-color:transparent;" ontouchstart="">
+        <div style="
+          width:46px;height:46px;border-radius:12px;
+          background:${r.color};
+          display:flex;align-items:center;justify-content:center;
+          font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
+          color:#0a0e1a;line-height:1;margin-bottom:2px;">
+          ${num}
+        </div>
+        <div style="font-size:12px;font-weight:800;color:${r.color};font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">${r.label}</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;">Poste</div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function selectUser(r) {
+  pinTarget = r;
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pin-face').textContent    = r.emoji || '👤';
+  document.getElementById('pin-name-lbl').textContent = r.label;
+  document.getElementById('pin-role-lbl').textContent = r.sub;
+  document.getElementById('pin-err').textContent = '';
+  showScreen('s-pin');
+}
+
+function pk(val) {
+  if (val === 'del') { pinBuffer = pinBuffer.slice(0,-1); updatePinDots(); return; }
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += val;
+  updatePinDots();
+  if (pinBuffer.length === 4) setTimeout(checkPin, 150);
+}
+
+function updatePinDots() {
+  for (let i=0;i<4;i++) document.getElementById('pd'+i).classList.toggle('filled', i < pinBuffer.length);
+}
+
+function checkPin() {
+  // If Firebase config hasn't loaded yet, wait for it — never check against defaults.
+  // This is the same pattern as HSK: cloud PINs are authoritative, defaults are never used for login.
+  if (!_config) {
+    document.getElementById('pin-err').textContent = '⏳ Connecting…';
+    const savedBuffer = pinBuffer;
+    pinBuffer = ''; updatePinDots();
+    let retries = 0;
+    const wait = setInterval(function() {
+      retries++;
+      if (_config || retries > 10) {
+        clearInterval(wait);
+        document.getElementById('pin-err').textContent = '';
+        if (!_config) {
+          // Still no config after ~4s — warn and abort
+          document.getElementById('pin-err').textContent = '⚠️ No connection — try again';
+          setTimeout(() => { document.getElementById('pin-err').textContent = ''; }, 2500);
+          return;
+        }
+        pinBuffer = savedBuffer;
+        updatePinDots();
+        _doCheckPin();
+      }
+    }, 400);
+    return;
+  }
+  _doCheckPin();
+}
+
+function _doCheckPin() {
+  const cfg = loadConfig();
+  const r   = pinTarget;
+  let correct = '';
+  if      (r.role === 'admin')   correct = cfg.apin;
+  else if (r.role === 'foreman') correct = cfg.foreman.pin;
+  else if (r.role === 'post') {
+    const p = cfg.posts.find(p => p.id === r.id);
+    correct = p ? p.pin : '';
+  }
+  if (pinBuffer === correct) {
+    currentUser = { ...r, name: r.label };
+    loginSuccess();
+  } else {
+    document.getElementById('pin-err').textContent = '❌ Wrong PIN — try again';
+    pinBuffer = '';
+    updatePinDots();
+  }
+}
+
+function loginSuccess() {
+  const role = currentUser.role;
+  const today = getTodayWorkDay();
+  // Update day labels
+  const dayLabel = formatWorkDayLabel(today);
+  ['a-day-label','f-day-label','c-day-label'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = dayLabel;
+  });
+  buildPostGrid();
+  // Reset admin date state on each login
+  adminSelectedDate  = null;
+  adminFilterPost    = 'all';
+  reportsSelectedDate = null;
+  cashierReportsDate  = null;
+  if (role === 'post') {
+    document.getElementById('w-tb-title').textContent = currentUser.label;
+    document.getElementById('w-tb-sub').textContent   = formatWorkDayLabel(today);
+    document.getElementById('w-post-badge').textContent = currentUser.label;
+    showScreen('s-worker'); renderWorkerTrucks();
+  } else if (role === 'foreman') {
+    foremanSelectedDate = null;
+    updateForemanDateDisplay();
+    showScreen('s-foreman'); renderForemanTrucks();
+  } else {
+    updateAdminDateDisplay();
+    buildAdminPostChips();
+    showScreen('s-admin'); renderAdminTrucks();
+  }
+}
+
+function showLogin() { currentUser=null; pinBuffer=''; buildLoginScreen(); showScreen('s-login'); }
+function logout()    { showLogin(); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════
+// POST GRID (form)
+// ══════════════════════════════════════════════════════════
+function buildPostGrid() {
+  const cfg  = loadConfig();
+  const grid = document.getElementById('post-grid');
+  if (!grid) return;
+  const isPostWorker = currentUser && currentUser.role === 'post';
+  if (isPostWorker) {
+    // Post workers only see their own post, pre-selected and locked
+    const myPost = cfg.posts.find(p => p.id === currentUser.id) || {id: currentUser.id, label: currentUser.label || currentUser.id, color: '#f97316'};
+    grid.innerHTML = `<div class="post-opt active-post" id="postopt-${myPost.id}"
+      style="grid-column:1/-1;cursor:default;opacity:1;border-color:${myPost.color};background:${myPost.color}18;color:${myPost.color};">
+      🏗️ ${myPost.label} <span style="font-size:9px;opacity:0.7;">(your post)</span></div>`;
+    selectPost(myPost.id);
+  } else {
+    grid.innerHTML = cfg.posts.map(p => `
+      <div class="post-opt ${p.id===document.getElementById('f-post')?.value?'active-post':''}"
+        id="postopt-${p.id}" onclick="selectPost('${p.id}')">${p.label}</div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// ARRIMEURS CHIPS
+// ══════════════════════════════════════════════════════════
+function buildArrimeursChips(selected) {
+  const cfg = loadConfig();
+  const names = cfg.arrimeurs || [];
+  const container = document.getElementById('f-arrimeurs-chips');
+  if (!container) return;
+  if (!names.length) {
+    container.innerHTML = `<div style="font-size:11px;color:var(--muted);padding:4px 0;">Aucun arrimeur configuré — ajoutez-les dans Gérer.</div>`;
+    document.getElementById('f-arrimeurs').value = '';
+    return;
+  }
+  const sel = new Set(selected || []);
+  container.innerHTML = names.map(n => {
+    const active = sel.has(n);
+    return `<div id="arc-${CSS.escape(n)}" onclick="toggleArrimeur('${n.replace(/'/g,"\\'")}',this)"
+      style="
+        padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+        border:1.5px solid ${active ? 'var(--teal)' : 'var(--border)'};
+        background:${active ? 'rgba(6,182,212,0.15)' : 'rgba(255,255,255,0.04)'};
+        color:${active ? 'var(--teal)' : 'var(--muted)'};
+        transition:all 0.15s;
+        font-family:'Barlow',sans-serif;
+      ">${active ? '✓ ' : ''}${n}</div>`;
+  }).join('');
+  document.getElementById('f-arrimeurs').value = [...sel].join(',');
+}
+
+function toggleArrimeur(name, el) {
+  const hiddenInput = document.getElementById('f-arrimeurs');
+  const sel = new Set(hiddenInput.value ? hiddenInput.value.split(',') : []);
+  if (sel.has(name)) {
+    sel.delete(name);
+    el.style.border = '1.5px solid var(--border)';
+    el.style.background = 'rgba(255,255,255,0.04)';
+    el.style.color = 'var(--muted)';
+    el.textContent = name;
+  } else {
+    sel.add(name);
+    el.style.border = '1.5px solid var(--teal)';
+    el.style.background = 'rgba(6,182,212,0.15)';
+    el.style.color = 'var(--teal)';
+    el.textContent = '✓ ' + name;
+  }
+  hiddenInput.value = [...sel].join(',');
+}
+
+function selectPost(id) {
+  document.getElementById('f-post').value = id;
+  document.querySelectorAll('.post-opt').forEach(el => el.classList.remove('active-post'));
+  const el = document.getElementById('postopt-'+id);
+  if (el) el.classList.add('active-post');
+}
+
+// ══════════════════════════════════════════════════════════
+// TYPE & STATUS SELECTORS
+// ══════════════════════════════════════════════════════════
+function selectType(t) {
+  document.getElementById('f-type').value = t;
+  ['shirac','bilashirac','metal'].forEach(x => {
+    const el = document.getElementById('type-'+x);
+    if (el) el.className = 'type-opt' + (x===t?' active-'+t:'');
+  });
+}
+
+function selectStatus(s) {
+  document.getElementById('f-status').value = s;
+  ['started','half','finished','bashal'].forEach(x => {
+    const el = document.getElementById('status-'+x);
+    if (el) el.className = 'status-opt' + (x===s?' active-'+s:'');
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// TRUCK RENDERING
+// ══════════════════════════════════════════════════════════
+function getTrucks(filter='all', postId=null, workDay=null) {
+  let trucks = loadTrucks().sort((a,b) => b.ts - a.ts);
+  if (postId)   trucks = trucks.filter(t => t.postId === postId);
+  if (workDay)  trucks = trucks.filter(t => t.workDay === workDay);
+  if (filter !== 'all') trucks = trucks.filter(t => t.status === filter);
+  return trucks;
+}
+
+function statusInfo(s) {
+  if (s==='started')  return { cls:'s-started',  label:'▶ Started',  cardCls:'started' };
+  if (s==='half')     return { cls:'s-half',      label:'⚡ Half',    cardCls:'half' };
+  if (s==='finished') return { cls:'s-finished',  label:'✅ Finished',cardCls:'finished' };
+  if (s==='bashal')   return { cls:'s-bashal',    label:'🔮 BASHAL', cardCls:'bashal' };
+  return { cls:'s-started', label:'▶ Started', cardCls:'started' };
+}
+
+function typeLabel(t) {
+  if (t==='bilashirac') return '🚚 Bila Shirac';
+  if (t==='metal')      return '🏗️ Metal';
+  return '🚛 Shirac';
+}
+
+function renderStats(trucks, elId) {
+  const total    = trucks.length;
+  const started  = trucks.filter(t=>t.status==='started').length;
+  const half     = trucks.filter(t=>t.status==='half').length;
+  const finished = trucks.filter(t=>t.status==='finished').length;
+  const bashal   = trucks.filter(t=>t.status==='bashal').length;
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.style.gridTemplateColumns = 'repeat(5,1fr)';
+  el.innerHTML = `
+    <div class="stat-box"><div class="stat-n">${total}</div><div class="stat-l">Total</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--blue)"><div class="stat-n" style="color:var(--blue)">${started}</div><div class="stat-l">Started</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--green)"><div class="stat-n" style="color:var(--green)">${finished}</div><div class="stat-l">Done</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--gold)"><div class="stat-n" style="color:var(--gold)">${half}</div><div class="stat-l">Half</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--bashal)"><div class="stat-n" style="color:var(--bashal)">${bashal}</div><div class="stat-l">Bashal</div></div>`;
+}
+
+function renderTruckList(trucks, elId, canEdit, canDelete) {
+  const cfg = loadConfig();
+  const el  = document.getElementById(elId);
+  if (!trucks.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🚛</div><p>No trucks found</p></div>'; return; }
+
+  // Find newest truck (by timestamp) for flash highlight
+  const newestTs = Math.max(...trucks.map(t => t.ts||0));
+  const newestAge = Date.now() - newestTs; // ms since added
+  const showNewBanner = newestAge < 5 * 60 * 1000; // within last 5 minutes
+
+  // Group by workDay
+  const byDay = {};
+  trucks.forEach(t => {
+    const day = t.workDay || t.date || getWorkDay(t.ts);
+    if (!byDay[day]) byDay[day] = [];
+    byDay[day].push(t);
+  });
+
+  el.innerHTML = Object.keys(byDay).sort().reverse().map(day => {
+    const dayTrucks = byDay[day];
+    const header = `<div class="day-header">📅 ${formatWorkDayLabel(day)} · ${dayTrucks.length} truck${dayTrucks.length!==1?'s':''}</div>`;
+    const cards = dayTrucks.map(t => {
+      const post   = cfg.posts.find(p=>p.id===t.postId) || {label:t.postId||'?',color:'#555'};
+      const si     = statusInfo(t.status);
+      const tl     = typeLabel(t.type);
+      const dt     = t.ts ? new Date(t.ts) : new Date();
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const dateStr= (dt&&!isNaN(dt)) ? `${dt.getDate()} ${months[dt.getMonth()]} · ${dt.toTimeString().slice(0,5)}` : (t.date||'');
+      const acts = [];
+      const isPostWorker = currentUser && currentUser.role === 'post';
+      const isNewest = showNewBanner && t.ts === newestTs;
+      if (canEdit)   acts.push(`<button class="tc-btn btn-edit" onclick="openEditTruck('${t.id}')">✏️ Edit</button>`);
+      if (isPostWorker && t.status !== 'finished') acts.push(`<button class="tc-btn btn-finish" onclick="quickFinish('${t.id}')">✅ Finish</button>`);
+      if (canDelete) acts.push(`<button class="tc-btn btn-del" onclick="deleteTruck('${t.id}')">🗑️</button>`);
+      const newBadge = isNewest ? `<span style="display:inline-block;background:rgba(16,185,129,0.2);color:var(--green);border:1px solid rgba(16,185,129,0.4);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-left:6px;animation:pulse 1.5s infinite;">🆕 NEW</span>` : '';
+      const pendingBadge = t._pending ? `<span style="display:inline-block;background:rgba(240,165,0,0.15);color:var(--gold);border:1px solid rgba(240,165,0,0.35);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-left:6px;">⏳ Not synced yet</span>` : '';
+      return `<div class="truck-card ${si.cardCls}" ${isNewest?'style="border-color:var(--green);box-shadow:0 0 0 2px rgba(16,185,129,0.25);"':''}>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="display:flex;align-items:center;gap:7px;min-width:0;flex:1;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.5px;flex-shrink:0;">${t.plate}</div>
+            <span class="post-pill" style="flex-shrink:0;">${post.label}</span>
+            ${newBadge}
+            ${pendingBadge}
+          </div>
+          <span class="s-badge ${si.cls}" style="flex-shrink:0;">${si.label}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:5px;flex-wrap:wrap;">
+          <span style="font-size:11px;color:var(--muted);">🕐 ${dateStr}</span>
+          <span style="font-size:11px;font-weight:700;color:var(--sub);">${tl}</span>
+          ${t.arrimeurs&&t.arrimeurs.length?`<span style="font-size:11px;color:var(--teal);">👷 ${t.arrimeurs.join(', ')}</span>`:''}
+          ${t.notes?`<span style="font-size:11px;color:var(--muted);">📝 ${t.notes}</span>`:''}
+        </div>
+        ${acts.length?`<div class="tc-acts" style="margin-top:7px;">${acts.join('')}</div>`:''}
+      </div>`;
+    }).join('');
+    return header + cards;
+  }).join('');
+}
+
+// POST WORKER view (only today's work day, only own post)
+function renderWorkerTrucks() {
+  const today  = getTodayWorkDay();
+  const filter = filterStatus.w;
+  const all    = getTrucks('all', currentUser.id, today);
+  const trucks = filter==='all' ? all : all.filter(t=>t.status===filter);
+  document.getElementById('w-day-label').textContent = formatWorkDayLabel(today);
+  renderStats(all, 'w-stats');
+  renderTruckList(trucks, 'w-trucks-list', true, false);
+}
+
+// SEALER / CASHIER view
+function renderCashierTrucks() {
+  const today  = getTodayWorkDay();
+  const filter = filterStatus.c;
+  const all    = getTrucks('all', null, today);
+  const trucks = filter==='all' ? all : all.filter(t=>t.status===filter);
+  renderStats(all, 'c-stats');
+  // Incoming banner: trucks not yet finished today
+  const pending = all.filter(t=>t.status!=='finished').length;
+  const banner = document.getElementById('c-incoming-banner');
+  if (pending > 0) {
+    banner.innerHTML = `<div class="incoming-banner"><div class="incoming-dot"></div><div class="incoming-text">${pending} truck${pending!==1?'s':''} still loading today — stay ready!</div></div>`;
+  } else {
+    banner.innerHTML = '';
+  }
+  renderTruckList(trucks, 'c-trucks-list', true, false);
+}
+function renderCashierPosts() {
+  document.getElementById('c-posts-list').innerHTML = buildPostsHTML();
+}
+function renderCashierReports() {
+  updateCashierReportsDateDisplay();
+  document.getElementById('c-reports-content').innerHTML = buildReportsHTML(cashierReportsDate);
+}
+function cashierTab(tab, el) {
+  ['s-cashier','s-cashier-posts','s-cashier-reports'].forEach(sid=>{
+    const sc = document.getElementById(sid);
+    if(sc) sc.querySelectorAll('.bnav-item').forEach(e=>e.classList.remove('active'));
+  });
+  if(el) el.classList.add('active');
+  if (tab==='trucks')  { showScreen('s-cashier');         renderCashierTrucks();  }
+  if (tab==='posts')   { showScreen('s-cashier-posts');   renderCashierPosts();   }
+  if (tab==='reports') { showScreen('s-cashier-reports'); renderCashierReports(); }
+}
+
+// FOREMAN view — date-aware with per-post load type breakdown
+let foremanSelectedDate = null; // null = today
+
+function renderForemanTrucks() {
+  const cfg    = loadConfig();
+  const perms  = cfg.foreman.perms || {};
+  document.getElementById('f-add-btn').style.display = perms.addTruck ? '' : 'none';
+  const today  = getTodayWorkDay();
+  const date   = foremanSelectedDate || today;
+  const isToday = date === today;
+  const filter = filterStatus.f;
+  const all    = getTrucks('all', null, date);
+  const trucks = filter==='all' ? all : all.filter(t=>t.status===filter);
+  renderStats(all, 'f-stats');
+  // Per-post load type breakdown
+  renderForemanPostStats(all, cfg, date);
+  renderTruckList(trucks, 'f-trucks-list', isToday && (perms.editTruck||false), isToday && (perms.deleteTruck||false));
+}
+
+function renderForemanPostStats(trucks, cfg, date) {
+  let el = document.getElementById('f-post-stats');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'f-post-stats';
+    el.style.cssText = 'padding:0 0 12px;';
+    const statsGrid = document.getElementById('f-stats');
+    if (statsGrid) statsGrid.parentNode.insertBefore(el, statsGrid.nextSibling);
+  }
+  const postRows = cfg.posts.map(p => {
+    const pt     = trucks.filter(t => t.postId === p.id);
+    const shirac = pt.filter(t => t.type === 'shirac').length;
+    const bila   = pt.filter(t => t.type === 'bilashirac').length;
+    const metal  = pt.filter(t => t.type === 'metal').length;
+    const bashal = pt.filter(t => t.status === 'bashal').length;
+    const fin    = pt.filter(t => t.status === 'finished').length;
+    return { label: p.label, color: p.color, total: pt.length, shirac, bila, metal, bashal, fin };
+  }).filter(p => p.total > 0);
+
+  if (!postRows.length) { el.innerHTML = ''; return; }
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d = new Date(date + 'T06:00:00');
+  const dateLabel = (foremanSelectedDate ? d.getDate()+' '+months[d.getMonth()] : 'Today');
+  el.innerHTML = `
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);">🏗️ Per Post — ${dateLabel}</div>
+    ${postRows.map(p => `
+    <div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${p.color};border-radius:10px;padding:10px 12px;margin-bottom:7px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+        <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:${p.color};display:inline-block;"></span>${p.label}
+        </span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:${p.color};">${p.total}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;text-align:center;">
+        <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:7px;padding:5px 2px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:var(--green);">${p.shirac}</div>
+          <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:1px;">Shirac</div>
+        </div>
+        <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:7px;padding:5px 2px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:var(--blue);">${p.bila}</div>
+          <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:1px;">B.Shirac</div>
+        </div>
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:7px;padding:5px 2px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:var(--red);">${p.metal}</div>
+          <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:1px;">Metal</div>
+        </div>
+        <div style="background:rgba(232,121,249,0.08);border:1px solid rgba(232,121,249,0.2);border-radius:7px;padding:5px 2px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:var(--bashal);">${p.bashal}</div>
+          <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:1px;">Bashal</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--green);margin-top:5px;">✅ Finished: ${p.fin} / ${p.total}</div>
+    </div>`).join('')}`;
+}
+
+function renderForemanPosts() {
+  document.getElementById('f-posts-list').innerHTML = buildPostsHTML();
+}
+function foremanTab(tab, el) {
+  ['s-foreman','s-foreman-posts','s-foreman-incoming'].forEach(sid => {
+    const sc = document.getElementById(sid);
+    if (sc) sc.querySelectorAll('.bnav-item').forEach(e => e.classList.remove('active'));
+  });
+  if (el) el.classList.add('active');
+  if (tab==='trucks')   { showScreen('s-foreman');          renderForemanTrucks();   }
+  if (tab==='posts')    { showScreen('s-foreman-posts');    renderForemanPosts();    }
+  if (tab==='incoming') { showScreen('s-foreman-incoming'); renderForemanIncoming(); }
+}
+
+function updateForemanIncomingBadge() {
+  const today   = getTodayWorkDay();
+  const unseal  = Object.values(_kabIncoming).filter(t => !t.sealed && (t.date||'') === today);
+  const navEl   = document.getElementById('f-incoming-nav');
+  if (!navEl) return;
+  const ni = navEl.querySelector('.ni');
+  if (ni) ni.textContent = unseal.length > 0 ? '📥 '+unseal.length : '📥';
+}
+
+function renderForemanIncoming() {
+  const container = document.getElementById('f-incoming-list');
+  const subEl     = document.getElementById('f-incoming-sub');
+  if (!container) return;
+  const today   = getTodayWorkDay();
+  const TYPE_LABELS = { shirac:'🚛 Shirac', bilashirac:'🚚 Bila Shirac', metal:'🏗️ Metal' };
+  const TYPE_COLORS = { shirac:'#10b981', bilashirac:'#3b82f6', metal:'#ef4444' };
+
+  const all = Object.entries(_kabIncoming)
+    .map(e => Object.assign({}, e[1], {_id: e[0]}))
+    .sort((a,b) => (b.ts||0) - (a.ts||0));
+
+  const unsealed = all.filter(t => !t.sealed);
+  const sealed   = all.filter(t =>  t.sealed);
+  const todayUn  = unsealed.filter(t => t.date === today);
+
+  if (subEl) subEl.textContent = todayUn.length + ' unsealed today · ' + sealed.length + ' sealed';
+
+  if (all.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);"><div style="font-size:40px;margin-bottom:10px;">📥</div><div>No trucks sent yet today</div></div>';
+    return;
+  }
+
+  function renderGroup(items, label, showSealed) {
+    if (!items.length) return '';
+    return `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);">${label}</div>`
+      + items.map(t => {
+        const isBashal  = t.status === 'bashal';
+        const isSealed  = !!t.sealed;
+        const typeColor = isBashal ? '#e879f9' : (TYPE_COLORS[t.type] || '#6b7280');
+        const typeLabel = isBashal ? '🔮 Bashal' : (TYPE_LABELS[t.type] || t.type || '—');
+        const timeStr   = t.ts ? new Date(t.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '—';
+        const sealInfo  = isSealed
+          ? `<div style="font-size:10px;color:var(--green);margin-top:6px;font-weight:700;">✅ Sealed by ${t.sealedBy||'sealer'}</div>`
+          : `<div style="font-size:10px;color:var(--muted);margin-top:6px;">⏳ Waiting to be sealed by HSK</div>`;
+        return `<div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${typeColor};border-radius:10px;padding:12px;margin-bottom:8px;opacity:${isSealed?'0.6':'1'};">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:18px;font-weight:800;font-family:monospace;">${t.plate}</div>
+            <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}44;">${typeLabel}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;font-weight:700;color:${typeColor};">🏗️ ${t.postLabel||t.postId||'—'}</span>
+            <span style="font-size:11px;color:var(--muted);">🕐 ${timeStr}</span>
+          </div>
+          ${sealInfo}
+        </div>`;
+      }).join('');
+  }
+
+  container.innerHTML =
+    renderGroup(todayUn, '📅 Today — Unsealed ('+todayUn.length+')', false)
+    + renderGroup(unsealed.filter(t => t.date !== today), '📦 Previous — Unsealed', false)
+    + renderGroup(sealed.filter(t => t.date === today), '✅ Today — Sealed ('+sealed.filter(t=>t.date===today).length+')', true)
+    + renderGroup(sealed.filter(t => t.date !== today), '📦 Previous — Sealed', true);
+}
+
+function updateForemanDateDisplay() {
+  const today   = getTodayWorkDay();
+  const date    = foremanSelectedDate || today;
+  const isToday = date === today;
+  const lbl = document.getElementById('f-date-label-text');
+  if (lbl) lbl.textContent = fmtDateLabel(date);
+  const btn = document.getElementById('f-today-btn');
+  if (btn) {
+    btn.style.background = isToday ? 'var(--green)' : 'rgba(255,255,255,0.07)';
+    btn.style.color      = isToday ? '#fff' : 'var(--muted)';
+    btn.style.border     = isToday ? 'none' : '1px solid var(--border)';
+  }
+}
+
+function foremanSetToday() {
+  foremanSelectedDate = null;
+  updateForemanDateDisplay();
+  renderForemanTrucks();
+}
+
+function foremanSelectDate(d) {
+  foremanSelectedDate = d === getTodayWorkDay() ? null : (d || null);
+  updateForemanDateDisplay();
+  renderForemanTrucks();
+}
+
+function foremanPrevDay() {
+  const dates   = getAvailableDates();
+  const today   = getTodayWorkDay();
+  const current = foremanSelectedDate || today;
+  const idx     = dates.indexOf(current);
+  if (idx < dates.length - 1) foremanSelectDate(dates[idx + 1]);
+}
+
+function foremanNextDay() {
+  const dates   = getAvailableDates();
+  const today   = getTodayWorkDay();
+  const current = foremanSelectedDate || today;
+  const idx     = dates.indexOf(current);
+  if (idx > 0) foremanSelectDate(dates[idx - 1]);
+}
+
+function openForemanDatePicker() {
+  const dates   = getAvailableDates();
+  const today   = getTodayWorkDay();
+  const current = foremanSelectedDate || today;
+  const trucks  = loadTrucks();
+  const list    = document.getElementById('date-picker-list');
+  list.innerHTML = dates.map(d => {
+    const isSelected = d === current;
+    const isToday    = d === today;
+    const count      = trucks.filter(t => (t.workDay||t.date||getWorkDay(t.ts)) === d).length;
+    const bg   = isSelected ? 'var(--purple)' : 'var(--card)';
+    const clr  = isSelected ? '#fff' : 'var(--text)';
+    const bdr  = isSelected ? 'var(--purple)' : 'var(--border)';
+    const tag  = isToday ? '<span style="font-size:9px;background:rgba(16,185,129,0.2);color:var(--green);padding:1px 6px;border-radius:8px;font-weight:800;margin-left:5px;">TODAY</span>' : '';
+    return `<div onclick="foremanSelectDate('${d}');closeModal('m-date-picker')"
+      style="background:${bg};border:1.5px solid ${bdr};border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:${clr};font-family:'Barlow Condensed',sans-serif;">${fmtDateShort(d)}${tag}</div>
+        <div style="font-size:11px;color:${isSelected?'rgba(255,255,255,0.6)':'var(--muted)'};margin-top:2px;">${count} truck${count!==1?'s':''}</div>
+      </div>
+      ${isSelected ? '<span style="font-size:18px;color:#fff;font-weight:900;">✓</span>' : '<span style="color:var(--muted);font-size:16px;">›</span>'}
+    </div>`;
+  }).join('');
+  // Store which role opened this picker
+  window._datePickerRole = 'foreman';
+  openModal('m-date-picker');
+}
+
+// ADMIN view — with date filter + post filter + richer stats
+let adminSelectedDate = null; // null = today
+let adminFilterPost   = 'all';
+
+function fmtDateLabel(dateStr) {
+  const today = getTodayWorkDay();
+  if (dateStr === today) return 'Today — ' + fmtDateShort(dateStr);
+  // Check yesterday
+  const yest = new Date(today + 'T06:00:00');
+  yest.setDate(yest.getDate() - 1);
+  const yesterdayStr = yest.toISOString().split('T')[0];
+  if (dateStr === yesterdayStr) return 'Yesterday — ' + fmtDateShort(dateStr);
+  return fmtDateShort(dateStr);
+}
+
+function fmtDateShort(dateStr) {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d = new Date(dateStr + 'T06:00:00');
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+// getAvailableDates defined in storage helpers above
+
+function updateAdminDateDisplay() {
+  const today = getTodayWorkDay();
+  const date  = adminSelectedDate || today;
+  const isToday = date === today;
+  const lbl = document.getElementById('a-date-label-text');
+  if (lbl) lbl.textContent = fmtDateLabel(date);
+  const btn = document.getElementById('a-today-btn');
+  if (btn) {
+    btn.style.background = isToday ? 'var(--green)' : 'rgba(255,255,255,0.07)';
+    btn.style.color      = isToday ? '#fff' : 'var(--muted)';
+    btn.style.border     = isToday ? 'none' : '1px solid var(--border)';
+  }
+}
+
+function openAdminDatePicker() {
+  const dates   = getAvailableDates();
+  const today   = getTodayWorkDay();
+  const current = adminSelectedDate || today;
+  const trucks  = loadTrucks();
+  const list    = document.getElementById('date-picker-list');
+  list.innerHTML = dates.map(d => {
+    const isSelected = d === current;
+    const isToday    = d === today;
+    const count      = trucks.filter(t => (t.workDay||t.date||getWorkDay(t.ts)) === d).length;
+    const bg   = isSelected ? 'var(--gold)' : 'var(--card)';
+    const clr  = isSelected ? '#0a0e1a'     : 'var(--text)';
+    const bdr  = isSelected ? 'var(--gold)' : 'var(--border)';
+    const tag  = isToday ? '<span style="font-size:9px;background:rgba(16,185,129,0.2);color:var(--green);padding:1px 6px;border-radius:8px;font-weight:800;margin-left:5px;">TODAY</span>' : '';
+    return `<div onclick="adminSelectDate('${d}');closeModal('m-date-picker')"
+      style="background:${bg};border:1.5px solid ${bdr};border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:${clr};font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">${fmtDateShort(d)}${tag}</div>
+        <div style="font-size:11px;color:${isSelected?'rgba(10,14,26,0.7)':'var(--muted)'};margin-top:2px;">${count} truck${count!==1?'s':''}</div>
+      </div>
+      ${isSelected ? '<span style="font-size:18px;color:#0a0e1a;font-weight:900;">✓</span>' : '<span style="color:var(--muted);font-size:16px;">›</span>'}
+    </div>`;
+  }).join('');
+  openModal('m-date-picker');
+}
+
+function adminPrevDay() {
+  const dates   = getAvailableDates(); // newest first
+  const today   = getTodayWorkDay();
+  const current = adminSelectedDate || today;
+  const idx     = dates.indexOf(current);
+  // prev = older = higher index in sorted-desc array
+  if (idx < dates.length - 1) adminSelectDate(dates[idx + 1]);
+}
+
+function adminNextDay() {
+  const dates   = getAvailableDates(); // newest first
+  const today   = getTodayWorkDay();
+  const current = adminSelectedDate || today;
+  const idx     = dates.indexOf(current);
+  if (idx > 0) adminSelectDate(dates[idx - 1]);
+}
+
+function adminSetToday() {
+  adminSelectedDate = null;
+  adminFilterPost   = 'all';
+  updateAdminDateDisplay();
+  buildAdminPostChips();
+  renderAdminTrucks();
+}
+
+function adminSelectDate(d) {
+  adminSelectedDate = d === getTodayWorkDay() ? null : (d || null);
+  adminFilterPost   = 'all';
+  updateAdminDateDisplay();
+  buildAdminPostChips();
+  renderAdminTrucks();
+}
+
+function buildAdminPostChips() {
+  const cfg = loadConfig();
+  const bar = document.getElementById('a-post-chips');
+  if (!bar) return;
+  bar.innerHTML = `<div class="chip ${adminFilterPost==='all'?'active':''}" onclick="setAdminPostFilter('all',this)">👥 All Posts</div>`
+    + cfg.posts.map(p => {
+        const isActive = adminFilterPost === p.id;
+        return `<div class="chip ${isActive?'active':''}" onclick="setAdminPostFilter('${p.id}',this)" style="${isActive?'':'border-color:'+p.color+'44;'}">`
+          + `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${p.color};margin-right:4px;vertical-align:middle;"></span>${p.label}</div>`;
+      }).join('');
+}
+
+function buildAdminStatusChips(trucks) {
+  const bar = document.getElementById('a-chips');
+  if (!bar) return;
+  const cur     = filterStatus.a || 'all';
+  const total   = trucks.length;
+  const started = trucks.filter(t=>t.status==='started').length;
+  const half    = trucks.filter(t=>t.status==='half').length;
+  const fin     = trucks.filter(t=>t.status==='finished').length;
+  const bashal  = trucks.filter(t=>t.status==='bashal').length;
+  const chip = (val, label, count) => {
+    const active = cur === val ? 'active' : '';
+    return `<div class="chip ${active}" onclick="setFilter('${val}',this,'a')">${label} <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;">(${count})</span></div>`;
+  };
+  bar.innerHTML =
+    chip('all',      'All',        total)   +
+    chip('started',  '▶ Started',  started) +
+    chip('finished', '✅ Done',    fin)     +
+    chip('half',     '⚡ Half',    half)    +
+    chip('bashal',   '🔮 Bashal',  bashal);
+}
+
+// ══════════════════════════════════════════════════════════
+// SHARE REPORT — Step 1: Checklist picker
+// ══════════════════════════════════════════════════════════
+function shareReport() {
+  // Remove any existing sheet first
+  const old = document.getElementById('share-sheet');
+  if (old) old.remove();
+
+  const sheet = document.createElement('div');
+  sheet.id = 'share-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(5px);z-index:500;display:flex;align-items:flex-end;justify-content:center;';
+
+  const SECTIONS = [
+    { id:'sec-date',     label:'📅 Date header',         sub:'Agash Report — Today Fri 8 May',    checked:true },
+    { id:'sec-summary',  label:'📊 Status summary',       sub:'Total / Started / Done / Half / Bashal', checked:true },
+    { id:'sec-loadtype', label:'📦 By Load Type',          sub:'Shirac / B.Shirac / Metal / Bashal counts', checked:true },
+    { id:'sec-perpost',  label:'🏗️ Per Post breakdown',   sub:'Trucks per post with count',        checked:true },
+    { id:'sec-plates',   label:'🚛 Truck plates per post', sub:'Actual plate numbers grouped by type', checked:true },
+    { id:'sec-footer',   label:'🏢 Footer',               sub:'Agash · Djibouti',                  checked:true },
+  ];
+
+  const rows = SECTIONS.map(s => `
+    <div onclick="shareToggleRow('${s.id}')" style="display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;user-select:none;">
+      <div id="${s.id}" data-checked="1" style="width:24px;height:24px;border-radius:7px;background:var(--gold);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;transition:all 0.15s;">✓</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:700;">${s.label}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.sub}</div>
+      </div>
+    </div>`).join('');
+
+  sheet.innerHTML = `
+    <div style="background:var(--surface);border-radius:22px 22px 0 0;padding:18px 16px 32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 14px;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;">📤 Share Report</div>
+        <div onclick="shareToggleAll()" style="font-size:11px;font-weight:700;color:var(--gold);cursor:pointer;padding:4px 8px;background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.25);border-radius:8px;">Toggle All</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Choose what to include:</div>
+      ${rows}
+      <button onclick="shareConfirm()" style="width:100%;margin-top:16px;background:linear-gradient(135deg,#f0a500,#d48000);color:#0a0e1a;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">✅ Continue to Share</button>
+      <button onclick="document.getElementById('share-sheet').remove()" style="width:100%;margin-top:8px;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:12px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+    </div>`;
+
+  document.body.appendChild(sheet);
+  sheet.addEventListener('click', e => { if (e.target === sheet) sheet.remove(); });
+}
+
+function shareToggleRow(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const on = el.dataset.checked === '1';
+  el.dataset.checked = on ? '0' : '1';
+  el.style.background = on ? 'transparent' : 'var(--gold)';
+  el.style.border = on ? '2px solid rgba(255,255,255,0.18)' : '2px solid var(--gold)';
+  el.textContent = on ? '' : '✓';
+}
+
+function shareToggleAll() {
+  const ids = ['sec-date','sec-summary','sec-loadtype','sec-perpost','sec-plates','sec-footer'];
+  const allOn = ids.every(id => document.getElementById(id)?.dataset.checked === '1');
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const turnOn = !allOn;
+    el.dataset.checked = turnOn ? '1' : '0';
+    el.style.background = turnOn ? 'var(--gold)' : 'transparent';
+    el.style.border = turnOn ? '2px solid var(--gold)' : '2px solid rgba(255,255,255,0.18)';
+    el.textContent = turnOn ? '✓' : '';
+  });
+}
+
+// Step 2: Build text from checked sections and show share options
+function shareConfirm() {
+  const inc = id => document.getElementById(id)?.dataset.checked === '1';
+
+  const cfg    = loadConfig();
+  const trucks = loadTrucks();
+  const today  = getTodayWorkDay();
+  const date   = reportsSelectedDate || today;
+  const dt     = trucks.filter(t => (t.workDay||t.date||getWorkDay(t.ts)) === date);
+  const d      = new Date(date + 'T06:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const isToday = date === today;
+  const dateLabel = isToday
+    ? `Today — ${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
+    : `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+  const total  = dt.length;
+  const shirac = dt.filter(t=>t.type==='shirac').length;
+  const bila   = dt.filter(t=>t.type==='bilashirac').length;
+  const metal  = dt.filter(t=>t.type==='metal').length;
+  const bashal = dt.filter(t=>t.status==='bashal').length;
+  const fin    = dt.filter(t=>t.status==='finished').length;
+  const half   = dt.filter(t=>t.status==='half').length;
+  const started= dt.filter(t=>t.status==='started').length;
+
+  const postData = cfg.posts.map(p => {
+    const pt  = dt.filter(t=>t.postId===p.id);
+    if (!pt.length) return null;
+    const ps  = pt.filter(t=>t.type==='shirac');
+    const pb  = pt.filter(t=>t.type==='bilashirac');
+    const pm  = pt.filter(t=>t.type==='metal');
+    const pba = pt.filter(t=>t.status==='bashal');
+    return { label:p.label, count:pt.length, ps, pb, pm, pba };
+  }).filter(Boolean);
+
+  const lines = [];
+
+  // ══════════════════════════════════════
+  // HEADER — "Today — Fri 8 May / 5 trucks total"
+  // ══════════════════════════════════════
+  if (inc('sec-date')) {
+    lines.push(`*${dateLabel}*`);
+    lines.push(`🚛 *${total} truck${total!==1?'s':''} total*`);
+  }
+
+  // ══════════════════════════════════════
+  // STAT BOXES — TOTAL · SHIRAC · B.SHIRAC · METAL · BASHAL
+  // ══════════════════════════════════════
+  if (inc('sec-loadtype')) {
+    lines.push('');
+    lines.push('🚛 *BY LOAD TYPE*');
+    lines.push(`📦 Total: *${total}*   🟢 Shirac: *${shirac}*   🔵 B.Shirac: *${bila}*   🔴 Metal: *${metal}*   🟣 Bashal: *${bashal}*`);
+  }
+
+  if (inc('sec-summary')) {
+    lines.push('');
+    lines.push(`✅ Done: *${fin}*   ▶️ Started: *${started}*   ⚡ Half: *${half}*`);
+  }
+
+  // ══════════════════════════════════════
+  // PER POST — mirrors Image 2 card layout exactly:
+  //   ● Post 1   3 trucks
+  //   🚛 SHIRAC (1)  🚚 B.SHIRAC (2)  🏗️ METAL (0)  🔮 BASHAL (1)
+  //   ──────────────────────────────────
+  //   Shirac col  | B.Shirac col | Metal col | Bashal col
+  //      11       |   123445     |           |  123445
+  //               |   12344      |           |
+  // ══════════════════════════════════════
+  if (inc('sec-perpost') || inc('sec-plates')) {
+    lines.push('');
+    lines.push('〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️');
+    lines.push(`🏗️ *BREAKDOWN PER POST — ${postData.length} post${postData.length!==1?'s':''}*`);
+
+    if (postData.length === 0) {
+      lines.push('_No trucks recorded._');
+    } else {
+      postData.forEach(p => {
+        lines.push('');
+        // ── Post header ──
+        lines.push(`● *${p.label}*   ${p.count} truck${p.count!==1?'s':''}`);
+
+        // ── 4-column type header with counts ──
+        if (inc('sec-perpost')) {
+          lines.push(
+            `   🚛 SHIRAC *(${p.ps.length})*` +
+            `   🚚 B.SHIRAC *(${p.pb.length})*` +
+            `   🏗️ METAL *(${p.pm.length})*` +
+            `   🔮 BASHAL *(${p.pba.length})*`
+          );
+        }
+
+        // ── Plate grid — one column per type, plates stacked vertically ──
+        if (inc('sec-plates')) {
+          const cols = [
+            { icon:'🟢', plates: p.ps.map(t=>t.plate)  },
+            { icon:'🔵', plates: p.pb.map(t=>t.plate)  },
+            { icon:'🔴', plates: p.pm.map(t=>t.plate)  },
+            { icon:'🟣', plates: p.pba.map(t=>t.plate) },
+          ];
+          // Only include columns that have at least one plate
+          const activeCols = cols.filter(c=>c.plates.length>0);
+          if (activeCols.length > 0) {
+            const maxRows = Math.max(...activeCols.map(c=>c.plates.length));
+            // Column width = longest plate in that col + 2 padding
+            activeCols.forEach(col => {
+              col.w = Math.max(...col.plates.map(p=>p.length), 6) + 2;
+            });
+            // Header separator
+            lines.push('   ' + activeCols.map(c => '─'.repeat(c.w)).join('  '));
+            // Plate rows
+            for (let i = 0; i < maxRows; i++) {
+              const row = activeCols.map(col => {
+                const plate = col.plates[i] || '';
+                return plate ? (col.icon + ' ' + plate).padEnd(col.w) : ' '.repeat(col.w);
+              }).join('  ');
+              lines.push('   ' + row.trimEnd());
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // ══════════════════════════════════════
+  // FOOTER
+  // ══════════════════════════════════════
+  if (inc('sec-footer')) {
+    lines.push('');
+    lines.push('〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️');
+    lines.push('🏢 *Agash · Djibouti*');
+  }
+
+  const text = lines.join('\n');
+
+  // Replace checklist sheet with share options sheet
+  const old = document.getElementById('share-sheet');
+  if (old) old.remove();
+
+  if (navigator.share) {
+    navigator.share({ title: `Agash Report — ${dateLabel}`, text }).catch(() => {});
+    return;
+  }
+
+  const enc = encodeURIComponent(text);
+  const sheet2 = document.createElement('div');
+  sheet2.id = 'share-sheet';
+  sheet2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(5px);z-index:500;display:flex;align-items:flex-end;justify-content:center;';
+  sheet2.innerHTML = `
+    <div style="background:var(--surface);border-radius:22px 22px 0 0;padding:18px 16px 36px;width:100%;max-width:500px;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 16px;"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div onclick="shareReport()" style="cursor:pointer;font-size:18px;color:var(--muted);">‹</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;">📤 Share via</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+        <a href="https://wa.me/?text=${enc}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);border-radius:12px;padding:14px 8px;text-decoration:none;color:#25d366;font-size:11px;font-weight:700;">
+          <span style="font-size:28px;">📱</span>WhatsApp
+        </a>
+        <a href="mailto:?subject=Agash Report — ${encodeURIComponent(dateLabel)}&body=${enc}" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:14px 8px;text-decoration:none;color:var(--blue);font-size:11px;font-weight:700;">
+          <span style="font-size:28px;">✉️</span>Email
+        </a>
+        <a href="sms:?body=${enc}" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:14px 8px;text-decoration:none;color:var(--green);font-size:11px;font-weight:700;">
+          <span style="font-size:28px;">💬</span>SMS
+        </a>
+        <div onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('share-text-area').value).then(()=>toast('📋 Copied!'))" style="display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;color:var(--gold);font-size:11px;font-weight:700;grid-column:span 3;">
+          <span style="font-size:22px;">📋</span>Copy to Clipboard
+        </div>
+      </div>
+      <textarea id="share-text-area" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-size:12px;font-family:monospace;resize:none;height:140px;">${text}</textarea>
+      <button onclick="document.getElementById('share-sheet').remove()" style="width:100%;margin-top:10px;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:11px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;">Close</button>
+    </div>`;
+  document.body.appendChild(sheet2);
+  sheet2.addEventListener('click', e => { if (e.target === sheet2) sheet2.remove(); });
+}
+
+
+function setAdminPostFilter(postId, el) {
+  adminFilterPost = postId;
+  buildAdminPostChips();
+  renderAdminTrucks();
+}
+
+function renderAdminTrucks() {
+  const today = getTodayWorkDay();
+  const date  = adminSelectedDate || today;
+  const isToday = date === today;
+
+  // Update date display label
+  updateAdminDateDisplay();
+
+  // History notice
+  const noticeEl = document.getElementById('a-history-notice');
+  if (noticeEl) {
+    noticeEl.innerHTML = !isToday
+      ? `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--gold);display:flex;align-items:center;gap:7px;">
+          📅 <span>Viewing history — <strong>${date}</strong>. Read-only, no changes allowed.</span>
+         </div>`
+      : '';
+  }
+
+  // New btn — only today
+  const newBtn = document.getElementById('a-new-btn');
+  if (newBtn) newBtn.style.display = isToday ? '' : 'none';
+
+  // Section title
+  const secTitle = document.getElementById('a-sec-title');
+  if (secTitle) {
+    if (isToday) {
+      secTitle.textContent = "TODAY'S TRUCKS";
+    } else {
+      const d = new Date(date+'T06:00:00');
+      const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      secTitle.textContent = 'HISTORY — '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+    }
+  }
+
+  // Build truck list for selected date
+  const statusFilter = filterStatus.a;
+  let all = getTrucks('all', null, date); // all for date (all statuses)
+
+  // Per-post count chips — build on all trucks for date
+  buildAdminPostChips();
+
+  // Apply post filter
+  if (adminFilterPost !== 'all') all = all.filter(t => t.postId === adminFilterPost);
+
+  // Dynamic status chips with counts
+  buildAdminStatusChips(all);
+
+  // Stats hidden — counts are on chips now
+  renderAdminStats(all, 'a-stats', date);
+
+  // Type bar
+  renderAdminTypeBar(getTrucks('all', null, date));
+
+  // Apply status filter for list
+  const trucks = statusFilter === 'all' ? all : all.filter(t => t.status === statusFilter);
+
+  renderTruckList(trucks, 'a-trucks-list', isToday, isToday);
+}
+
+function renderAdminStats(trucks, elId, date) {
+  const total   = trucks.length;
+  const fin     = trucks.filter(t=>t.status==='finished').length;
+  const half    = trucks.filter(t=>t.status==='half').length;
+  const bashal  = trucks.filter(t=>t.status==='bashal').length;
+  const started = trucks.filter(t=>t.status==='started').length;
+
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.style.gridTemplateColumns = 'repeat(5,1fr)';
+  el.innerHTML = `
+    <div class="stat-box"><div class="stat-n">${total}</div><div class="stat-l">Total</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--blue)"><div class="stat-n" style="color:var(--blue)">${started}</div><div class="stat-l">Started</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--green)"><div class="stat-n" style="color:var(--green)">${fin}</div><div class="stat-l">Done</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--gold)"><div class="stat-n" style="color:var(--gold)">${half}</div><div class="stat-l">Half</div></div>
+    <div class="stat-box" style="border-top:2px solid var(--bashal)"><div class="stat-n" style="color:var(--bashal)">${bashal}</div><div class="stat-l">Bashal</div></div>`;
+
+  // Remove old per-post boxes (no longer needed — post chips show this)
+  const postStatsEl = document.getElementById('a-post-stats');
+  if (postStatsEl) postStatsEl.innerHTML = '';
+}
+
+function renderAdminPosts()   { document.getElementById('a-posts-list').innerHTML = buildPostsHTML(); }
+function renderAdminReports() {
+  updateReportsDateDisplay();
+  document.getElementById('a-reports-content').innerHTML = buildReportsHTML(reportsSelectedDate);
+}
+function adminTab(tab, el) {
+  ['s-admin','s-admin-posts','s-admin-reports','s-admin-incoming','s-admin-manage'].forEach(sid=>{
+    const sc = document.getElementById(sid);
+    if(sc) sc.querySelectorAll('.bnav-item').forEach(e=>e.classList.remove('active'));
+  });
+  if(el) el.classList.add('active');
+  if (tab==='trucks')   { showScreen('s-admin');          renderAdminTrucks();    }
+  if (tab==='posts')    { showScreen('s-admin-posts');    renderAdminPosts();     }
+  if (tab==='reports')  { showScreen('s-admin-reports');  renderAdminReports();   }
+  if (tab==='incoming') { showScreen('s-admin-incoming'); renderAdminIncoming();  }
+  if (tab==='manage')   { showScreen('s-admin-manage');   renderManage();         }
+}
+
+function updateAdminIncomingBadge() {
+  const today  = getTodayWorkDay();
+  const unseen = Object.values(_kabIncoming).filter(t => (t.date||'') === today);
+  const navEl  = document.getElementById('a-incoming-nav');
+  if (!navEl) return;
+  const ni = navEl.querySelector('.ni');
+  if (ni) ni.textContent = unseen.length > 0 ? '📥 '+unseen.length : '📥';
+}
+
+function renderAdminIncoming() {
+  const container = document.getElementById('a-incoming-list');
+  const subEl     = document.getElementById('a-incoming-sub');
+  if (!container) return;
+  const today = getTodayWorkDay();
+  const TYPE_LABELS = { shirac:'🚛 Shirac', bilashirac:'🚚 Bila Shirac', metal:'🏗️ Metal' };
+  const TYPE_COLORS = { shirac:'#10b981', bilashirac:'#3b82f6', metal:'#ef4444' };
+
+  const all = Object.entries(_kabIncoming)
+    .map(e => Object.assign({}, e[1], {_id: e[0]}))
+    .sort((a,b) => (b.ts||0) - (a.ts||0));
+
+  const todayItems = all.filter(t => t.date === today);
+  const oldItems   = all.filter(t => t.date !== today);
+
+  if (subEl) subEl.textContent = todayItems.length + ' today · ' + all.length + ' total';
+
+  if (all.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);"><div style="font-size:40px;margin-bottom:10px;">📥</div><div>No trucks from Hask sealers yet</div></div>';
+    return;
+  }
+
+  function renderGroup(items, label) {
+    if (!items.length) return '';
+    return `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);">${label}</div>`
+      + items.map(t => {
+        const isBashal  = t.status === 'bashal';
+        const isSealed  = !!t.sealed;
+        const typeColor = isBashal ? '#e879f9' : (TYPE_COLORS[t.type] || '#6b7280');
+        const typeLabel = isBashal ? '🔮 Bashal' : (TYPE_LABELS[t.type] || t.type || '—');
+        const timeStr   = t.ts ? new Date(t.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '—';
+        const sealBadge = isSealed
+          ? `<span style="font-size:10px;color:var(--green);font-weight:700;">✅ Sealed by ${t.sealedBy||'sealer'}</span>`
+          : `<span style="font-size:10px;color:var(--muted);">⏳ Waiting for sealer</span>`;
+        return `<div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${typeColor};border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:18px;font-weight:800;font-family:monospace;">${t.plate}</div>
+            <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}44;">${typeLabel}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:700;color:${typeColor};">🏗️ ${t.postLabel||t.postId||'—'}</span>
+            <span style="font-size:11px;color:var(--muted);">🕐 ${timeStr}</span>
+          </div>
+          ${sealBadge}
+        </div>`;
+      }).join('');
+  }
+
+  container.innerHTML =
+    renderGroup(todayItems, '📅 Today — ' + todayItems.length + ' truck' + (todayItems.length!==1?'s':''))
+    + renderGroup(oldItems, '📦 Previous Days');
+}
+
+// ══════════════════════════════════════════════════════════
+// POSTS OVERVIEW HTML
+// ══════════════════════════════════════════════════════════
+function buildPostsHTML() {
+  const cfg     = loadConfig();
+  const trucks  = loadTrucks();
+  const today   = getTodayWorkDay();
+  const date    = (typeof adminSelectedDate !== 'undefined' && adminSelectedDate) ? adminSelectedDate : today;
+  const isToday = date === today;
+  const dateObj = new Date(date + 'T06:00:00');
+  const months  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days    = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dateLabel = isToday ? 'Today' : days[dateObj.getDay()] + ' ' + dateObj.getDate() + ' ' + months[dateObj.getMonth()];
+  const noTrucksLabel = isToday ? 'today' : 'on this date';
+
+  const dayTrucks = trucks.filter(t => (t.workDay || t.date || getWorkDay(t.ts)) === date);
+
+  // Summary bar — Shirac / B.Shirac / Metal / Bashal
+  const daySummary = `
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;">
+      <div class="stat-box"><div class="stat-n">${dayTrucks.length}</div><div class="stat-l">Total</div></div>
+      <div class="stat-box" style="border-top:2px solid #10b981"><div class="stat-n" style="color:#10b981">${dayTrucks.filter(t=>t.type==='shirac').length}</div><div class="stat-l">Shirac</div></div>
+      <div class="stat-box" style="border-top:2px solid #3b82f6"><div class="stat-n" style="color:#3b82f6">${dayTrucks.filter(t=>t.type==='bilashirac').length}</div><div class="stat-l">B.Shirac</div></div>
+      <div class="stat-box" style="border-top:2px solid #ef4444"><div class="stat-n" style="color:#ef4444">${dayTrucks.filter(t=>t.type==='metal').length}</div><div class="stat-l">Metal</div></div>
+      <div class="stat-box" style="border-top:2px solid var(--bashal)"><div class="stat-n" style="color:var(--bashal)">${dayTrucks.filter(t=>t.status==='bashal').length}</div><div class="stat-l">Bashal</div></div>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border);">🏗️ PER POST — ${dateLabel.toUpperCase()}</div>`;
+
+  return daySummary + cfg.posts.map(p => {
+    const myAll        = trucks.filter(t => t.postId === p.id);
+    const myDay        = myAll.filter(t => (t.workDay || t.date || getWorkDay(t.ts)) === date);
+    const shiracTrucks = myDay.filter(t => t.type === 'shirac');
+    const bilaTrucks   = myDay.filter(t => t.type === 'bilashirac');
+    const metalTrucks  = myDay.filter(t => t.type === 'metal');
+    const bashalTrucks = myDay.filter(t => t.status === 'bashal');
+
+    const maxRows = Math.max(shiracTrucks.length, bilaTrucks.length, metalTrucks.length, bashalTrucks.length, 0);
+    const cell = (plate, color) => plate
+      ? `<td style="padding:3px 4px;"><div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--text);background:${color}12;border:1px solid ${color}30;border-radius:5px;padding:2px 5px;text-align:center;letter-spacing:0.4px;">${plate}</div></td>`
+      : `<td style="padding:3px 4px;"><div style="height:22px;"></div></td>`;
+    const plateRows = maxRows === 0 ? '' : Array.from({length:maxRows}, (_,i) => `
+      <tr>
+        ${cell(shiracTrucks[i]?.plate, '#10b981')}
+        ${cell(bilaTrucks[i]?.plate,   '#3b82f6')}
+        ${cell(metalTrucks[i]?.plate,  '#ef4444')}
+        ${cell(bashalTrucks[i]?.plate, '#e879f9')}
+      </tr>`).join('');
+
+    const tableHTML = myDay.length === 0
+      ? `<div style="font-size:12px;color:var(--muted);padding:8px 0;">No trucks ${noTrucksLabel}</div>`
+      : `<table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+          <thead>
+            <tr>
+              <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#10b981;padding:0 4px 6px;text-align:center;border-bottom:2px solid #10b98133;">🚛 Shirac<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${shiracTrucks.length})</span></th>
+              <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#3b82f6;padding:0 4px 6px;text-align:center;border-bottom:2px solid #3b82f633;">🚚 B.Shirac<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${bilaTrucks.length})</span></th>
+              <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#ef4444;padding:0 4px 6px;text-align:center;border-bottom:2px solid #ef444433;">🏗️ Metal<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${metalTrucks.length})</span></th>
+              <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#e879f9;padding:0 4px 6px;text-align:center;border-bottom:2px solid #e879f933;">🔮 Bashal<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${bashalTrucks.length})</span></th>
+            </tr>
+          </thead>
+          <tbody>${plateRows}</tbody>
+        </table>`;
+
+    return `<div class="post-card">
+      <div class="pc-hdr" onclick="togglePost('pc-${p.id}')">
+        <div class="pc-av" style="background:${p.color}22;color:${p.color};">🏗️</div>
+        <div style="flex:1">
+          <div class="pc-name">${p.label}</div>
+          <div class="pc-sub">${dateLabel}: ${myDay.length} truck${myDay.length!==1?'s':''}</div>
+        </div>
+        <div class="pc-right">
+          <div class="pc-num" style="color:${p.color}">${myDay.length}</div>
+          <div class="pc-numl">${isToday ? 'today' : dateLabel.toLowerCase()}</div>
+        </div>
+      </div>
+      <div class="pc-body" id="pc-${p.id}">
+        <div style="margin-top:8px;">${tableHTML}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function togglePost(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════════════
+// REPORTS
+// ══════════════════════════════════════════════════════════
+function buildReportsHTML(dateOverride) {
+  const trucks  = loadTrucks();
+  const today   = getTodayWorkDay();
+  const date    = dateOverride || today;
+  const isToday = date === today;
+  const dt      = trucks.filter(t => (t.workDay || t.date || getWorkDay(t.ts)) === date);
+  const cfg     = loadConfig();
+
+  const dateObj   = new Date(date + 'T06:00:00');
+  const months    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days      = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dateLabel = isToday
+    ? 'Today — ' + days[dateObj.getDay()] + ' ' + dateObj.getDate() + ' ' + months[dateObj.getMonth()]
+    : days[dateObj.getDay()] + ' ' + dateObj.getDate() + ' ' + months[dateObj.getMonth()] + ' ' + dateObj.getFullYear();
+
+  // Summary for selected date
+  const total   = dt.length;
+  const shirac  = dt.filter(t => t.type === 'shirac').length;
+  const bila    = dt.filter(t => t.type === 'bilashirac').length;
+  const metal   = dt.filter(t => t.type === 'metal').length;
+  const bashal  = dt.filter(t => t.status === 'bashal').length;
+
+  // Per-post breakdown for selected date
+  const postRows = cfg.posts.map(p => {
+    const pt          = dt.filter(t => t.postId === p.id);
+    const shiracTrucks = pt.filter(t => t.type === 'shirac');
+    const bilaTrucks   = pt.filter(t => t.type === 'bilashirac');
+    const metalTrucks  = pt.filter(t => t.type === 'metal');
+    const bashalTrucks = pt.filter(t => t.status === 'bashal');
+    return {
+      label:        p.label,
+      color:        p.color,
+      total:        pt.length,
+      shirac:       shiracTrucks.length,
+      bila:         bilaTrucks.length,
+      metal:        metalTrucks.length,
+      bashal:       bashalTrucks.length,
+      shiracPlates: shiracTrucks.map(t => t.plate),
+      bilaPlates:   bilaTrucks.map(t => t.plate),
+      metalPlates:  metalTrucks.map(t => t.plate),
+      bashalPlates: bashalTrucks.map(t => t.plate),
+    };
+  }).filter(p => p.total > 0);
+
+  const statBox = (n, label, color, bg) =>
+    `<div style="background:var(--card);border:1px solid var(--border);border-top:3px solid ${color};border-radius:10px;padding:12px 6px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:${color};">${n}</div>
+      <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-top:3px;">${label}</div>
+    </div>`;
+
+  const miniBox = (n, label, color) =>
+    `<div style="background:${color}11;border:1px solid ${color}33;border-radius:7px;padding:6px 3px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:${color};">${n}</div>
+      <div style="font-size:8px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:1px;">${label}</div>
+    </div>`;
+
+  return `
+    <!-- Date header -->
+    <div style="padding:14px 0 4px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:0.5px;">${dateLabel}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">${total} truck${total!==1?'s':''} total</div>
+    </div>
+
+    <!-- Summary stats: 5 type boxes including TOTAL -->
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;margin-top:4px;">🚛 By Load Type</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px;">
+      ${statBox(total,  'Total',      'var(--text)', 'var(--text)')}
+      ${statBox(shirac, '🚛 Shirac',  '#10b981',     '#10b981')}
+      ${statBox(bila,   '🚚 B.Shirac','#3b82f6',     '#3b82f6')}
+      ${statBox(metal,  '🏗️ Metal',  '#ef4444',     '#ef4444')}
+      ${statBox(bashal, '🔮 Bashal', '#e879f9',     '#e879f9')}
+    </div>
+
+    <!-- Date load breakdown with progress bars -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;">📊 Load Breakdown — ${dateLabel}</div>
+      ${(()=>{
+        const pct = (n) => total > 0 ? Math.round(n/total*100) : 0;
+        const row = (n, label, color) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:13px;font-weight:700;color:${color};">${label}</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:80px;background:rgba(255,255,255,0.05);border-radius:4px;height:5px;overflow:hidden;">
+                <div style="width:${pct(n)}%;background:${color};height:100%;border-radius:4px;"></div>
+              </div>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;color:${color};min-width:28px;text-align:right;">${n}</span>
+              <span style="font-size:10px;color:var(--muted);min-width:28px;">${pct(n)}%</span>
+            </div>
+          </div>`;
+        return row(shirac,'🚛 Shirac','#10b981')
+          + row(bila,'🚚 Bila Shirac','#3b82f6')
+          + row(metal,'🏗️ Metal','#ef4444')
+          + row(bashal,'🔮 Bashal','#e879f9')
+          + `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;">
+              <span style="font-size:13px;font-weight:800;color:var(--text);">📦 Total</span>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--text);">${total}</span>
+             </div>`;
+      })()}
+    </div>
+
+    <!-- Per-post breakdown -->
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">
+      🏗️ Breakdown Per Post — ${postRows.length} post${postRows.length!==1?'s':''}
+    </div>
+
+    ${postRows.length === 0
+      ? `<div style="font-size:13px;color:var(--muted);padding:12px 0;text-align:center;">No trucks on this date.</div>`
+      : postRows.map(p => {
+          // Build rows: zip all 4 type arrays into table rows
+          const maxRows = Math.max(p.shiracPlates.length, p.bilaPlates.length, p.metalPlates.length, p.bashalPlates.length, 1);
+          const cell = (plate, color) => plate
+            ? `<td style="padding:3px 4px;"><div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--text);background:${color}12;border:1px solid ${color}30;border-radius:5px;padding:2px 5px;text-align:center;letter-spacing:0.4px;">${plate}</div></td>`
+            : `<td style="padding:3px 4px;"><div style="height:22px;"></div></td>`;
+          const rows = Array.from({length:maxRows}, (_,i) => `
+            <tr>
+              ${cell(p.shiracPlates[i], '#10b981')}
+              ${cell(p.bilaPlates[i],   '#3b82f6')}
+              ${cell(p.metalPlates[i],  '#ef4444')}
+              ${cell(p.bashalPlates[i], '#e879f9')}
+            </tr>`).join('');
+          return `
+          <div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${p.color};border-radius:10px;padding:11px 12px;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="width:9px;height:9px;border-radius:50%;background:${p.color};display:inline-block;"></span>
+                <span style="font-size:14px;font-weight:700;">${p.label}</span>
+              </div>
+              <div>
+                <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:${p.color};">${p.total}</span>
+                <span style="font-size:10px;color:var(--muted);margin-left:3px;">truck${p.total!==1?'s':''}</span>
+              </div>
+            </div>
+            <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+              <thead>
+                <tr>
+                  <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#10b981;padding:0 4px 6px;text-align:center;border-bottom:2px solid #10b98133;">🚛 Shirac<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${p.shirac})</span></th>
+                  <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#3b82f6;padding:0 4px 6px;text-align:center;border-bottom:2px solid #3b82f633;">🚚 B.Shirac<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${p.bila})</span></th>
+                  <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#ef4444;padding:0 4px 6px;text-align:center;border-bottom:2px solid #ef444433;">🏗️ Metal<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${p.metal})</span></th>
+                  <th style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:#e879f9;padding:0 4px 6px;text-align:center;border-bottom:2px solid #e879f933;">🔮 Bashal<br><span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;">(${p.bashal})</span></th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+        }).join('')}`;
+}
+
+// ══════════════════════════════════════════════════════════
+// SAVE / EDIT / DELETE TRUCK
+// ══════════════════════════════════════════════════════════
+function openAddTruck() {
+  editingTruckId = null;
+  document.getElementById('m-truck-title').textContent = '🚛 Add Truck';
+  document.getElementById('f-plate').value  = '';
+  document.getElementById('f-notes').value  = '';
+  document.getElementById('f-date').value   = new Date().toISOString().split('T')[0];
+  buildPostGrid();
+  selectType('shirac');
+  selectStatus('started');
+  buildArrimeursChips([]);
+  // Auto-select post user's post
+  if (currentUser?.role === 'post') selectPost(currentUser.id);
+  openModal('m-truck');
+}
+
+function openEditTruck(id) {
+  const t = loadTrucks().find(x=>x.id===id);
+  if (!t) return;
+  editingTruckId = id;
+  document.getElementById('m-truck-title').textContent = '✏️ Edit Truck';
+  document.getElementById('f-plate').value  = t.plate;
+  document.getElementById('f-notes').value  = t.notes||'';
+  document.getElementById('f-date').value   = t.date||new Date().toISOString().split('T')[0];
+  buildPostGrid();
+  selectPost(t.postId||'p1');
+  selectType(t.type||'shirac');
+  selectStatus(t.status||'started');
+  buildArrimeursChips(t.arrimeurs||[]);
+  openModal('m-truck');
+}
+
+function saveTruck() {
+  const plate  = document.getElementById('f-plate').value.trim().toUpperCase();
+  const postId = document.getElementById('f-post').value;
+  const type   = document.getElementById('f-type').value;
+  const status = document.getElementById('f-status').value;
+  const date   = document.getElementById('f-date').value || new Date().toISOString().split('T')[0];
+  const notes  = document.getElementById('f-notes').value.trim();
+  const arrimeursRaw = document.getElementById('f-arrimeurs').value;
+  const arrimeurs = arrimeursRaw ? arrimeursRaw.split(',').filter(Boolean) : [];
+  if (!plate)  { toast('⚠️ Enter plate number!'); return; }
+  if (!postId) { toast('⚠️ Select a post!'); return; }
+  const cfg    = loadConfig();
+  const post   = cfg.posts.find(p=>p.id===postId);
+  const trucks = loadTrucks();
+  const now    = Date.now();
+  const workDay= getWorkDay(now);
+  // ── Duplicate check: same plate on same workday ──
+  const dupCheck = trucks.find(t =>
+    t.plate === plate &&
+    (t.workDay || t.date || getWorkDay(t.ts)) === workDay &&
+    t.id !== editingTruckId
+  );
+  if (dupCheck) {
+    toast(`🚫 ${plate} already entered today!`);
+    document.getElementById('f-plate').style.borderColor = 'var(--red)';
+    setTimeout(() => { document.getElementById('f-plate').style.borderColor = ''; }, 2000);
+    return;
+  }
+  if (editingTruckId) {
+    const idx = trucks.findIndex(t=>t.id===editingTruckId);
+    const updated = idx>-1 ? {...trucks[idx], plate, postId, postLabel:post?.label, type, status, date, notes, arrimeurs} : null;
+    if (updated) {
+      trucks[idx] = updated;
+      saveTrucks(trucks);
+      firestoreUpdateTruck(editingTruckId, { plate, postId, postLabel:post?.label||'', type, status, date, notes, arrimeurs });
+      notifyHSK(updated);
+    }
+    editingTruckId = null;
+    toast('✅ Truck updated!');
+  } else {
+    const newTruck = { id:'t_'+now, ts:now, plate, postId, postLabel:post?.label||'', type, status, date, workDay, notes, arrimeurs, addedBy: currentUser.name };
+    trucks.unshift(newTruck);
+    saveTrucks(trucks);
+    firestoreSaveTruck(newTruck);
+    // Notify HSK/WKABE app via shared kab_trucks collection
+    notifyHSK(newTruck);
+    toast(`✅ ${plate} added!`);
+  }
+  closeModal('m-truck');
+  refreshCurrentView();
+}
+
+function quickFinish(id) {
+  const trucks = loadTrucks();
+  const t = trucks.find(x=>x.id===id);
+  if (!t) return;
+  t.status = 'finished';
+  saveTrucks(trucks);
+  firestoreUpdateTruck(id, { status: 'finished' });
+  notifyHSK(t);
+  toast('✅ Marked as Finished!');
+  refreshCurrentView();
+}
+
+function deleteTruck(id) {
+  if (!confirm('Delete this truck entry?')) return;
+  saveTrucks(loadTrucks().filter(t=>t.id!==id));
+  firestoreDeleteTruck(id);
+  toast('🗑️ Deleted');
+  refreshCurrentView();
+}
+
+function setFilter(val, el, prefix) {
+  filterStatus[prefix] = val;
+  const container = el.closest('.fchips');
+  container.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  refreshCurrentView();
+}
+
+function refreshCurrentView() {
+  const s = document.querySelector('.screen.active')?.id || '';
+  if (s==='s-worker')          renderWorkerTrucks();
+  if (s==='s-cashier')         renderCashierTrucks();
+  if (s==='s-cashier-posts')   renderCashierPosts();
+  if (s==='s-cashier-reports') renderCashierReports();
+  if (s==='s-foreman')         renderForemanTrucks();
+  if (s==='s-foreman-posts')   renderForemanPosts();
+  if (s==='s-admin')           renderAdminTrucks();
+  if (s==='s-admin-posts')     renderAdminPosts();
+  if (s==='s-admin-reports')   renderAdminReports();
+  if (s==='s-admin-manage')    renderManage();
+}
+
+// ══════════════════════════════════════════════════════════
+// REPORTS DATE STATE (independent from admin truck date)
+// ══════════════════════════════════════════════════════════
+let reportsSelectedDate   = null; // null = today
+let cashierReportsDate    = null; // null = today
+
+function updateReportsDateDisplay() {
+  const today = getTodayWorkDay();
+  const date  = reportsSelectedDate || today;
+  const isToday = date === today;
+  const d = new Date(date + 'T06:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const lbl = isToday
+    ? `Today · ${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
+    : `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  const el = document.getElementById('r-date-label-text');
+  if (el) el.textContent = lbl;
+  const sub = document.getElementById('a-reports-sub');
+  if (sub) sub.textContent = isToday ? 'Full Overview · Today' : `History · ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function updateCashierReportsDateDisplay() {
+  const today = getTodayWorkDay();
+  const date  = cashierReportsDate || today;
+  const isToday = date === today;
+  const d = new Date(date + 'T06:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const lbl = isToday
+    ? `Today · ${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`
+    : `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  const el = document.getElementById('cr-date-label-text');
+  if (el) el.textContent = lbl;
+  const sub = document.getElementById('c-reports-sub');
+  if (sub) sub.textContent = isToday ? 'Overview · Today' : `History · ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function reportsSetToday()        { reportsSelectedDate = null; updateReportsDateDisplay(); renderAdminReports(); }
+function cashierReportsSetToday() { cashierReportsDate  = null; updateCashierReportsDateDisplay(); renderCashierReports(); }
+
+function reportsPrevDay() {
+  const dates = getAvailableDates();
+  const today = getTodayWorkDay();
+  const cur   = reportsSelectedDate || today;
+  const idx   = dates.indexOf(cur);
+  if (idx < dates.length - 1) { reportsSelectedDate = dates[idx + 1]; updateReportsDateDisplay(); renderAdminReports(); }
+}
+function reportsNextDay() {
+  const dates = getAvailableDates();
+  const today = getTodayWorkDay();
+  const cur   = reportsSelectedDate || today;
+  const idx   = dates.indexOf(cur);
+  if (idx > 0) { reportsSelectedDate = dates[idx - 1]; updateReportsDateDisplay(); renderAdminReports(); }
+}
+function cashierReportsPrevDay() {
+  const dates = getAvailableDates();
+  const today = getTodayWorkDay();
+  const cur   = cashierReportsDate || today;
+  const idx   = dates.indexOf(cur);
+  if (idx < dates.length - 1) { cashierReportsDate = dates[idx + 1]; updateCashierReportsDateDisplay(); renderCashierReports(); }
+}
+function cashierReportsNextDay() {
+  const dates = getAvailableDates();
+  const today = getTodayWorkDay();
+  const cur   = cashierReportsDate || today;
+  const idx   = dates.indexOf(cur);
+  if (idx > 0) { cashierReportsDate = dates[idx - 1]; updateCashierReportsDateDisplay(); renderCashierReports(); }
+}
+
+function openReportsDatePicker() {
+  const trucks = loadTrucks();
+  const today  = getTodayWorkDay();
+  const days   = getAvailableDates();
+  const sel    = reportsSelectedDate || today;
+  document.getElementById('date-picker-list').innerHTML = days.map(d => {
+    const count = trucks.filter(t => (t.workDay||t.date||getWorkDay(t.ts)) === d).length;
+    const isToday    = d === today;
+    const isSelected = d === sel;
+    const tag  = isToday ? ' · Today' : '';
+    const bg   = isSelected ? 'var(--accent)' : 'var(--card)';
+    const bdr  = isSelected ? 'var(--accent)' : 'var(--border)';
+    const clr  = isSelected ? '#0a0e1a' : 'var(--text)';
+    return `<div onclick="reportsSelectDate('${d}');closeModal('m-date-picker')"
+      style="background:${bg};border:1.5px solid ${bdr};border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:${clr};font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">${fmtDateShort(d)}${tag}</div>
+        <div style="font-size:11px;color:${isSelected?'rgba(10,14,26,0.7)':'var(--muted)'};margin-top:2px;">${count} truck${count!==1?'s':''}</div>
+      </div>
+      ${isSelected ? '<span style="font-size:18px;color:#0a0e1a;font-weight:900;">✓</span>' : '<span style="color:var(--muted);font-size:16px;">›</span>'}
+    </div>`;
+  }).join('');
+  openModal('m-date-picker');
+}
+
+function reportsSelectDate(d) {
+  reportsSelectedDate = d === getTodayWorkDay() ? null : (d || null);
+  updateReportsDateDisplay();
+  renderAdminReports();
+}
+
+function openCashierReportsDatePicker() {
+  const trucks = loadTrucks();
+  const today  = getTodayWorkDay();
+  const days   = getAvailableDates();
+  const sel    = cashierReportsDate || today;
+  document.getElementById('date-picker-list').innerHTML = days.map(d => {
+    const count = trucks.filter(t => (t.workDay||t.date||getWorkDay(t.ts)) === d).length;
+    const isToday    = d === today;
+    const isSelected = d === sel;
+    const tag  = isToday ? ' · Today' : '';
+    const bg   = isSelected ? 'var(--accent)' : 'var(--card)';
+    const bdr  = isSelected ? 'var(--accent)' : 'var(--border)';
+    const clr  = isSelected ? '#0a0e1a' : 'var(--text)';
+    return `<div onclick="cashierReportsSelectDate('${d}');closeModal('m-date-picker')"
+      style="background:${bg};border:1.5px solid ${bdr};border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:${clr};font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">${fmtDateShort(d)}${tag}</div>
+        <div style="font-size:11px;color:${isSelected?'rgba(10,14,26,0.7)':'var(--muted)'};margin-top:2px;">${count} truck${count!==1?'s':''}</div>
+      </div>
+      ${isSelected ? '<span style="font-size:18px;color:#0a0e1a;font-weight:900;">✓</span>' : '<span style="color:var(--muted);font-size:16px;">›</span>'}
+    </div>`;
+  }).join('');
+  openModal('m-date-picker');
+}
+
+function cashierReportsSelectDate(d) {
+  cashierReportsDate = d === getTodayWorkDay() ? null : (d || null);
+  updateCashierReportsDateDisplay();
+  renderCashierReports();
+}
+
+
+function toggleAdminPinReveal() {
+  const h = document.getElementById('admin-pin-hidden');
+  const s = document.getElementById('admin-pin-shown');
+  if (!h || !s) return;
+  const show = s.style.display === 'none';
+  h.style.display = show ? 'none' : 'inline';
+  s.style.display = show ? 'inline' : 'none';
+}
+function renderManage() {
+  const cfg = loadConfig();
+
+  // Posts — show PIN visible
+  document.getElementById('manage-posts-list').innerHTML = cfg.posts.map(p => `
+    <div class="manage-row">
+      <div class="manage-av" style="background:${p.color}22;color:${p.color};">🏗️</div>
+      <div style="flex:1">
+        <div class="manage-name">${p.label}</div>
+        <div class="manage-sub">PIN: <span class="pin-reveal">${p.pin}</span></div>
+      </div>
+      <div class="manage-acts">
+        <div class="m-btn m-btn-pin" onclick="openPinChange('post','${p.id}','${p.label}')">🔐 PIN</div>
+      </div>
+    </div>`).join('');
+
+  // Foreman — show PIN visible
+  document.getElementById('manage-foreman-section').innerHTML = `
+    <div class="manage-row">
+      <div class="manage-av" style="background:rgba(139,92,246,0.15);color:#8b5cf6;">👷‍♂️</div>
+      <div style="flex:1">
+        <div class="manage-name">${cfg.foreman.name}</div>
+        <div class="manage-sub">PIN: <span class="pin-reveal">${cfg.foreman.pin}</span></div>
+      </div>
+      <div class="manage-acts">
+        <div class="m-btn m-btn-perm" onclick="openForemanPerms()">⚙️ Perms</div>
+        <div class="m-btn m-btn-pin" onclick="openPinChange('foreman',null,'Foreman')">🔐 PIN</div>
+      </div>
+    </div>`;
+
+  // Admin PIN
+  document.getElementById('manage-admin-pin').innerHTML = `
+    <div class="manage-row">
+      <div class="manage-av" style="background:rgba(240,165,0,0.15);color:#f0a500;">👑</div>
+      <div style="flex:1">
+        <div class="manage-name">Admin</div>
+        <div class="manage-sub">PIN: <span id="admin-pin-hidden">••••</span><span id="admin-pin-shown" style="display:none;" class="pin-reveal">${cfg.apin}</span> <span onclick="toggleAdminPinReveal()" style="cursor:pointer;">👁</span></div>
+      </div>
+      <div class="manage-acts">
+        <div class="m-btn m-btn-pin" onclick="openPinChange('admin',null,'Admin')">🔐 PIN</div>
+      </div>
+    </div>`;
+
+  // Share section
+  const appUrl = window.location.href.split('?')[0];
+  document.getElementById('manage-share-section').innerHTML = `
+    <div class="manage-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+        <div class="manage-av" style="background:rgba(37,211,102,0.15);color:#25d366;">📲</div>
+        <div>
+          <div class="manage-name">App Link</div>
+          <div class="manage-sub" style="word-break:break-all;font-size:10px;">${appUrl}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:7px;">
+        <button onclick="shareViaWhatsApp()" style="flex:1;background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);color:#25d366;border-radius:9px;padding:9px 6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;">
+          📱 Share via WhatsApp
+        </button>
+        <button onclick="copyAppLink()" style="flex:1;background:var(--blue2);border:1px solid rgba(59,130,246,0.3);color:var(--blue);border-radius:9px;padding:9px 6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;">
+          🔗 Copy Link
+        </button>
+      </div>
+    </div>`;
+
+  renderManageInstallSection();
+  renderManageSuspendSection();
+  renderManageSyncSection();
+  renderManageArrimeurs();
+}
+
+// ══════════════════════════════════════════════════════════
+// ARRIMEURS MANAGEMENT (Admin)
+// ══════════════════════════════════════════════════════════
+function renderManageArrimeurs() {
+  const sec = document.getElementById('manage-arrimeurs-section');
+  if (!sec) return;
+  const cfg = loadConfig();
+  const list = cfg.arrimeurs || [];
+  const tags = list.length
+    ? list.map(n => `
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.25);border-radius:8px;padding:5px 10px;">
+          <span style="font-size:12px;font-weight:700;color:var(--teal);">${n}</span>
+          <span onclick="deleteArrimeur('${n.replace(/'/g,"\\'")}',this)" style="color:var(--red);font-size:14px;cursor:pointer;line-height:1;margin-left:2px;">×</span>
+        </div>`).join('')
+    : `<div style="font-size:12px;color:var(--muted);">Aucun arrimeur ajouté.</div>`;
+  sec.innerHTML = `
+    <div class="manage-row" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;flex-wrap:wrap;gap:7px;min-height:28px;">${tags}</div>
+      <div style="display:flex;gap:8px;">
+        <input id="new-arrimeur-input" class="form-input" placeholder="Nom de l'arrimeur…" autocomplete="off"
+          style="flex:1;padding:9px 12px;font-size:13px;"
+          onkeydown="if(event.key==='Enter')addArrimeur()">
+        <button onclick="addArrimeur()" style="background:var(--teal);color:#0a0e1a;border:none;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Barlow',sans-serif;white-space:nowrap;">+ Ajouter</button>
+      </div>
+    </div>`;
+}
+
+async function addArrimeur() {
+  const inp = document.getElementById('new-arrimeur-input');
+  if (!inp) return;
+  const name = inp.value.trim();
+  if (!name) { toast('⚠️ Entrez un nom!'); return; }
+  const cfg = loadConfig();
+  if (!cfg.arrimeurs) cfg.arrimeurs = [];
+  if (cfg.arrimeurs.includes(name)) { toast('⚠️ Déjà dans la liste!'); return; }
+  cfg.arrimeurs.push(name);
+  await saveConfig(cfg);
+  inp.value = '';
+  toast(`✅ ${name} ajouté!`);
+  renderManageArrimeurs();
+}
+
+async function deleteArrimeur(name) {
+  const cfg = loadConfig();
+  cfg.arrimeurs = (cfg.arrimeurs || []).filter(n => n !== name);
+  await saveConfig(cfg);
+  toast(`🗑️ ${name} supprimé`);
+  renderManageArrimeurs();
+}
+
+// ══════════════════════════════════════════════════════════
+// AGASH ICON — drawn via canvas (no image file needed)
+// ══════════════════════════════════════════════════════════
+function drawAgashIcon(canvas) {
+  const ctx = canvas.getContext('2d');
+  const s = canvas.width;
+  // Background
+  ctx.fillStyle = '#0a0e1a';
+  ctx.beginPath();
+  const r = s * 0.22;
+  ctx.moveTo(r,0); ctx.lineTo(s-r,0);
+  ctx.quadraticCurveTo(s,0,s,r);
+  ctx.lineTo(s,s-r); ctx.quadraticCurveTo(s,s,s-r,s);
+  ctx.lineTo(r,s); ctx.quadraticCurveTo(0,s,0,s-r);
+  ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0);
+  ctx.fill();
+  // Gold inner square
+  const g = ctx.createLinearGradient(s*0.15, s*0.15, s*0.85, s*0.85);
+  g.addColorStop(0, '#f0a500'); g.addColorStop(1, '#d48000');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  const ir = s * 0.14, ix = s * 0.14;
+  ctx.moveTo(ix+ir,ix); ctx.lineTo(s-ix-ir,ix);
+  ctx.quadraticCurveTo(s-ix,ix,s-ix,ix+ir);
+  ctx.lineTo(s-ix,s-ix-ir); ctx.quadraticCurveTo(s-ix,s-ix,s-ix-ir,s-ix);
+  ctx.lineTo(ix+ir,s-ix); ctx.quadraticCurveTo(ix,s-ix,ix,s-ix-ir);
+  ctx.lineTo(ix,ix+ir); ctx.quadraticCurveTo(ix,ix,ix+ir,ix);
+  ctx.fill();
+  // Letter A
+  ctx.fillStyle = '#0a0e1a';
+  ctx.font = `900 ${s*0.52}px 'Arial Black', sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('A', s/2, s*0.52);
+}
+
+// Wire icon into manifest + apple-touch-icon
+(function initPWAAssets() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  drawAgashIcon(c);
+  const iconURL = c.toDataURL('image/png');
+
+  // Apple touch icon
+  const appleLink = document.getElementById('pwa-icon');
+  if (appleLink) appleLink.href = iconURL;
+
+  // Inline manifest
+  const manifest = {
+    name: 'Agash', short_name: 'Agash',
+    description: 'Agash Truck Management',
+    start_url: './', display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#0a0e1a', theme_color: '#0a0e1a',
+    icons: [
+      { src: iconURL, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: iconURL, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  };
+  const mblob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  const mLink = document.getElementById('pwa-manifest');
+  if (mLink) mLink.href = URL.createObjectURL(mblob);
+})();
+
+// ── SPLASH ──────────────────────────────────────────────────
+function showSplash() {
+  const sc = document.getElementById('splashIcon');
+  if (sc) drawAgashIcon(sc);
+  setTimeout(() => {
+    const splash = document.getElementById('splashScreen');
+    if (splash) {
+      splash.classList.add('hide');
+      setTimeout(() => splash.remove(), 700);
+    }
+  }, 2000);
+}
+
+// ══════════════════════════════════════════════════════════
+// PWA INSTALL
+// ══════════════════════════════════════════════════════════
+let _deferredInstallPrompt = null;
+let _appInstalled = false;
+
+// Auto-show banner 1.5s after install prompt fires
+// Capture Android native prompt
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  renderManageInstallSection();
+  _maybeShowBanner();
+});
+
+window.addEventListener('appinstalled', function() {
+  _appInstalled = true;
+  _deferredInstallPrompt = null;
+  dismissPWABanner();
+  toast('✅ Agash installed on your phone!');
+  renderManageInstallSection();
+});
+
+// Show banner proactively — works on iOS too (no beforeinstallprompt there)
+function _maybeShowBanner() {
+  if (isAppInstalled()) return;                          // already running standalone
+  if (sessionStorage.getItem('pwa-dismissed')) return;  // user dismissed this session
+  const banner = document.getElementById('pwaInstallBanner');
+  if (!banner) return;
+  banner.classList.remove('hidden');
+}
+
+// Show banner 2s after page load regardless of beforeinstallprompt
+window.addEventListener('load', function() {
+  setTimeout(_maybeShowBanner, 2000);
+});
+
+function isAppInstalled() {
+  return _appInstalled ||
+         window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+}
+
+function renderManageInstallSection() {
+  const sec = document.getElementById('manage-install-section');
+  if (!sec) return;
+  if (isAppInstalled()) {
+    sec.innerHTML = `
+      <div class="manage-row">
+        <div class="manage-av" style="background:rgba(16,185,129,0.15);color:var(--green);">✅</div>
+        <div style="flex:1">
+          <div class="manage-name">App Already Installed</div>
+          <div class="manage-sub">Running as a standalone app</div>
+        </div>
+      </div>`;
+    return;
+  }
+  sec.innerHTML = `
+    <div class="manage-row" onclick="doInstallPWA()" style="cursor:pointer;">
+      <div class="manage-av" style="background:rgba(240,165,0,0.12);color:var(--accent);font-size:20px;">📲</div>
+      <div style="flex:1">
+        <div class="manage-name">Install App on Phone</div>
+        <div class="manage-sub">${_deferredInstallPrompt ? 'Tap to install Agash instantly' : 'Add Agash to your home screen'}</div>
+      </div>
+      <span style="color:var(--muted);font-size:18px;font-weight:300;">›</span>
+    </div>`;
+}
+
+window.doInstallPWA = function() {
+  if (isAppInstalled()) {
+    toast('✅ App is already installed');
+    return;
+  }
+
+  // Android: native install prompt available — use it directly
+  if (_deferredInstallPrompt) {
+    dismissPWABanner();
+    _deferredInstallPrompt.prompt();
+    _deferredInstallPrompt.userChoice.then(function(r) {
+      if (r.outcome === 'accepted') toast('✅ Installing Agash...');
+      else toast('ℹ️ Tap Install anytime to install');
+      _deferredInstallPrompt = null;
+      renderManageInstallSection();
+    });
+    return;
+  }
+
+  // iOS / manual instructions sheet
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isSamsung = /SamsungBrowser/.test(navigator.userAgent);
+
+  const old = document.getElementById('install-sheet');
+  if (old) old.remove();
+  const sheet = document.createElement('div');
+  sheet.id = 'install-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);z-index:9100;display:flex;align-items:flex-end;justify-content:center;';
+
+  let steps = '';
+  if (isIOS) {
+    steps = `
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">1</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap the <strong style="color:var(--accent);">Share</strong> button <strong style="font-size:18px;">⎋</strong> at the bottom of Safari</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">2</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Scroll down and tap <strong style="color:var(--accent);">"Add to Home Screen"</strong></div>
+      </div>`;
+  } else if (isSamsung) {
+    steps = `
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">1</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap the <strong style="color:var(--accent);">⋮ menu</strong> in the top-right corner</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">2</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap <strong style="color:var(--accent);">"Add page to"</strong> → <strong style="color:var(--accent);">"Home screen"</strong></div>
+      </div>`;
+  } else {
+    steps = `
+      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">1</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap the <strong style="color:var(--accent);">⋮ menu</strong> in Chrome's top-right corner</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(240,165,0,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">2</div>
+        <div style="font-size:14px;color:var(--text);padding-top:6px;">Tap <strong style="color:var(--accent);">"Install App"</strong> or <strong style="color:var(--accent);">"Add to Home Screen"</strong></div>
+      </div>`;
+  }
+
+  sheet.innerHTML = `
+    <div style="background:var(--surface);border-radius:22px 22px 0 0;padding:20px 16px 40px;width:100%;max-width:500px;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 20px;"></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+        <canvas id="install-sheet-icon" width="56" height="56" style="border-radius:14px;flex-shrink:0;"></canvas>
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:0.3px;">Install Agash</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Add to your home screen</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;">
+        ${steps}
+      </div>
+      <button onclick="document.getElementById('install-sheet').remove()" style="width:100%;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:12px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;">
+        Close
+      </button>
+    </div>`;
+
+  sheet.addEventListener('click', function(e) { if (e.target === sheet) sheet.remove(); });
+  document.body.appendChild(sheet);
+  const ic = document.getElementById('install-sheet-icon');
+  if (ic) drawAgashIcon(ic);
+};
+
+window.dismissPWABanner = function() {
+  const b = document.getElementById('pwaInstallBanner');
+  if (b) b.classList.add('hidden');
+  sessionStorage.setItem('pwa-dismissed', '1');
+};
+
+// Also expose openInstallSheet as alias for any existing callers
+window.openInstallSheet = window.doInstallPWA;
+
+
+
+// ══════════════════════════════════════════════════════════
+// ADDING CONTROL (SUSPEND)
+// ══════════════════════════════════════════════════════════
+function renderManageSuspendSection() {
+  const sec = document.getElementById('manage-suspend-section');
+  if (!sec) return;
+  const cfg = loadConfig();
+  const suspended = !!cfg.addingSuspended;
+  sec.innerHTML = `
+    <div class="manage-row">
+      <div class="manage-av" style="background:${suspended?'rgba(16,185,129,0.15)':'rgba(239,68,68,0.15)'};color:${suspended?'var(--green)':'var(--red)'};">${suspended?'▶️':'🚫'}</div>
+      <div style="flex:1">
+        <div class="manage-name">${suspended ? 'Resume Adding Trucks' : 'Suspend Adding Trucks'}</div>
+        <div class="manage-sub">Blocks all non-admin users from adding new trucks</div>
+      </div>
+      <div class="manage-acts">
+        <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;padding:4px 10px;border-radius:20px;background:${suspended?'rgba(239,68,68,0.15)':'rgba(16,185,129,0.15)'};color:${suspended?'var(--red)':'var(--green)'};margin-right:6px;">${suspended?'SUSPENDED':'ACTIVE'}</span>
+        <div class="m-btn ${suspended?'m-btn-pin':'m-btn-perm'}" onclick="toggleSuspend()">${suspended?'▶️ Resume':'🚫 Suspend'}</div>
+      </div>
+    </div>`;
+}
+async function toggleSuspend() {
+  const cfg = loadConfig();
+  cfg.addingSuspended = !cfg.addingSuspended;
+  await saveConfig(cfg);
+  toast(cfg.addingSuspended ? '🚫 Adding trucks suspended' : '✅ Adding trucks resumed');
+  renderManageSuspendSection();
+}
+
+// ══════════════════════════════════════════════════════════
+// CLOUD SYNC STATUS
+// ══════════════════════════════════════════════════════════
+function renderManageSyncSection() {
+  const sec = document.getElementById('manage-sync-section');
+  if (!sec) return;
+  const s = computeSyncDisplay();
+  sec.innerHTML = `
+    <div class="manage-row">
+      <div class="manage-av" style="background:${s.color}22;color:${s.color};">☁️</div>
+      <div style="flex:1">
+        <div class="manage-name" style="color:${s.color};font-weight:700;">${s.label}</div>
+        <div class="manage-sub">Project: haaa-3b06e · Firebase Firestore</div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// GLOBAL SYNC BAR — visible to every user, every role, every screen.
+// Reflects live Firestore connection state + last-synced time, and
+// provides two ways to manually refresh: tap-to-refresh and pull-to-refresh.
+// Also surfaces offline writes: trucks added with no connection are saved
+// instantly to the local device and queued by Firestore, then flushed
+// automatically the moment the device reconnects — this combines that
+// queue state with live connectivity into one readable line.
+// ══════════════════════════════════════════════════════════
+function relativeTime(ts) {
+  if (!ts) return 'never synced';
+  const secs = Math.floor((Date.now() - ts) / 1000);
+  if (secs < 2)   return 'synced just now';
+  if (secs < 60)  return `synced ${secs}s ago`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60)  return `synced ${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  return `synced ${hrs}h ago`;
+}
+
+function getLiveTime() {
+  const now = new Date();
+  return String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+
+function computeSyncDisplay() {
+  const online = navigator.onLine;
+  const loaded = _ready['trucks'] && _ready['config'];
+  if (!online || _syncStatus === 'offline') {
+    return { color:'var(--red)', label:'📴 Offline' };
+  }
+  if (_pendingCount > 0) {
+    const n = _pendingCount;
+    return { color:'var(--gold)', label:'⏳ Syncing ' + n + ' truck' + (n!==1?'s':'') + '…' };
+  }
+  if (!loaded) {
+    return { color:'var(--gold)', label:'⏳ Syncing…' };
+  }
+  return { color:'var(--green)', label:'☁️ Live ' + getLiveTime() };
+}
+
+function updateSyncBar() {
+  const dot  = document.getElementById('sb-dot');
+  const text = document.getElementById('sb-text');
+  if (!text) return;
+  const s = computeSyncDisplay();
+  if (dot) dot.style.display = 'none';
+  text.textContent = s.label;
+  text.style.color = s.color;
+  renderManageSyncSection();
+}
+
+// Tick every 10s to keep HH:MM live without burning CPU
+setInterval(updateSyncBar, 10000);
+
+let _refreshing = false;
+async function manualRefresh(silent) {
+  if (_refreshing) return;
+  _refreshing = true;
+  const icon = document.getElementById('sb-refresh-icon');
+  if (icon) icon.classList.add('spin');
+  if (!silent) toast('🔄 Refreshing…');
+  if (!db) {
+    // Offline fallback — just re-render from whatever local data we have.
+    refreshCurrentView();
+    setSyncStatus('offline');
+    _refreshing = false;
+    if (icon) icon.classList.remove('spin');
+    return;
+  }
+  try {
+    const [trucksSnap, configSnap, incomingSnap] = await Promise.all([
+      db.collection('kab_trucks').orderBy('ts','desc').get({ source: 'server' }),
+      db.collection('kab_config').doc('main').get({ source: 'server' }),
+      db.collection('kab_incoming').get({ source: 'server' }),
+    ]);
+    _trucks = trucksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (configSnap.exists) _config = configSnap.data();
+    _kabIncoming = {};
+    incomingSnap.forEach(d => { _kabIncoming[d.id] = d.data(); });
+    _lastSyncTs = Date.now();
+    setSyncStatus('online');
+    refreshCurrentView();
+    updateForemanIncomingBadge();
+    updateAdminIncomingBadge();
+    if (!silent) toast('✅ Up to date');
+  } catch(e) {
+    console.warn('manualRefresh error:', e);
+    setSyncStatus('offline');
+    if (!silent) toast('⚠️ Could not refresh — offline');
+  } finally {
+    _refreshing = false;
+    if (icon) icon.classList.remove('spin');
+  }
+}
+
+// ── Pull-to-refresh on every scrollable list ────────────────────────────────
+function initPullToRefresh() {
+  const indicator = document.getElementById('pull-indicator');
+  let startY = 0, pulling = false, triggered = false;
+  document.querySelectorAll('.scroll').forEach(el => {
+    el.addEventListener('touchstart', e => {
+      if (el.scrollTop <= 0) { startY = e.touches[0].clientY; pulling = true; triggered = false; }
+      else pulling = false;
+    }, { passive: true });
+    el.addEventListener('touchmove', e => {
+      if (!pulling) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy > 0 && el.scrollTop <= 0) {
+        const h = Math.min(dy * 0.5, 56);
+        indicator.style.height = h + 'px';
+        indicator.textContent = h > 44 ? '↻ Release to refresh' : '↓ Pull to refresh';
+        triggered = h > 44;
+      }
+    }, { passive: true });
+    el.addEventListener('touchend', () => {
+      if (pulling && triggered) manualRefresh();
+      indicator.style.height = '0px';
+      pulling = false; triggered = false;
+    }, { passive: true });
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+function importExcel(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'binary' });
+      const sheetName = wb.SheetNames.find(n => /all trucks/i.test(n)) || wb.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
+      if (!rows.length) { toast('⚠️ No rows found in file'); return; }
+      const cfg = loadConfig();
+      const typeMap = { 'Shirac':'shirac', 'Bila Shirac':'bilashirac', 'Metal':'metal' };
+      const statMap = { 'Started':'started', 'Half':'half', 'Finished':'finished', 'BASHAL':'bashal' };
+      const existing = loadTrucks();
+      let added = 0, skipped = 0;
+      rows.forEach(row => {
+        const plate = (row['Plate']||'').toString().trim().toUpperCase();
+        if (!plate) { skipped++; return; }
+        const workDay = (row['Work Day']||'').toString().trim() || new Date().toISOString().split('T')[0];
+        const dup = existing.find(t => t.plate === plate && (t.workDay||t.date) === workDay);
+        if (dup) { skipped++; return; }
+        const postLabel = (row['Post']||'').toString().trim();
+        const post = cfg.posts.find(p => p.label === postLabel) || cfg.posts[0];
+        const now = Date.now();
+        const newTruck = {
+          id: 't_' + now + '_' + Math.random().toString(36).slice(2,7),
+          ts: now, plate, postId: post.id, postLabel: post.label,
+          type: typeMap[(row['Load Type']||'').toString().trim()] || 'shirac',
+          status: statMap[(row['Load Status']||'').toString().trim()] || 'started',
+          date: workDay, workDay, notes: (row['Notes']||'').toString(),
+          addedBy: (row['Added By']||'Import').toString()
+        };
+        existing.unshift(newTruck);
+        firestoreSaveTruck(newTruck);
+        added++;
+      });
+      saveTrucks(existing);
+      toast(`📥 Imported ${added} truck${added===1?'':'s'}${skipped?`, skipped ${skipped} duplicate/invalid`:''}`);
+    } catch (err) {
+      console.warn('importExcel error:', err);
+      toast('⚠️ Could not read file — check format');
+    }
+    input.value = '';
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ══════════════════════════════════════════════════════════
+// HTML BACKUP DOWNLOAD
+// ══════════════════════════════════════════════════════════
+function downloadHTML() {
+  try {
+    const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `agash-backup-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast('📥 Backup downloaded!');
+  } catch (err) {
+    console.warn('downloadHTML error:', err);
+    toast('⚠️ Backup failed');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// SHARE DAILY REPORT (CANVAS IMAGE)
+// ══════════════════════════════════════════════════════════
+function openShareReport() {
+  drawReportCanvas(reportsSelectedDate || getTodayWorkDay());
+  openModal('m-share-report');
+}
+function drawReportCanvas(date) {
+  const trucks = loadTrucks();
+  const dt = trucks.filter(t => (t.workDay || t.date || getWorkDay(t.ts)) === date);
+  const cfg = loadConfig();
+  const postRows = cfg.posts.map(p => {
+    const pt = dt.filter(t => t.postId === p.id);
+    return { label: p.label, color: p.color, total: pt.length,
+      finished: pt.filter(t=>t.status==='finished').length,
+      bashal:   pt.filter(t=>t.status==='bashal').length };
+  }).filter(p => p.total > 0);
+
+  const canvas = document.getElementById('report-canvas');
+  const W = 720, rowH = 34, headH = 130, footH = 40;
+  const H = headH + Math.max(postRows.length,1)*rowH + footH;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#0a0e1a'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#f0a500';
+  ctx.font = '900 30px Arial';
+  ctx.fillText('AGASH — Daily Report', 24, 44);
+  ctx.fillStyle = '#9aa3b2';
+  ctx.font = '600 15px Arial';
+  ctx.fillText(date, 24, 70);
+
+  const total = dt.length;
+  const finished = dt.filter(t=>t.status==='finished').length;
+  const bashal = dt.filter(t=>t.status==='bashal').length;
+  ctx.fillStyle = '#fff';
+  ctx.font = '700 16px Arial';
+  ctx.fillText(`Total: ${total}   Finished: ${finished}   BASHAL: ${bashal}`, 24, 100);
+
+  let y = headH;
+  ctx.font = '600 14px Arial';
+  postRows.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(24, y-16, 8, 18);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(p.label, 42, y);
+    ctx.fillStyle = '#9aa3b2';
+    ctx.fillText(`${p.total} trucks  ·  ${p.finished} finished  ·  ${p.bashal} BASHAL`, 220, y);
+    y += rowH;
+  });
+  if (!postRows.length) {
+    ctx.fillStyle = '#9aa3b2';
+    ctx.fillText('No trucks recorded for this day.', 24, y);
+  }
+  ctx.fillStyle = '#5a6272';
+  ctx.font = '500 11px Arial';
+  ctx.fillText('Generated by Agash Truck Management', 24, H-16);
+}
+function downloadReportImage() {
+  const canvas = document.getElementById('report-canvas');
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `Agash_Report_${reportsSelectedDate || getTodayWorkDay()}.png`;
+  a.click();
+}
+function shareReportImage() {
+  const canvas = document.getElementById('report-canvas');
+  canvas.toBlob(blob => {
+    const file = new File([blob], 'agash-report.png', { type: 'image/png' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files:[file] })) {
+      navigator.share({ files:[file], title:'Agash Daily Report' }).catch(()=>{});
+    } else {
+      downloadReportImage();
+      toast('📥 Image downloaded — attach it in WhatsApp');
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// SHARE APP
+// ══════════════════════════════════════════════════════════
+function shareViaWhatsApp() {
+  const url = window.location.href.split('?')[0];
+  const msg = encodeURIComponent('📱 Agash App — Truck Management\n' + url);
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
+function copyAppLink() {
+  const url = window.location.href.split('?')[0];
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => toast('🔗 Link copied!')).catch(() => { prompt('Copy this link:', url); });
+  } else {
+    prompt('Copy this link:', url);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// TYPE BAR (admin trucks screen)
+// ══════════════════════════════════════════════════════════
+function renderAdminTypeBar(trucks) {
+  const bar = document.getElementById('a-type-bar');
+  if (!bar) return;
+  const shirac  = trucks.filter(t => t.type === 'shirac').length;
+  const bila    = trucks.filter(t => t.type === 'bilashirac').length;
+  const metal   = trucks.filter(t => t.type === 'metal').length;
+  const bashal  = trucks.filter(t => t.status === 'bashal').length;
+  const total   = trucks.length;
+  const item = (icon, label, n, color) =>
+    `<div style="display:flex;align-items:center;gap:5px;background:${color}14;border:1px solid ${color}33;border-radius:8px;padding:4px 10px;white-space:nowrap;">
+      <span style="font-size:13px;">${icon}</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:${color};">${n}</span>
+      <span style="font-size:10px;font-weight:700;color:${color};opacity:0.8;">${label}</span>
+    </div>`;
+  bar.innerHTML =
+    item('🚛', 'Shirac',   shirac, '#10b981') +
+    item('🚚', 'B.Shirac', bila,   '#3b82f6') +
+    item('🏗️', 'Metal',    metal,  '#ef4444') +
+    item('🔮', 'Bashal',   bashal, '#e879f9') +
+    (total > 0 ? `<div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:4px 10px;white-space:nowrap;margin-left:auto;">
+      <span style="font-size:10px;font-weight:700;color:var(--muted);">TOTAL</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:var(--text);">${total}</span>
+    </div>` : '');
+}
+
+
+function openPinChange(type, id, name) {
+  pinChangeTarget = { type, id };
+  document.getElementById('pin-change-label').textContent = `New PIN for ${name} (4 digits)`;
+  document.getElementById('new-pin-val').value = '';
+  document.getElementById('new-pin-val').type = 'password';
+  document.getElementById('pin-eye').textContent = '👁';
+  document.getElementById('pin-reset-default-btn').style.display = (type === 'admin') ? 'block' : 'none';
+  openModal('m-pin-change');
+}
+function togglePinVisibility() {
+  const inp = document.getElementById('new-pin-val');
+  const eye = document.getElementById('pin-eye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
+}
+function resetPinToDefault() {
+  document.getElementById('new-pin-val').value = DEFAULT_CONFIG.apin;
+  document.getElementById('new-pin-val').type = 'text';
+  document.getElementById('pin-eye').textContent = '🙈';
+}
+async function savePinChange() {
+  const pin = document.getElementById('new-pin-val').value.trim();
+  if (pin.length !== 4 || isNaN(pin)) { toast('⚠️ PIN must be 4 digits!'); return; }
+  const cfg = loadConfig();
+  const { type, id } = pinChangeTarget;
+  if      (type === 'admin')   cfg.apin = pin;
+  else if (type === 'foreman') cfg.foreman.pin = pin;
+  else if (type === 'post')    { const p = cfg.posts.find(p=>p.id===id); if(p) p.pin=pin; }
+  saveConfig(cfg);
+  closeModal('m-pin-change');
+  toast('🔐 PIN updated!');
+  renderManage();
+}
+
+// ══════════════════════════════════════════════════════════
+// PERMISSIONS
+// ══════════════════════════════════════════════════════════
+
+const FOREMAN_PERM_LABELS = {
+  viewTrucks:'View All Trucks', viewPosts:'View Posts',
+  addTruck:'Add Trucks', editTruck:'Edit Trucks', deleteTruck:'Delete Trucks'
+};
+function openForemanPerms() {
+  const cfg   = loadConfig();
+  const perms = cfg.foreman.perms || {};
+  document.getElementById('foreman-perms-list').innerHTML = Object.entries(FOREMAN_PERM_LABELS).map(([k,v])=>`
+    <div class="perm-row">
+      <span class="perm-label">${v}</span>
+      <div class="toggle ${perms[k]?'on':''}" id="fperm-${k}" onclick="this.classList.toggle('on')"></div>
+    </div>`).join('');
+  openModal('m-foreman-perms');
+}
+async function saveForemanPerms() {
+  const cfg = loadConfig();
+  const perms = {};
+  Object.keys(FOREMAN_PERM_LABELS).forEach(k => {
+    perms[k] = document.getElementById('fperm-'+k)?.classList.contains('on') || false;
+  });
+  cfg.foreman.perms = perms;
+  saveConfig(cfg);
+  closeModal('m-foreman-perms');
+  toast('⚙️ Foreman permissions saved!');
+  renderManage();
+}
+
+// ══════════════════════════════════════════════════════════
+// EXCEL EXPORT
+// ══════════════════════════════════════════════════════════
+function exportTrucksExcel() {
+  const trucks = loadTrucks().sort((a,b)=>b.ts-a.ts);
+  if (!trucks.length) { toast('⚠️ No trucks to export!'); return; }
+  const cfg = loadConfig();
+
+  const truckRows = trucks.map(t => {
+    const post = cfg.posts.find(p=>p.id===t.postId)||{label:t.postId||'?'};
+    const typeMap = {shirac:'Shirac',bilashirac:'Bila Shirac',metal:'Metal'};
+    const statMap = {started:'Started',half:'Half',finished:'Finished',bashal:'BASHAL'};
+    return {
+      'Work Day': t.workDay||t.date, 'Plate': t.plate, 'Post': post.label,
+      'Load Type': typeMap[t.type]||t.type,
+      'Load Status': statMap[t.status]||t.status,
+      'Notes': t.notes||'', 'Added By': t.addedBy||''
+    };
+  });
+
+  const cfg2 = loadConfig();
+  const summaryRows = cfg2.posts.map(p => {
+    const pt = trucks.filter(t=>t.postId===p.id);
+    return {
+      'Post': p.label, 'Total Trucks': pt.length,
+      'Finished': pt.filter(t=>t.status==='finished').length,
+      'Half': pt.filter(t=>t.status==='half').length,
+      'Started': pt.filter(t=>t.status==='started').length,
+      'BASHAL': pt.filter(t=>t.status==='bashal').length,
+    };
+  });
+
+  const byDay = {};
+  trucks.forEach(t=>{ const d=t.workDay||t.date; byDay[d]=(byDay[d]||[]); byDay[d].push(t); });
+  const dailyRows = Object.keys(byDay).sort().reverse().map(d=>({
+    'Work Day': d, 'Trucks': byDay[d].length,
+    'Finished': byDay[d].filter(t=>t.status==='finished').length,
+    'Bashal': byDay[d].filter(t=>t.status==='bashal').length,
+  }));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(truckRows),   'All Trucks');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryRows), 'Post Summary');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dailyRows),   'Daily Summary');
+  XLSX.writeFile(wb, `Agash_Trucks_${new Date().toISOString().split('T')[0]}.xlsx`);
+  toast('📊 Exported to Excel!');
+}
+
+// ══════════════════════════════════════════════════════════
+// DANGER
+// ══════════════════════════════════════════════════════════
+async function clearAllTrucks() {
+  if (!confirm('⚠️ Delete ALL truck data everywhere? Cannot be undone!')) return;
+  _trucks = [];
+  localStorage.removeItem('kab_trucks_v2');
+  if (db) {
+    try {
+      const snap = await db.collection('kab_trucks').get();
+      const batch = db.batch();
+      snap.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    } catch(e) { console.warn('clearAllTrucks error:', e); }
+  }
+  toast('🗑️ All truck data cleared');
+  refreshCurrentView();
+}
+
+// ══════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+function init() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-date').value = today;
+  buildPostGrid();
+  initFirebase();
+  buildLoginScreen();
+  updateReportsDateDisplay();
+  updateCashierReportsDateDisplay();
+  updateSyncBar();
+  initPullToRefresh();
+}
+init();
+showSplash();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // ── Inline Service Worker via Blob — no sw.js file needed ──
+    const swCode = `
+const CACHE = 'agash-v1';
+const PRECACHE = ['./'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return;
+  e.respondWith(
+    fetch(e.request)
+      .then(res => { caches.open(CACHE).then(c => c.put(e.request, res.clone())); return res; })
+      .catch(() => caches.match(e.request))
+  );
+});
+
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+`;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swURL = URL.createObjectURL(blob);
+
+    navigator.serviceWorker.register(swURL, { type: 'classic' })
+      .then(reg => {
+        reg.onupdatefound = () => {
+          const w = reg.installing;
+          w.onstatechange = () => {
+            if (w.state === 'installed' && navigator.serviceWorker.controller) {
+              if (confirm('🔄 New version available! Reload to update?')) {
+                w.postMessage({ type: 'SKIP_WAITING' });
+                location.reload();
+              }
+            }
+          };
+        };
+      })
+      .catch(e => console.warn('SW registration failed:', e));
+  });
+}
+</script>
+</body>
+</html>
