@@ -150,6 +150,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 .manage-av{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;flex-shrink:0;}
 .manage-name{font-size:14px;font-weight:700;flex:1;}
 .manage-sub{font-size:10px;color:var(--muted);}
+.manage-name-edit{font-size:14px;font-weight:700;flex:1;background:transparent;border:none;border-bottom:1.5px dashed transparent;color:var(--text);font-family:'Barlow',sans-serif;padding:2px 0;width:100%;min-width:0;}
+.manage-name-edit:focus{outline:none;border-bottom-color:var(--gold);}
 .manage-acts{display:flex;gap:5px;}
 .m-btn{border-radius:7px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;}
 .m-btn-pin{background:var(--blue2);border-color:rgba(59,130,246,0.3);color:var(--blue);}
@@ -834,8 +836,40 @@ let _syncStatus  = 'syncing'; // 'online' | 'syncing' | 'offline'
 let _lastSyncTs  = null;      // Date.now() of last confirmed server sync
 let _pendingCount = 0;        // trucks saved locally but not yet confirmed by the server
 function setSyncStatus(s) { _syncStatus = s; renderManageSyncSection(); updateSyncBar(); }
-window.addEventListener('online',  () => setSyncStatus(_pendingCount>0 ? 'syncing' : 'online'));
-window.addEventListener('offline', () => setSyncStatus('offline'));
+window.addEventListener('online',  () => {
+  setSyncStatus(_pendingCount>0 ? 'syncing' : 'online');
+  toast('☁️ Back online — syncing...');
+  if (db) { try { db.enableNetwork(); } catch(e){} }
+});
+window.addEventListener('offline', () => {
+  setSyncStatus('offline');
+  toast('📴 Offline — changes saved locally');
+});
+
+// ── WAKE-UP SYNC ── Re-sync when app comes back from background.
+// Mobile browsers freeze JS when minimized — this forces a fresh connection
+// check on return, and a full listener re-attach if we were away a while.
+let _lastHidden = null;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    if (db) { try { db.enableNetwork(); } catch(e){} }
+    const now = Date.now();
+    if (_lastHidden && (now - _lastHidden) > 30000) {
+      setSyncStatus('syncing');
+      listenTrucks();
+      listenConfig();
+      listenKabIncoming();
+    }
+  }
+  if (document.visibilityState === 'hidden') {
+    _lastHidden = Date.now();
+  }
+});
+
+// ── FOCUS SYNC ── Catch cases where visibilitychange doesn't fire (some Android)
+window.addEventListener('focus', () => {
+  if (db) { try { db.enableNetwork(); } catch(e){} }
+});
 let _trucks      = [];
 let _config      = null;
 let _unsubTrucks = null;
@@ -2764,8 +2798,11 @@ function renderManage() {
   document.getElementById('manage-posts-list').innerHTML = cfg.posts.map(p => `
     <div class="manage-row">
       <div class="manage-av" style="background:${p.color}22;color:${p.color};">🏗️</div>
-      <div style="flex:1">
-        <div class="manage-name">${p.label}</div>
+      <div style="flex:1;min-width:0;">
+        <input class="manage-name-edit" value="${(p.label||'').replace(/"/g,'&quot;')}"
+          data-post-id="${p.id}"
+          onkeydown="if(event.key==='Enter'){this.blur();}"
+          onchange="renamePost('${p.id}', this.value)">
         <div class="manage-sub">PIN: <span class="pin-reveal">${p.pin}</span></div>
       </div>
       <div class="manage-acts">
@@ -2875,6 +2912,31 @@ async function deleteArrimeur(name) {
   await saveConfig(cfg);
   toast(`🗑️ ${name} supprimé`);
   renderManageArrimeurs();
+}
+
+// ══════════════════════════════════════════════════════════
+// POST RENAMING (Admin) — inline edit, instantly saved to Firestore
+// and propagated to every screen that displays post labels.
+// ══════════════════════════════════════════════════════════
+async function renamePost(postId, newLabel) {
+  const cfg = loadConfig();
+  const post = cfg.posts.find(p => p.id === postId);
+  if (!post) return;
+  const trimmed = (newLabel || '').trim();
+  if (!trimmed) {
+    toast('⚠️ Post name cannot be empty');
+    renderManage(); // revert the input back to the saved label
+    return;
+  }
+  if (trimmed === post.label) return; // no change, skip write
+  post.label = trimmed;
+  await saveConfig(cfg);
+  toast(`✅ Renamed to "${trimmed}"`);
+  // Refresh every screen that shows post labels, right away —
+  // don't wait for the Firestore round-trip to reflect it locally.
+  renderManage();
+  buildLoginScreen();
+  refreshCurrentView();
 }
 
 // ══════════════════════════════════════════════════════════
