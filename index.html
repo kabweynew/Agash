@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>Agash</title>
-<meta name="theme-color" content="#0a0e1a">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" id="pwa-manifest" href="./manifest.json">
-<link rel="apple-touch-icon" id="pwa-icon" href="./icon-512.png">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&amp;family=Barlow:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0a0e1a"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="manifest" id="pwa-manifest"/>
+<link rel="apple-touch-icon" id="pwa-icon"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -316,162 +317,32 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
      status + last-synced time, and doubles as a tap-to-refresh button. -->
 <div id="sync-bar" onclick="manualRefresh()">
   <div class="sb-left">
-    <span class="sb-dot" id="sb-dot" style="display: none;"></span>
-    <span class="sb-text" id="sb-text" style="color: var(--green);">☁️ Live 10:05</span>
+    <span class="sb-dot" id="sb-dot"></span>
+    <span class="sb-text" id="sb-text">Connecting…</span>
   </div>
   <span class="sb-refresh" id="sb-refresh-icon">↻</span>
 </div>
-<div id="pull-indicator" style="height: 0px;">↓ Pull to refresh</div>
+<div id="pull-indicator">↓ Pull to refresh</div>
 
 <!-- ══════════════════════ LOGIN ══════════════════════ -->
-<div class="screen" id="s-login">
+<div class="screen active" id="s-login">
   <div class="login-wrap">
     <div class="login-logo">AGS</div>
     <div class="login-title">Agash</div>
-    <div class="login-sub" id="login-sub-status">Agash · Djibouti · Live 🟢 · haaa-3b06e</div>
-    <div id="who-list" style="width:100%;max-width:360px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;"><div onclick="selectUser({'emoji':'👑','label':'Admin','sub':'Accès total','role':'admin','id':'admin','color':'#f0a500','big':true})" style="
-        background:#f0a50018;border:1.5px solid #f0a50044;border-radius:16px;
-        padding:14px 6px 12px;text-align:center;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;gap:5px;
-        transition:border-color 0.15s,background 0.15s;
-        -webkit-tap-highlight-color:transparent;" ontouchstart="">
-        <div style="font-size:32px;line-height:1;margin-bottom:2px;">👑</div>
-        <div style="font-size:13px;font-weight:800;color:#f0a500;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">Admin</div>
-        <div style="font-size:9px;color:var(--muted);font-weight:600;letter-spacing:0.2px;">Accès total</div>
-      </div><div onclick="selectUser({'emoji':'👷','label':'Foreman','sub':'Superviseur','role':'foreman','id':'foreman','color':'#8b5cf6','big':true})" style="
-        background:#8b5cf618;border:1.5px solid #8b5cf644;border-radius:16px;
-        padding:14px 6px 12px;text-align:center;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;gap:5px;
-        transition:border-color 0.15s,background 0.15s;
-        -webkit-tap-highlight-color:transparent;" ontouchstart="">
-        <div style="font-size:32px;line-height:1;margin-bottom:2px;">👷</div>
-        <div style="font-size:13px;font-weight:800;color:#8b5cf6;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">Foreman</div>
-        <div style="font-size:9px;color:var(--muted);font-weight:600;letter-spacing:0.2px;">Superviseur</div>
-      </div><div onclick="selectUser({'emoji':null,'label':'Post 1','sub':'Poste','role':'post','id':'p1','color':'#d97706','postData':{'id':'p1','color':'#d97706','label':'Post 1','pin':'1111'}})" style="
-        background:#d9770618;border:1.5px solid #d9770644;border-radius:16px;
-        padding:14px 6px 12px;text-align:center;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;gap:4px;
-        transition:border-color 0.15s,background 0.15s;
-        -webkit-tap-highlight-color:transparent;" ontouchstart="">
-        <div style="
-          width:46px;height:46px;border-radius:12px;
-          background:#d97706;
-          display:flex;align-items:center;justify-content:center;
-          font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
-          color:#0a0e1a;line-height:1;margin-bottom:2px;">
-          1
-        </div>
-        <div style="font-size:12px;font-weight:800;color:#d97706;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">Post 1</div>
-        <div style="font-size:9px;color:var(--muted);font-weight:600;">Poste</div>
-      </div><div onclick="selectUser({'emoji':null,'label':'Post 2','sub':'Poste','role':'post','id':'p2','color':'#10b981','postData':{'pin':'2222','label':'Post 2','color':'#10b981','id':'p2'}})" style="
-        background:#10b98118;border:1.5px solid #10b98144;border-radius:16px;
-        padding:14px 6px 12px;text-align:center;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;gap:4px;
-        transition:border-color 0.15s,background 0.15s;
-        -webkit-tap-highlight-color:transparent;" ontouchstart="">
-        <div style="
-          width:46px;height:46px;border-radius:12px;
-          background:#10b981;
-          display:flex;align-items:center;justify-content:center;
-          font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
-          color:#0a0e1a;line-height:1;margin-bottom:2px;">
-          2
-        </div>
-        <div style="font-size:12px;font-weight:800;color:#10b981;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">Post 2</div>
-        <div style="font-size:9px;color:var(--muted);font-weight:600;">Poste</div>
-      </div><div onclick="selectUser({'emoji':null,'label':'Post 3','sub':'Poste','role':'post','id':'p3','color':'#3b82f6','postData':{'pin':'3333','label':'Post 3','id':'p3','color':'#3b82f6'}})" style="
-        background:#3b82f618;border:1.5px solid #3b82f644;border-radius:16px;
-        padding:14px 6px 12px;text-align:center;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;gap:4px;
-        transition:border-color 0.15s,background 0.15s;
-        -webkit-tap-highlight-color:transparent;" ontouchstart="">
-        <div style="
-          width:46px;height:46px;border-radius:12px;
-          background:#3b82f6;
-          display:flex;align-items:center;justify-content:center;
-          font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
-          color:#0a0e1a;line-height:1;margin-bottom:2px;">
-          3
-        </div>
-        <div style="font-size:12px;font-weight:800;color:#3b82f6;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">Post 3</div>
-        <div style="font-size:9px;color:var(--muted);font-weight:600;">Poste</div>
-      </div><div onclick="selectUser({'emoji':null,'label':'Post 4','sub':'Poste','role':'post','id':'p4','color':'#ef4444','postData':{'pin':'4444','color':'#ef4444','label':'Post 4','id':'p4'}})" style="
-        background:#ef444418;border:1.5px solid #ef444444;border-radius:16px;
-        padding:14px 6px 12px;text-align:center;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;gap:4px;
-        transition:border-color 0.15s,background 0.15s;
-        -webkit-tap-highlight-color:transparent;" ontouchstart="">
-        <div style="
-          width:46px;height:46px;border-radius:12px;
-          background:#ef4444;
-          display:flex;align-items:center;justify-content:center;
-          font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
-          color:#0a0e1a;line-height:1;margin-bottom:2px;">
-          4
-        </div>
-        <div style="font-size:12px;font-weight:800;color:#ef4444;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">Post 4</div>
-        <div style="font-size:9px;color:var(--muted);font-weight:600;">Poste</div>
-      </div><div onclick="selectUser({'emoji':null,'label':'Post 5','sub':'Poste','role':'post','id':'p5','color':'#8b5cf6','postData':{'color':'#8b5cf6','label':'Post 5','pin':'5555','id':'p5'}})" style="
-        background:#8b5cf618;border:1.5px solid #8b5cf644;border-radius:16px;
-        padding:14px 6px 12px;text-align:center;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;gap:4px;
-        transition:border-color 0.15s,background 0.15s;
-        -webkit-tap-highlight-color:transparent;" ontouchstart="">
-        <div style="
-          width:46px;height:46px;border-radius:12px;
-          background:#8b5cf6;
-          display:flex;align-items:center;justify-content:center;
-          font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
-          color:#0a0e1a;line-height:1;margin-bottom:2px;">
-          5
-        </div>
-        <div style="font-size:12px;font-weight:800;color:#8b5cf6;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">Post 5</div>
-        <div style="font-size:9px;color:var(--muted);font-weight:600;">Poste</div>
-      </div><div onclick="selectUser({'emoji':null,'label':'Post 6','sub':'Poste','role':'post','id':'p6','color':'#06b6d4','postData':{'label':'Post 6','color':'#06b6d4','id':'p6','pin':'6666'}})" style="
-        background:#06b6d418;border:1.5px solid #06b6d444;border-radius:16px;
-        padding:14px 6px 12px;text-align:center;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;gap:4px;
-        transition:border-color 0.15s,background 0.15s;
-        -webkit-tap-highlight-color:transparent;" ontouchstart="">
-        <div style="
-          width:46px;height:46px;border-radius:12px;
-          background:#06b6d4;
-          display:flex;align-items:center;justify-content:center;
-          font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
-          color:#0a0e1a;line-height:1;margin-bottom:2px;">
-          6
-        </div>
-        <div style="font-size:12px;font-weight:800;color:#06b6d4;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">Post 6</div>
-        <div style="font-size:9px;color:var(--muted);font-weight:600;">Poste</div>
-      </div><div onclick="selectUser({'emoji':null,'label':'Post 7','sub':'Poste','role':'post','id':'p7','color':'#f97316','postData':{'label':'Post 7','id':'p7','color':'#f97316','pin':'7777'}})" style="
-        background:#f9731618;border:1.5px solid #f9731644;border-radius:16px;
-        padding:14px 6px 12px;text-align:center;cursor:pointer;
-        display:flex;flex-direction:column;align-items:center;gap:4px;
-        transition:border-color 0.15s,background 0.15s;
-        -webkit-tap-highlight-color:transparent;" ontouchstart="">
-        <div style="
-          width:46px;height:46px;border-radius:12px;
-          background:#f97316;
-          display:flex;align-items:center;justify-content:center;
-          font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
-          color:#0a0e1a;line-height:1;margin-bottom:2px;">
-          7
-        </div>
-        <div style="font-size:12px;font-weight:800;color:#f97316;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.3px;">Post 7</div>
-        <div style="font-size:9px;color:var(--muted);font-weight:600;">Poste</div>
-      </div></div>
+    <div class="login-sub" id="login-sub-status">Agash · Djibouti · Connecting...</div>
+    <div id="who-list" style="width:100%;max-width:360px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;"></div>
   </div>
 </div>
 
 <!-- ══════════════════════ PIN ══════════════════════ -->
 <div class="screen" id="s-pin">
   <div class="pin-wrap">
-    <div class="pin-face" id="pin-face">👑</div>
-    <div class="pin-name" id="pin-name-lbl">Admin</div>
-    <div class="pin-role" id="pin-role-lbl">Accès total</div>
+    <div class="pin-face" id="pin-face">👤</div>
+    <div class="pin-name" id="pin-name-lbl">Name</div>
+    <div class="pin-role" id="pin-role-lbl">Role</div>
     <div class="pin-dots">
-      <div class="pin-dot filled" id="pd0"></div><div class="pin-dot filled" id="pd1"></div>
-      <div class="pin-dot filled" id="pd2"></div><div class="pin-dot filled" id="pd3"></div>
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
     </div>
     <div class="pin-err" id="pin-err"></div>
     <div class="pin-pad">
@@ -521,7 +392,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 <!-- ══════════════════════ SEALER (Cashier) ══════════════════════ -->
 <div class="screen" id="s-cashier">
   <div class="topbar">
-    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Incoming Trucks</div><div class="tb-sub" id="c-day-label">Day: 18 Sep · 06:00 → 06:00</div></div></div>
+    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Incoming Trucks</div><div class="tb-sub" id="c-day-label">Sealer View</div></div></div>
     <div class="tb-right"><div class="tb-badge badge-sealer">SEALER</div><button class="tb-btn" onclick="openAddTruck()">+ Add</button></div>
   </div>
   <div class="fchips" id="c-chips">
@@ -555,14 +426,14 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </nav>
 </div>
 <div class="screen" id="s-cashier-reports">
-  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub" id="c-reports-sub">Overview · Today</div></div></div><div class="tb-badge badge-sealer">SEALER</div></div>
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub" id="c-reports-sub">Overview</div></div></div><div class="tb-badge badge-sealer">SEALER</div></div>
   <!-- Date bar for cashier reports -->
   <div style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
     <button onclick="cashierReportsSetToday()" style="background:var(--green);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;flex-shrink:0;">🟢 Today</button>
     <button onclick="cashierReportsPrevDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">‹</button>
     <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0;overflow:hidden;" onclick="openCashierReportsDatePicker()">
       <span style="font-size:13px;">📅</span>
-      <span id="cr-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;">Today · Fri 18 Sep</span>
+      <span id="cr-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;"></span>
       <span style="color:var(--muted);font-size:11px;flex-shrink:0;">▼</span>
     </div>
     <button onclick="cashierReportsNextDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">›</button>
@@ -579,7 +450,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 <!-- ══════════════════════ FOREMAN ══════════════════════ -->
 <div class="screen" id="s-foreman">
   <div class="topbar">
-    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">All Trucks</div><div class="tb-sub" id="f-day-label">Day: 18 Sep · 06:00 → 06:00</div></div></div>
+    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">All Trucks</div><div class="tb-sub" id="f-day-label">Foreman View</div></div></div>
     <div class="tb-right"><div class="tb-badge badge-foreman">FOREMAN</div><button class="tb-btn" id="f-add-btn" onclick="openAddTruck()" style="display:none;">+ Add</button></div>
   </div>
   <!-- Foreman date bar -->
@@ -641,7 +512,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 <!-- ══════════════════════ ADMIN ══════════════════════ -->
 <div class="screen" id="s-admin">
   <div class="topbar">
-    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">All Trucks</div><div class="tb-sub" id="a-day-label">Day: 18 Sep · 06:00 → 06:00</div></div></div>
+    <div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">All Trucks</div><div class="tb-sub" id="a-day-label">Admin — Full View</div></div></div>
     <div class="tb-right"><div class="tb-badge badge-admin">ADMIN</div><button class="tb-btn" onclick="openAddTruck()">+ Add</button></div>
   </div>
   <!-- Date bar for admin -->
@@ -650,82 +521,24 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <button onclick="adminPrevDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">‹</button>
     <div id="a-date-display" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0;overflow:hidden;" onclick="openAdminDatePicker()">
       <span style="font-size:13px;">📅</span>
-      <span id="a-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;">Today — Fri 18 Sep 2026</span>
+      <span id="a-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;"></span>
       <span style="color:var(--muted);font-size:11px;flex-shrink:0;">▼</span>
     </div>
     <button onclick="adminNextDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">›</button>
   </div>
   <!-- Post filter chips for admin -->
-  <div class="fchips" id="a-post-chips" style="border-bottom:none;padding-bottom:4px;"><div class="chip " onclick="setAdminPostFilter('all',this)">👥 All Posts</div><div class="chip " onclick="setAdminPostFilter('p1',this)" style="border-color:#d9770644;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#d97706;margin-right:4px;vertical-align:middle;"></span>Post 1</div><div class="chip " onclick="setAdminPostFilter('p2',this)" style="border-color:#10b98144;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981;margin-right:4px;vertical-align:middle;"></span>Post 2</div><div class="chip active" onclick="setAdminPostFilter('p3',this)" style=""><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3b82f6;margin-right:4px;vertical-align:middle;"></span>Post 3</div><div class="chip " onclick="setAdminPostFilter('p4',this)" style="border-color:#ef444444;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ef4444;margin-right:4px;vertical-align:middle;"></span>Post 4</div><div class="chip " onclick="setAdminPostFilter('p5',this)" style="border-color:#8b5cf644;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#8b5cf6;margin-right:4px;vertical-align:middle;"></span>Post 5</div><div class="chip " onclick="setAdminPostFilter('p6',this)" style="border-color:#06b6d444;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#06b6d4;margin-right:4px;vertical-align:middle;"></span>Post 6</div><div class="chip " onclick="setAdminPostFilter('p7',this)" style="border-color:#f9731644;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f97316;margin-right:4px;vertical-align:middle;"></span>Post 7</div></div>
-  <div class="fchips" id="a-chips" style="padding-top:4px;"><div class="chip active" onclick="setFilter('all',this,'a')">All <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;">(2)</span></div><div class="chip " onclick="setFilter('started',this,'a')">▶ Started <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;">(2)</span></div><div class="chip " onclick="setFilter('finished',this,'a')">✅ Done <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;">(0)</span></div><div class="chip " onclick="setFilter('half',this,'a')">⚡ Half <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;">(0)</span></div><div class="chip " onclick="setFilter('bashal',this,'a')">🔮 Bashal <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;">(0)</span></div></div>
+  <div class="fchips" id="a-post-chips" style="border-bottom:none;padding-bottom:4px;"></div>
+  <div class="fchips" id="a-chips" style="padding-top:4px;"></div>
   <!-- Load type summary bar -->
-  <div id="a-type-bar" style="display:flex;gap:6px;padding:6px 14px 8px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;"><div style="display:flex;align-items:center;gap:5px;background:#10b98114;border:1px solid #10b98133;border-radius:8px;padding:4px 10px;white-space:nowrap;">
-      <span style="font-size:13px;">🚛</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#10b981;">2</span>
-      <span style="font-size:10px;font-weight:700;color:#10b981;opacity:0.8;">Shirac</span>
-    </div><div style="display:flex;align-items:center;gap:5px;background:#3b82f614;border:1px solid #3b82f633;border-radius:8px;padding:4px 10px;white-space:nowrap;">
-      <span style="font-size:13px;">🚚</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#3b82f6;">0</span>
-      <span style="font-size:10px;font-weight:700;color:#3b82f6;opacity:0.8;">B.Shirac</span>
-    </div><div style="display:flex;align-items:center;gap:5px;background:#ef444414;border:1px solid #ef444433;border-radius:8px;padding:4px 10px;white-space:nowrap;">
-      <span style="font-size:13px;">🏗️</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#ef4444;">2</span>
-      <span style="font-size:10px;font-weight:700;color:#ef4444;opacity:0.8;">Metal</span>
-    </div><div style="display:flex;align-items:center;gap:5px;background:#e879f914;border:1px solid #e879f933;border-radius:8px;padding:4px 10px;white-space:nowrap;">
-      <span style="font-size:13px;">🔮</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#e879f9;">0</span>
-      <span style="font-size:10px;font-weight:700;color:#e879f9;opacity:0.8;">Bashal</span>
-    </div><div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:4px 10px;white-space:nowrap;margin-left:auto;">
-      <span style="font-size:10px;font-weight:700;color:var(--muted);">TOTAL</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:var(--text);">4</span>
-    </div></div>
+  <div id="a-type-bar" style="display:flex;gap:6px;padding:6px 14px 8px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;"></div>
   <div class="scroll">
-    <div class="stats-grid" id="a-stats" style="display: none; grid-template-columns: repeat(5, 1fr);">
-    <div class="stat-box"><div class="stat-n">2</div><div class="stat-l">Total</div></div>
-    <div class="stat-box" style="border-top:2px solid var(--blue)"><div class="stat-n" style="color:var(--blue)">2</div><div class="stat-l">Started</div></div>
-    <div class="stat-box" style="border-top:2px solid var(--green)"><div class="stat-n" style="color:var(--green)">0</div><div class="stat-l">Done</div></div>
-    <div class="stat-box" style="border-top:2px solid var(--gold)"><div class="stat-n" style="color:var(--gold)">0</div><div class="stat-l">Half</div></div>
-    <div class="stat-box" style="border-top:2px solid var(--bashal)"><div class="stat-n" style="color:var(--bashal)">0</div><div class="stat-l">Bashal</div></div></div>
+    <div class="stats-grid" id="a-stats" style="display:none;"></div>
     <div id="a-history-notice"></div>
-    <div class="sec-hdr"><span class="sec-title" id="a-sec-title">TODAY'S TRUCKS</span><span class="sec-action" id="a-new-btn" onclick="openAddTruck()">+ New</span></div>
-    <div id="a-trucks-list"><div class="day-header">📅 Day: 18 Sep · 06:00 → 06:00 · 2 trucks</div><div class="truck-card started" style="border-color:var(--green);box-shadow:0 0 0 2px rgba(16,185,129,0.25);">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-          <div style="display:flex;align-items:center;gap:7px;min-width:0;flex:1;">
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.5px;flex-shrink:0;">127D71</div>
-            <span class="post-pill" style="flex-shrink:0;">Post 3</span>
-            <span style="display:inline-block;background:rgba(16,185,129,0.2);color:var(--green);border:1px solid rgba(16,185,129,0.4);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;letter-spacing:0.5px;margin-left:6px;animation:pulse 1.5s infinite;">🆕 NEW</span>
-            
-          </div>
-          <span class="s-badge s-started" style="flex-shrink:0;">▶ Started</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;margin-top:5px;flex-wrap:wrap;">
-          <span style="font-size:11px;color:var(--muted);">🕐 18 Sep · 10:03</span>
-          <span style="font-size:11px;font-weight:700;color:var(--sub);">🏗️ Metal</span>
-          
-          
-        </div>
-        <div class="tc-acts" style="margin-top:7px;"><button class="tc-btn btn-edit" onclick="openEditTruck('t_1789715033644')">✏️ Edit</button><button class="tc-btn btn-del" onclick="deleteTruck('t_1789715033644')">🗑️</button></div>
-      </div><div class="truck-card started">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-          <div style="display:flex;align-items:center;gap:7px;min-width:0;flex:1;">
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;letter-spacing:0.5px;flex-shrink:0;">144D106</div>
-            <span class="post-pill" style="flex-shrink:0;">Post 3</span>
-            
-            
-          </div>
-          <span class="s-badge s-started" style="flex-shrink:0;">▶ Started</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;margin-top:5px;flex-wrap:wrap;">
-          <span style="font-size:11px;color:var(--muted);">🕐 18 Sep · 10:02</span>
-          <span style="font-size:11px;font-weight:700;color:var(--sub);">🏗️ Metal</span>
-          
-          
-        </div>
-        <div class="tc-acts" style="margin-top:7px;"><button class="tc-btn btn-edit" onclick="openEditTruck('t_1789714960656')">✏️ Edit</button><button class="tc-btn btn-del" onclick="deleteTruck('t_1789714960656')">🗑️</button></div>
-      </div></div>
+    <div class="sec-hdr"><span class="sec-title" id="a-sec-title">All Trucks</span><span class="sec-action" id="a-new-btn" onclick="openAddTruck()">+ New</span></div>
+    <div id="a-trucks-list"></div>
   </div>
   <nav class="bnav">
-    <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
+    <div class="bnav-item active" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
     <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
     <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
     <div class="bnav-item" id="a-incoming-nav" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
@@ -738,7 +551,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   <div class="scroll" id="a-posts-list"></div>
   <nav class="bnav">
     <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
-    <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
+    <div class="bnav-item active" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
     <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
     <div class="bnav-item" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
     <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
@@ -746,7 +559,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </nav>
 </div>
 <div class="screen" id="s-admin-reports">
-  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub" id="a-reports-sub">Full Overview · Today</div></div></div>
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Reports</div><div class="tb-sub" id="a-reports-sub">Full Overview</div></div></div>
   <div class="tb-right">
     <button class="tb-btn" onclick="shareReport()" style="background:rgba(37,211,102,0.12);border-color:rgba(37,211,102,0.35);color:#25d366;">📤 Share</button>
     <div class="tb-badge badge-admin">ADMIN</div>
@@ -757,7 +570,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <button onclick="reportsPrevDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">‹</button>
     <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;min-width:0;overflow:hidden;" onclick="openReportsDatePicker()">
       <span style="font-size:13px;">📅</span>
-      <span id="r-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;">Today · Fri 18 Sep</span>
+      <span id="r-date-label-text" style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.3px;"></span>
       <span style="color:var(--muted);font-size:11px;flex-shrink:0;">▼</span>
     </div>
     <button onclick="reportsNextDay()" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">›</button>
@@ -766,7 +579,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   <nav class="bnav">
     <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
     <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
-    <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
+    <div class="bnav-item active" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
     <div class="bnav-item" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
     <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
     <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
@@ -784,170 +597,30 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="bnav-item" onclick="adminTab('trucks',this)"><span class="ni">🚛</span>TRUCKS</div>
     <div class="bnav-item" onclick="adminTab('posts',this)"><span class="ni">🏗️</span>POSTS</div>
     <div class="bnav-item" onclick="adminTab('reports',this)"><span class="ni">📊</span>REPORTS</div>
-    <div class="bnav-item" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
+    <div class="bnav-item active" onclick="adminTab('incoming',this)"><span class="ni">📥</span>INCOMING</div>
     <div class="bnav-item" onclick="adminTab('manage',this)"><span class="ni">⚙️</span>MANAGE</div>
     <div class="bnav-item" onclick="logout()"><span class="ni">🚪</span>EXIT</div>
   </nav>
 </div>
-<div class="screen active" id="s-admin-manage">
-  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Manage</div><div class="tb-sub">Users &amp; Permissions</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
+<div class="screen" id="s-admin-manage">
+  <div class="topbar"><div class="tb-left"><div class="kab-logo">AGS</div><div><div class="tb-title">Manage</div><div class="tb-sub">Users & Permissions</div></div></div><div class="tb-badge badge-admin">ADMIN</div></div>
   <div class="scroll">
     <div class="section-divider">👷 Arrimeurs</div>
-    <div id="manage-arrimeurs-section">
-    <div class="manage-row" style="flex-direction:column;align-items:stretch;gap:10px;">
-      <div style="display:flex;flex-wrap:wrap;gap:7px;min-height:28px;"><div style="font-size:12px;color:var(--muted);">Aucun arrimeur ajouté.</div></div>
-      <div style="display:flex;gap:8px;">
-        <input id="new-arrimeur-input" class="form-input" placeholder="Nom de l'arrimeur…" autocomplete="off" style="flex:1;padding:9px 12px;font-size:13px;" onkeydown="if(event.key==='Enter')addArrimeur()">
-        <button onclick="addArrimeur()" style="background:var(--teal);color:#0a0e1a;border:none;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Barlow',sans-serif;white-space:nowrap;">+ Ajouter</button>
-      </div>
-    </div></div>
+    <div id="manage-arrimeurs-section"></div>
     <div class="section-divider">🏗️ Work Posts (7)</div>
-    <div id="manage-posts-list">
-    <div class="manage-row">
-      <div class="manage-av" style="background:#d9770622;color:#d97706;">🏗️</div>
-      <div style="flex:1;min-width:0;">
-        <input class="manage-name-edit" value="Post 1" data-post-id="p1" onkeydown="if(event.key==='Enter'){this.blur();}" onchange="renamePost('p1', this.value)">
-        <div class="manage-sub">PIN: <span class="pin-reveal">1111</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-pin" onclick="openPinChange('post','p1','Post 1')">🔐 PIN</div>
-      </div>
-    </div>
-    <div class="manage-row">
-      <div class="manage-av" style="background:#10b98122;color:#10b981;">🏗️</div>
-      <div style="flex:1;min-width:0;">
-        <input class="manage-name-edit" value="Post 2" data-post-id="p2" onkeydown="if(event.key==='Enter'){this.blur();}" onchange="renamePost('p2', this.value)">
-        <div class="manage-sub">PIN: <span class="pin-reveal">2222</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-pin" onclick="openPinChange('post','p2','Post 2')">🔐 PIN</div>
-      </div>
-    </div>
-    <div class="manage-row">
-      <div class="manage-av" style="background:#3b82f622;color:#3b82f6;">🏗️</div>
-      <div style="flex:1;min-width:0;">
-        <input class="manage-name-edit" value="Post 3" data-post-id="p3" onkeydown="if(event.key==='Enter'){this.blur();}" onchange="renamePost('p3', this.value)">
-        <div class="manage-sub">PIN: <span class="pin-reveal">3333</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-pin" onclick="openPinChange('post','p3','Post 3')">🔐 PIN</div>
-      </div>
-    </div>
-    <div class="manage-row">
-      <div class="manage-av" style="background:#ef444422;color:#ef4444;">🏗️</div>
-      <div style="flex:1;min-width:0;">
-        <input class="manage-name-edit" value="Post 4" data-post-id="p4" onkeydown="if(event.key==='Enter'){this.blur();}" onchange="renamePost('p4', this.value)">
-        <div class="manage-sub">PIN: <span class="pin-reveal">4444</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-pin" onclick="openPinChange('post','p4','Post 4')">🔐 PIN</div>
-      </div>
-    </div>
-    <div class="manage-row">
-      <div class="manage-av" style="background:#8b5cf622;color:#8b5cf6;">🏗️</div>
-      <div style="flex:1;min-width:0;">
-        <input class="manage-name-edit" value="Post 5" data-post-id="p5" onkeydown="if(event.key==='Enter'){this.blur();}" onchange="renamePost('p5', this.value)">
-        <div class="manage-sub">PIN: <span class="pin-reveal">5555</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-pin" onclick="openPinChange('post','p5','Post 5')">🔐 PIN</div>
-      </div>
-    </div>
-    <div class="manage-row">
-      <div class="manage-av" style="background:#06b6d422;color:#06b6d4;">🏗️</div>
-      <div style="flex:1;min-width:0;">
-        <input class="manage-name-edit" value="Post 6" data-post-id="p6" onkeydown="if(event.key==='Enter'){this.blur();}" onchange="renamePost('p6', this.value)">
-        <div class="manage-sub">PIN: <span class="pin-reveal">6666</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-pin" onclick="openPinChange('post','p6','Post 6')">🔐 PIN</div>
-      </div>
-    </div>
-    <div class="manage-row">
-      <div class="manage-av" style="background:#f9731622;color:#f97316;">🏗️</div>
-      <div style="flex:1;min-width:0;">
-        <input class="manage-name-edit" value="Post 7" data-post-id="p7" onkeydown="if(event.key==='Enter'){this.blur();}" onchange="renamePost('p7', this.value)">
-        <div class="manage-sub">PIN: <span class="pin-reveal">7777</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-pin" onclick="openPinChange('post','p7','Post 7')">🔐 PIN</div>
-      </div>
-    </div></div>
+    <div id="manage-posts-list"></div>
     <div class="section-divider">👷‍♂️ Foreman</div>
-    <div id="manage-foreman-section">
-    <div class="manage-row">
-      <div class="manage-av" style="background:rgba(139,92,246,0.15);color:#8b5cf6;">👷‍♂️</div>
-      <div style="flex:1">
-        <div class="manage-name">Foreman</div>
-        <div class="manage-sub">PIN: <span class="pin-reveal">5555</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-perm" onclick="openForemanPerms()">⚙️ Perms</div>
-        <div class="m-btn m-btn-pin" onclick="openPinChange('foreman',null,'Foreman')">🔐 PIN</div>
-      </div>
-    </div></div>
+    <div id="manage-foreman-section"></div>
     <div class="section-divider">👑 Admin PIN</div>
-    <div id="manage-admin-pin">
-    <div class="manage-row">
-      <div class="manage-av" style="background:rgba(240,165,0,0.15);color:#f0a500;">👑</div>
-      <div style="flex:1">
-        <div class="manage-name">Admin</div>
-        <div class="manage-sub">PIN: <span id="admin-pin-hidden">••••</span><span id="admin-pin-shown" style="display:none;" class="pin-reveal">1234</span> <span onclick="toggleAdminPinReveal()" style="cursor:pointer;">👁</span></div>
-      </div>
-      <div class="manage-acts">
-        <div class="m-btn m-btn-pin" onclick="openPinChange('admin',null,'Admin')">🔐 PIN</div>
-      </div>
-    </div></div>
+    <div id="manage-admin-pin"></div>
     <div class="section-divider">🔗 Share App</div>
-    <div id="manage-share-section">
-    <div class="manage-row" style="flex-direction:column;align-items:stretch;gap:8px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-        <div class="manage-av" style="background:rgba(37,211,102,0.15);color:#25d366;">📲</div>
-        <div>
-          <div class="manage-name">App Link</div>
-          <div class="manage-sub" style="word-break:break-all;font-size:10px;">https://kabweynew.github.io/Agash/index.html</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:7px;">
-        <button onclick="shareViaWhatsApp()" style="flex:1;background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);color:#25d366;border-radius:9px;padding:9px 6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;">
-          📱 Share via WhatsApp
-        </button>
-        <button onclick="copyAppLink()" style="flex:1;background:var(--blue2);border:1px solid rgba(59,130,246,0.3);color:var(--blue);border-radius:9px;padding:9px 6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;">
-          🔗 Copy Link
-        </button>
-      </div>
-    </div></div>
+    <div id="manage-share-section"></div>
     <div class="section-divider">📲 Install App</div>
-    <div id="manage-install-section">
-      <div class="manage-row">
-        <div class="manage-av" style="background:rgba(16,185,129,0.15);color:var(--green);">✅</div>
-        <div style="flex:1">
-          <div class="manage-name">App Already Installed</div>
-          <div class="manage-sub">Running as a standalone app</div>
-        </div>
-      </div></div>
+    <div id="manage-install-section"></div>
     <div class="section-divider">🚫 Adding Control</div>
-    <div id="manage-suspend-section">
-    <div class="manage-row">
-      <div class="manage-av" style="background:rgba(239,68,68,0.15);color:var(--red);">🚫</div>
-      <div style="flex:1">
-        <div class="manage-name">Suspend Adding Trucks</div>
-        <div class="manage-sub">Blocks all non-admin users from adding new trucks</div>
-      </div>
-      <div class="manage-acts">
-        <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;padding:4px 10px;border-radius:20px;background:rgba(16,185,129,0.15);color:var(--green);margin-right:6px;">ACTIVE</span>
-        <div class="m-btn m-btn-perm" onclick="toggleSuspend()">🚫 Suspend</div>
-      </div>
-    </div></div>
+    <div id="manage-suspend-section"></div>
     <div class="section-divider">☁️ Cloud Sync</div>
-    <div id="manage-sync-section">
-    <div class="manage-row">
-      <div class="manage-av" style="background:var(--green)22;color:var(--green);">☁️</div>
-      <div style="flex:1">
-        <div class="manage-name" style="color:var(--green);font-weight:700;">☁️ Live 10:05</div>
-        <div class="manage-sub">Project: haaa-3b06e · Firebase Firestore</div>
-      </div>
-    </div></div>
+    <div id="manage-sync-section"></div>
     <div class="section-divider">📊 Export &amp; Import</div>
     <button onclick="exportTrucksExcel()" class="btn-pri" style="margin-bottom:8px;">📊 Export Trucks to Excel</button>
     <input type="file" id="import-excel-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importExcel(this)">
@@ -981,14 +654,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     </div>
     <div class="form-group">
       <label class="form-label">Work Post</label>
-      <div class="post-grid" id="post-grid">
-      <div class="post-opt " id="postopt-p1" onclick="selectPost('p1')">Post 1</div>
-      <div class="post-opt " id="postopt-p2" onclick="selectPost('p2')">Post 2</div>
-      <div class="post-opt " id="postopt-p3" onclick="selectPost('p3')">Post 3</div>
-      <div class="post-opt " id="postopt-p4" onclick="selectPost('p4')">Post 4</div>
-      <div class="post-opt " id="postopt-p5" onclick="selectPost('p5')">Post 5</div>
-      <div class="post-opt " id="postopt-p6" onclick="selectPost('p6')">Post 6</div>
-      <div class="post-opt " id="postopt-p7" onclick="selectPost('p7')">Post 7</div></div>
+      <div class="post-grid" id="post-grid"></div>
       <input type="hidden" id="f-post" value="1">
     </div>
     <div class="form-group">
@@ -1101,10 +767,17 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
   </div>
 </div>
 
-<div class="toast" id="toast">🗑️ Deleted</div>
+<div class="toast" id="toast"></div>
 
 <!-- ══ SPLASH SCREEN ══ -->
-
+<div id="splashScreen">
+  <div class="splash-content">
+    <canvas id="splashIcon" width="120" height="120" class="splash-icon"></canvas>
+    <div class="splash-title">AGASH</div>
+    <div class="splash-sub">Truck Management</div>
+    <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+  </div>
+</div>
 
 <!-- ══ PWA INSTALL BANNER ══ -->
 <div id="pwaInstallBanner" class="hidden">
@@ -1302,22 +975,10 @@ function listenConfig() {
   _unsubConfig = db.collection('kab_config').doc('main').onSnapshot(async snap => {
     if (snap.exists) {
       _config = snap.data();
-    } else if (!snap.metadata.fromCache) {
-      // Only trust "doesn't exist" once the SERVER has confirmed it —
-      // a snapshot served purely from an empty/offline local cache can
-      // also report exists === false even though the real document is
-      // sitting safely on the server. Writing DEFAULT_CONFIG in that
-      // case would silently overwrite (and appear to "revert") any
-      // saved name/PIN changes as soon as the device went online again.
+    } else {
       const def = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
       await db.collection('kab_config').doc('main').set(def);
       _config = def;
-    } else if (!_config) {
-      // Offline/cache-only and we have nothing yet: fall back to the
-      // local backup copy (or defaults) WITHOUT writing anything to
-      // Firestore. The real doc will load as soon as we're back online.
-      try { _config = JSON.parse(localStorage.getItem('kab_config_v2') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
-      catch(e) { _config = JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
     }
     _markReady('config');
     // On subsequent live updates, keep login and sync bar fresh
@@ -3313,16 +2974,33 @@ function drawAgashIcon(canvas) {
   ctx.fillText('A', s/2, s*0.52);
 }
 
-// NOTE: the manifest (manifest.json) and the home-screen icon (icon-192.png /
-// icon-512.png) are now real static files served next to this page — see
-// the <link rel="manifest"> and <link rel="apple-touch-icon"> tags in <head>.
-// We intentionally do NOT regenerate/overwrite those links at runtime with
-// blob: or data: URIs any more. Chrome's installability check (and the
-// WebAPK "app icon" it builds for Android) fetches the manifest and its
-// icons over the network; a blob: URL only exists inside this one tab, so
-// that fetch silently failed and Chrome fell back to a plain bookmark
-// shortcut using the generic Chrome icon instead of installing a real app
-// with the Agash icon. Pointing at real files fixes that.
+// Wire icon into manifest + apple-touch-icon
+(function initPWAAssets() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  drawAgashIcon(c);
+  const iconURL = c.toDataURL('image/png');
+
+  // Apple touch icon
+  const appleLink = document.getElementById('pwa-icon');
+  if (appleLink) appleLink.href = iconURL;
+
+  // Inline manifest
+  const manifest = {
+    name: 'Agash', short_name: 'Agash',
+    description: 'Agash Truck Management',
+    start_url: './', display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#0a0e1a', theme_color: '#0a0e1a',
+    icons: [
+      { src: iconURL, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: iconURL, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  };
+  const mblob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  const mLink = document.getElementById('pwa-manifest');
+  if (mLink) mLink.href = URL.createObjectURL(mblob);
+})();
 
 // ── SPLASH ──────────────────────────────────────────────────
 function showSplash() {
@@ -4028,11 +3706,42 @@ showSplash();
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Real static file (service-worker.js) served next to this page —
-    // a blob: URL here (the old approach) can't be fetched by Chrome's
-    // installability/WebAPK pipeline, which is why the app was only ever
-    // installing as a plain bookmark with the generic Chrome icon.
-    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+    // ── Inline Service Worker via Blob — no sw.js file needed ──
+    const swCode = `
+const CACHE = 'agash-v1';
+const PRECACHE = ['./'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return;
+  e.respondWith(
+    fetch(e.request)
+      .then(res => { caches.open(CACHE).then(c => c.put(e.request, res.clone())); return res; })
+      .catch(() => caches.match(e.request))
+  );
+});
+
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+`;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swURL = URL.createObjectURL(blob);
+
+    navigator.serviceWorker.register(swURL, { type: 'classic' })
       .then(reg => {
         reg.onupdatefound = () => {
           const w = reg.installing;
@@ -4050,6 +3759,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
-
-</body></html>
+</body>
+</html>
