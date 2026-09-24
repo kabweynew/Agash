@@ -1366,6 +1366,47 @@ async function saveConfig(c) {
   try { localStorage.setItem('kab_config_v2', JSON.stringify(c)); } catch(e) {}
 }
 
+// ── Safe config mutation ──────────────────────────────────────────────────
+// saveConfig(loadConfig()->mutate) overwrites the WHOLE document with
+// whatever this device last saw. If two devices edit config within the
+// same few seconds (very common — admin renaming a post while a foreman's
+// phone reconnects and re-syncs), whichever save lands second silently
+// wipes out the other device's change, and a name/PIN/setting appears to
+// "revert" a few seconds after being saved. runTransaction reads the
+// document fresh from the server at the moment of writing and retries
+// automatically if it changed underneath us, so mutatorFn always applies
+// on top of the latest data instead of a possibly-stale local copy.
+async function updateConfig(mutatorFn) {
+  if (!db) {
+    // Offline fallback: no server to race against, just mutate the local copy.
+    const c = loadConfig();
+    mutatorFn(c);
+    await saveConfig(c);
+    return c;
+  }
+  const ref = db.collection('kab_config').doc('main');
+  let result;
+  try {
+    result = await db.runTransaction(async (t) => {
+      const snap = await t.get(ref);
+      const fresh = snap.exists ? snap.data() : JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      mutatorFn(fresh);
+      t.set(ref, fresh);
+      return fresh;
+    });
+  } catch(e) {
+    console.warn('updateConfig transaction error:', e);
+    // Fall back to the old (racy but functional) path rather than losing the edit entirely.
+    const c = loadConfig();
+    mutatorFn(c);
+    await saveConfig(c);
+    return c;
+  }
+  _config = result;
+  try { localStorage.setItem('kab_config_v2', JSON.stringify(result)); } catch(e) {}
+  return result;
+}
+
 function loadTrucks() {
   return [..._trucks].sort((a,b) => (b.ts||0) - (a.ts||0));
 }
@@ -3256,20 +3297,21 @@ async function addArrimeur() {
   if (!inp) return;
   const name = inp.value.trim();
   if (!name) { toast('⚠️ Entrez un nom!'); return; }
-  const cfg = loadConfig();
-  if (!cfg.arrimeurs) cfg.arrimeurs = [];
-  if (cfg.arrimeurs.includes(name)) { toast('⚠️ Déjà dans la liste!'); return; }
-  cfg.arrimeurs.push(name);
-  await saveConfig(cfg);
+  const current = loadConfig();
+  if ((current.arrimeurs||[]).includes(name)) { toast('⚠️ Déjà dans la liste!'); return; }
+  await updateConfig(cfg => {
+    if (!cfg.arrimeurs) cfg.arrimeurs = [];
+    if (!cfg.arrimeurs.includes(name)) cfg.arrimeurs.push(name);
+  });
   inp.value = '';
   toast(`✅ ${name} ajouté!`);
   renderManageArrimeurs();
 }
 
 async function deleteArrimeur(name) {
-  const cfg = loadConfig();
-  cfg.arrimeurs = (cfg.arrimeurs || []).filter(n => n !== name);
-  await saveConfig(cfg);
+  await updateConfig(cfg => {
+    cfg.arrimeurs = (cfg.arrimeurs || []).filter(n => n !== name);
+  });
   toast(`🗑️ ${name} supprimé`);
   renderManageArrimeurs();
 }
@@ -3279,18 +3321,19 @@ async function deleteArrimeur(name) {
 // and propagated to every screen that displays post labels.
 // ══════════════════════════════════════════════════════════
 async function renamePost(postId, newLabel) {
-  const cfg = loadConfig();
-  const post = cfg.posts.find(p => p.id === postId);
-  if (!post) return;
   const trimmed = (newLabel || '').trim();
   if (!trimmed) {
     toast('⚠️ Post name cannot be empty');
     renderManage(); // revert the input back to the saved label
     return;
   }
-  if (trimmed === post.label) return; // no change, skip write
-  post.label = trimmed;
-  await saveConfig(cfg);
+  const current = loadConfig();
+  const currentPost = current.posts.find(p => p.id === postId);
+  if (currentPost && trimmed === currentPost.label) return; // no change, skip write
+  await updateConfig(cfg => {
+    const post = cfg.posts.find(p => p.id === postId);
+    if (post) post.label = trimmed;
+  });
   toast(`✅ Renamed to "${trimmed}"`);
   // Refresh every screen that shows post labels, right away —
   // don't wait for the Firestore round-trip to reflect it locally.
@@ -3545,10 +3588,10 @@ function renderManageSuspendSection() {
     </div>`;
 }
 async function toggleSuspend() {
-  const cfg = loadConfig();
-  cfg.addingSuspended = !cfg.addingSuspended;
-  await saveConfig(cfg);
-  toast(cfg.addingSuspended ? '🚫 Adding trucks suspended' : '✅ Adding trucks resumed');
+  const result = await updateConfig(cfg => {
+    cfg.addingSuspended = !cfg.addingSuspended;
+  });
+  toast(result.addingSuspended ? '🚫 Adding trucks suspended' : '✅ Adding trucks resumed');
   renderManageSuspendSection();
 }
 
@@ -3909,12 +3952,12 @@ function resetPinToDefault() {
 async function savePinChange() {
   const pin = document.getElementById('new-pin-val').value.trim();
   if (pin.length !== 4 || isNaN(pin)) { toast('⚠️ PIN must be 4 digits!'); return; }
-  const cfg = loadConfig();
   const { type, id } = pinChangeTarget;
-  if      (type === 'admin')   cfg.apin = pin;
-  else if (type === 'foreman') cfg.foreman.pin = pin;
-  else if (type === 'post')    { const p = cfg.posts.find(p=>p.id===id); if(p) p.pin=pin; }
-  saveConfig(cfg);
+  await updateConfig(cfg => {
+    if      (type === 'admin')   cfg.apin = pin;
+    else if (type === 'foreman') cfg.foreman.pin = pin;
+    else if (type === 'post')    { const p = cfg.posts.find(p=>p.id===id); if(p) p.pin=pin; }
+  });
   closeModal('m-pin-change');
   toast('🔐 PIN updated!');
   renderManage();
@@ -3939,13 +3982,13 @@ function openForemanPerms() {
   openModal('m-foreman-perms');
 }
 async function saveForemanPerms() {
-  const cfg = loadConfig();
   const perms = {};
   Object.keys(FOREMAN_PERM_LABELS).forEach(k => {
     perms[k] = document.getElementById('fperm-'+k)?.classList.contains('on') || false;
   });
-  cfg.foreman.perms = perms;
-  saveConfig(cfg);
+  await updateConfig(cfg => {
+    cfg.foreman.perms = perms;
+  });
   closeModal('m-foreman-perms');
   toast('⚙️ Foreman permissions saved!');
   renderManage();
