@@ -15,6 +15,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&amp;family=Barlow:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -1205,6 +1206,7 @@ window.addEventListener('focus', () => {
 });
 let _trucks      = [];
 let _config      = null;
+let _configFromServer = false; // true once we've received the config from the SERVER (not just cache)
 let _unsubTrucks = null;
 let _unsubConfig = null;
 
@@ -1307,7 +1309,16 @@ function listenConfig() {
   if (_unsubConfig) _unsubConfig();
   _unsubConfig = db.collection('kab_config').doc('main').onSnapshot(async snap => {
     if (snap.exists) {
-      _config = snap.data();
+      if (snap.metadata.fromCache && _configFromServer && !snap.metadata.hasPendingWrites) {
+        // Stale local-cache echo after we already have the server copy — ignore it,
+        // otherwise an old cached PIN/name could overwrite the newer one on screen.
+      } else {
+        _config = snap.data();
+        if (!snap.metadata.fromCache) {
+          _configFromServer = true;
+          try { localStorage.setItem('kab_config_v2', JSON.stringify(_config)); } catch(e) {}
+        }
+      }
     } else if (!snap.metadata.fromCache) {
       // Only trust "doesn't exist" once the SERVER has confirmed it —
       // a snapshot served purely from an empty/offline local cache can
@@ -1315,9 +1326,18 @@ function listenConfig() {
       // sitting safely on the server. Writing DEFAULT_CONFIG in that
       // case would silently overwrite (and appear to "revert") any
       // saved name/PIN changes as soon as the device went online again.
+      // Create the default document ONLY if it is still missing at commit time
+      // (transaction) — never blindly overwrite a document another device just created.
       const def = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-      await db.collection('kab_config').doc('main').set(def);
-      _config = def;
+      try {
+        _config = await db.runTransaction(async (t) => {
+          const ref = db.collection('kab_config').doc('main');
+          const cur = await t.get(ref);
+          if (cur.exists) return cur.data();
+          t.set(ref, def);
+          return def;
+        });
+      } catch(e) { console.warn('config bootstrap failed:', e); if (!_config) _config = def; }
     } else if (!_config) {
       // Offline/cache-only and we have nothing yet: fall back to the
       // local backup copy (or defaults) WITHOUT writing anything to
@@ -1378,7 +1398,7 @@ async function saveConfig(c) {
 // on top of the latest data instead of a possibly-stale local copy.
 async function updateConfig(mutatorFn) {
   if (!db) {
-    // Offline fallback: no server to race against, just mutate the local copy.
+    // Firebase SDK unavailable: local-only fallback.
     const c = loadConfig();
     mutatorFn(c);
     await saveConfig(c);
@@ -1387,25 +1407,33 @@ async function updateConfig(mutatorFn) {
   const ref = db.collection('kab_config').doc('main');
   let result;
   try {
-    result = await db.runTransaction(async (t) => {
+    const tx = db.runTransaction(async (t) => {
       const snap = await t.get(ref);
-      const fresh = snap.exists ? snap.data() : JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      const fresh = snap.exists ? snap.data() : JSON.parse(JSON.stringify(_config || DEFAULT_CONFIG));
       mutatorFn(fresh);
       t.set(ref, fresh);
       return fresh;
     });
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000));
+    result = await Promise.race([tx, timeout]);
   } catch(e) {
-    console.warn('updateConfig transaction error:', e);
-    // Fall back to the old (racy but functional) path rather than losing the edit entirely.
-    const c = loadConfig();
-    mutatorFn(c);
-    await saveConfig(c);
-    return c;
+    // IMPORTANT: do NOT silently fall back to a local-only save. That is what made
+    // PINs and post names look saved and then "go back" once the server snapshot arrived.
+    console.warn('updateConfig failed:', e);
+    const msg = (e && e.code === 'permission-denied')
+      ? 'Server refused the change (Firestore rules) — NOT saved'
+      : 'Not saved — no connection to the server. Try again';
+    toast('⚠️ ' + msg);
+    const err = new Error(msg); err._cfgSave = true; throw err;
   }
   _config = result;
+  _configFromServer = true;
   try { localStorage.setItem('kab_config_v2', JSON.stringify(result)); } catch(e) {}
   return result;
 }
+window.addEventListener('unhandledrejection', function(ev) {
+  if (ev.reason && ev.reason._cfgSave) ev.preventDefault(); // already shown to the user as a toast
+});
 
 function loadTrucks() {
   return [..._trucks].sort((a,b) => (b.ts||0) - (a.ts||0));
@@ -3257,6 +3285,9 @@ function renderManage() {
           🔗 Copy Link
         </button>
       </div>
+      <button onclick="showInstallQR()" style="width:100%;background:rgba(240,165,0,0.12);border:1px solid rgba(240,165,0,0.35);color:var(--accent);border-radius:9px;padding:10px 6px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Barlow',sans-serif;">
+        ▦ Install QR Code
+      </button>
     </div>`;
 
   renderManageInstallSection();
@@ -3427,6 +3458,7 @@ window.addEventListener('appinstalled', function() {
 // Show banner proactively — works on iOS too (no beforeinstallprompt there)
 function _maybeShowBanner() {
   if (isAppInstalled()) return;                          // already running standalone
+  if (document.getElementById('install-landing')) return; // landing page already offers install
   if (sessionStorage.getItem('pwa-dismissed')) return;  // user dismissed this session
   const banner = document.getElementById('pwaInstallBanner');
   if (!banner) return;
@@ -3564,6 +3596,88 @@ window.dismissPWABanner = function() {
 // Also expose openInstallSheet as alias for any existing callers
 window.openInstallSheet = window.doInstallPWA;
 
+// ══════════════════════════════════════════════════════════
+// INSTALL QR CODE + INSTALL-ONLY LANDING PAGE
+// The QR points to <app>?install=1 — scanning it opens a page whose only
+// purpose is installing the app (no login screen in the way).
+// ══════════════════════════════════════════════════════════
+const APP_BASE_URL = 'https://kabweynew.github.io/Agash/index.html';
+const INSTALL_URL  = APP_BASE_URL + '?install=1';
+
+window.showInstallQR = function() {
+  const old = document.getElementById('qr-sheet'); if (old) old.remove();
+  const sheet = document.createElement('div');
+  sheet.id = 'qr-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);z-index:9200;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;';
+  sheet.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:22px;padding:22px 18px;width:100%;max-width:360px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;">Install Agash</div>
+      <div style="font-size:12px;color:var(--muted);margin:4px 0 16px;">Scan with the phone camera to install the app</div>
+      <div id="qr-box" style="background:#fff;border-radius:16px;padding:14px;display:inline-block;"></div>
+      <div style="font-size:10px;color:var(--muted);word-break:break-all;margin:12px 0 16px;">${INSTALL_URL}</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <button onclick="downloadInstallQR()" style="flex:1;background:var(--blue2);border:1px solid rgba(59,130,246,0.3);color:var(--blue);border-radius:10px;padding:11px 6px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;">⬇ Save image</button>
+        <button onclick="printInstallQR()" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--sub);border-radius:10px;padding:11px 6px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;">🖨 Print</button>
+      </div>
+      <button onclick="document.getElementById('qr-sheet').remove()" style="width:100%;background:rgba(255,255,255,0.05);color:var(--sub);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;">Close</button>
+    </div>`;
+  sheet.addEventListener('click', e => { if (e.target === sheet) sheet.remove(); });
+  document.body.appendChild(sheet);
+  const box = document.getElementById('qr-box');
+  if (typeof QRCode === 'undefined') {
+    box.innerHTML = '<div style="color:#111;font-size:13px;padding:30px 10px;width:220px;">QR library could not load — check your internet connection and reopen.</div>';
+    return;
+  }
+  new QRCode(box, { text: INSTALL_URL, width: 232, height: 232, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+};
+
+function _qrDataUrl() {
+  const c = document.querySelector('#qr-box canvas');
+  return c ? c.toDataURL('image/png') : null;
+}
+window.downloadInstallQR = function() {
+  const url = _qrDataUrl();
+  if (!url) { toast('⚠️ QR not ready'); return; }
+  const a = document.createElement('a');
+  a.href = url; a.download = 'Agash_Install_QR.png';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('⬇ QR saved');
+};
+window.printInstallQR = function() {
+  const url = _qrDataUrl();
+  if (!url) { toast('⚠️ QR not ready'); return; }
+  const w = window.open('', '_blank');
+  if (!w) { toast('⚠️ Allow pop-ups to print'); return; }
+  w.document.write('<html><head><title>Agash QR</title></head><body style="font-family:Arial;text-align:center;padding:40px;"><h1>Install Agash</h1><p>Scan with your phone camera</p><img src="' + url + '" style="width:300px;height:300px;"><p style="font-size:12px;color:#555;">' + INSTALL_URL + '</p><script>setTimeout(function(){window.print();},300)<\/script></body></html>');
+  w.document.close();
+};
+
+function showInstallLanding() {
+  if (isAppInstalled()) return;                     // already installed → normal app
+  if (document.getElementById('install-landing')) return;
+  const el = document.createElement('div');
+  el.id = 'install-landing';
+  el.style.cssText = 'position:fixed;inset:0;z-index:9050;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;';
+  el.innerHTML = `
+    <canvas id="install-landing-icon" width="112" height="112" style="border-radius:26px;box-shadow:0 10px 40px rgba(240,165,0,0.25);margin-bottom:22px;"></canvas>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:900;letter-spacing:0.5px;">Agash</div>
+    <div style="font-size:14px;color:var(--sub);margin:6px 0 28px;max-width:280px;">Installs as a real app with its own icon on your phone.</div>
+    <button onclick="doInstallPWA()" style="background:var(--accent);color:#0a0e1a;border:none;border-radius:14px;padding:16px 38px;font-size:17px;font-weight:800;cursor:pointer;font-family:'Barlow',sans-serif;box-shadow:0 8px 28px rgba(240,165,0,0.3);">📲 Install App</button>
+    <button onclick="closeInstallLanding()" style="margin-top:18px;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:'Barlow',sans-serif;">Continue in browser</button>`;
+  document.body.appendChild(el);
+  const ic = document.getElementById('install-landing-icon');
+  if (ic) drawAgashIcon(ic);
+}
+window.closeInstallLanding = function() {
+  const el = document.getElementById('install-landing'); if (el) el.remove();
+  try { history.replaceState(null, '', location.pathname); } catch(e) {}
+};
+window.addEventListener('appinstalled', function() { closeInstallLanding(); });
+window.addEventListener('load', function() {
+  if (new URLSearchParams(location.search).get('install') === '1') showInstallLanding();
+});
+
+
 
 
 // ══════════════════════════════════════════════════════════
@@ -3686,10 +3800,10 @@ async function manualRefresh(silent) {
     const [trucksSnap, configSnap, incomingSnap] = await Promise.all([
       db.collection('kab_trucks').orderBy('ts','desc').get({ source: 'server' }),
       db.collection('kab_config').doc('main').get({ source: 'server' }),
-      db.collection('kab_incoming').get({ source: 'server' }),
+      db.collection('kab_incoming').get({ source: 'server' }).catch(() => ({ forEach(){} })),
     ]);
     _trucks = trucksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (configSnap.exists) _config = configSnap.data();
+    if (configSnap.exists) { _config = configSnap.data(); _configFromServer = true; try { localStorage.setItem('kab_config_v2', JSON.stringify(_config)); } catch(e) {} }
     _kabIncoming = {};
     incomingSnap.forEach(d => { _kabIncoming[d.id] = d.data(); });
     _lastSyncTs = Date.now();
@@ -4095,24 +4209,23 @@ showSplash();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
+  // AUTOMATIC UPDATES: the page reloads itself as soon as a newer version
+  // takes over — no prompt, no tapping. Also re-checks on every app open/resume.
+  let _hadController = !!navigator.serviceWorker.controller;
+  let _reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!_hadController) { _hadController = true; return; } // first install, nothing to refresh
+    if (_reloaded) return;
+    _reloaded = true;
+    location.reload();
+  });
   window.addEventListener('load', () => {
-    // Real static file (service-worker.js) served next to this page —
-    // a blob: URL here (the old approach) can't be fetched by Chrome's
-    // installability/WebAPK pipeline, which is why the app was only ever
-    // installing as a plain bookmark with the generic Chrome icon.
-    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+    navigator.serviceWorker.register('./service-worker.js', { scope: './', updateViaCache: 'none' })
       .then(reg => {
-        reg.onupdatefound = () => {
-          const w = reg.installing;
-          w.onstatechange = () => {
-            if (w.state === 'installed' && navigator.serviceWorker.controller) {
-              if (confirm('🔄 New version available! Reload to update?')) {
-                w.postMessage({ type: 'SKIP_WAITING' });
-                location.reload();
-              }
-            }
-          };
-        };
+        const check = () => { try { reg.update(); } catch(e) {} };
+        check();
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+        setInterval(check, 5 * 60 * 1000);
       })
       .catch(e => console.warn('SW registration failed:', e));
   });
