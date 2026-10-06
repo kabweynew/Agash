@@ -1163,6 +1163,48 @@ const DEFAULT_CONFIG = {
 };
 
 // ══════════════════════════════════════════════════════════
+// CONFIG AUDIT TRAIL — every legit write stamps _meta + _history on the
+// config doc. If a PIN/name "reverts", the doc will have lost/older _meta,
+// proving an OLD app version or ANOTHER app overwrote it.
+// ══════════════════════════════════════════════════════════
+const APP_VERSION = 'audit-1';
+const DEVICE_ID = (function(){
+  try {
+    let d = localStorage.getItem('kab_device_id');
+    if (!d) { d = 'dev-' + Math.random().toString(36).slice(2,8); localStorage.setItem('kab_device_id', d); }
+    return d;
+  } catch(e) { return 'dev-unknown'; }
+})();
+function _cfgSummary(c) {
+  c = c || {};
+  return JSON.stringify({ apin: c.apin, fpin: c.foreman && c.foreman.pin, fname: c.foreman && c.foreman.name,
+    posts: (c.posts||[]).map(p => [p.id, p.label, p.pin]) });
+}
+function stampConfig(fresh, beforeSummary, source) {
+  const now = Date.now();
+  fresh._meta = { by: DEVICE_ID, v: APP_VERSION, at: now, src: source || 'updateConfig',
+                  role: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.role : 'none' };
+  const hist = Array.isArray(fresh._history) ? fresh._history : [];
+  if (beforeSummary !== _cfgSummary(fresh)) {
+    hist.unshift({ at: now, by: DEVICE_ID, v: APP_VERSION, role: fresh._meta.role });
+  }
+  fresh._history = hist.slice(0, 15);
+}
+let _lastMetaAt = 0;
+function auditIncomingConfig(cfg, fromCache) {
+  if (!cfg || fromCache) return;
+  const m = cfg._meta;
+  if (!m) {
+    if (_lastMetaAt) { console.error('🚨 CONFIG OVERWRITTEN by a writer WITHOUT audit stamp (old app version or another app).', cfg); toast('🚨 Settings were overwritten by an old app version/other app'); }
+  } else if (m.at < _lastMetaAt) {
+    console.error('🚨 CONFIG ROLLED BACK to an older state', m); toast('🚨 Settings were rolled back by another device');
+  } else if (m.by !== DEVICE_ID && m.v !== APP_VERSION) {
+    console.warn('Config written by device on different app version:', m);
+  }
+  if (m && m.at > _lastMetaAt) _lastMetaAt = m.at;
+}
+
+// ══════════════════════════════════════════════════════════
 // FIREBASE / FIRESTORE SETUP
 // ══════════════════════════════════════════════════════════
 let db           = null;
@@ -1313,6 +1355,7 @@ function listenConfig() {
         // Stale local-cache echo after we already have the server copy — ignore it,
         // otherwise an old cached PIN/name could overwrite the newer one on screen.
       } else {
+        auditIncomingConfig(snap.data(), snap.metadata.fromCache);
         _config = snap.data();
         if (!snap.metadata.fromCache) {
           _configFromServer = true;
@@ -1334,6 +1377,7 @@ function listenConfig() {
           const ref = db.collection('kab_config').doc('main');
           const cur = await t.get(ref);
           if (cur.exists) return cur.data();
+          stampConfig(def, '', 'BOOTSTRAP-DEFAULTS');
           t.set(ref, def);
           return def;
         });
@@ -1374,6 +1418,7 @@ async function saveConfig(c) {
   // Always update in-memory and Firestore first — localStorage is only a cache.
   // This ensures PIN changes are reflected immediately on the same device,
   // and propagated to all other devices via the listenConfig snapshot.
+  stampConfig(c, '', 'saveConfig');
   _config = c;
   if (db) {
     try {
@@ -1410,7 +1455,9 @@ async function updateConfig(mutatorFn) {
     const tx = db.runTransaction(async (t) => {
       const snap = await t.get(ref);
       const fresh = snap.exists ? snap.data() : JSON.parse(JSON.stringify(_config || DEFAULT_CONFIG));
+      const _before = _cfgSummary(fresh);
       mutatorFn(fresh);
+      stampConfig(fresh, _before, 'updateConfig');
       t.set(ref, fresh);
       return fresh;
     });
@@ -3723,7 +3770,18 @@ function renderManageSyncSection() {
         <div class="manage-name" style="color:${s.color};font-weight:700;">${s.label}</div>
         <div class="manage-sub">Project: haaa-3b06e · Firebase Firestore</div>
       </div>
-    </div>`;
+    </div>
+    ${_auditHtml()}`;
+}
+function _auditHtml() {
+  const c = _config || {};
+  const m = c._meta;
+  const fmt = t => new Date(t).toLocaleString();
+  let h = '<div class="manage-sub" style="padding:6px 14px;line-height:1.6;">🔎 <b>Last settings write:</b> ' +
+    (m ? `${fmt(m.at)} · ${m.by} · ${m.v} · ${m.role} · ${m.src}` : '<span style="color:var(--red)">NO STAMP (written by old app/other app)</span>') +
+    ' <br>This device: ' + DEVICE_ID + ' · ' + APP_VERSION;
+  (c._history||[]).slice(0,5).forEach(x => { h += `<br>• change ${fmt(x.at)} · ${x.by} · ${x.role}`; });
+  return h + '</div>';
 }
 
 // ══════════════════════════════════════════════════════════
