@@ -203,6 +203,15 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
 .form-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;}
 .form-input,.form-select{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-size:14px;outline:none;font-family:'Barlow',sans-serif;transition:border-color 0.2s;}
 .form-input:focus,.form-select:focus{border-color:var(--accent);}
+/* ── Formulaire Add Truck compact ── */
+#m-truck .modal-title{margin-bottom:8px;}
+#m-truck .form-group{margin-bottom:8px;}
+#m-truck .form-label{margin-bottom:3px;}
+#m-truck #f-plate{min-height:58px;font-size:32px;padding:8px;}
+#m-truck .form-input:not(#f-plate){padding:9px 10px;}
+#m-truck .post-opt,#m-truck .status-opt{padding-top:7px;padding-bottom:7px;}
+#m-truck .type-opt{padding-top:6px;padding-bottom:6px;}
+#m-truck .t-icon{font-size:20px;}
 /* ── Plaque : blanc + cadre bleu, très visible de loin ── */
 #f-plate{background:#fff;color:#000;-webkit-text-fill-color:#000;border:4px solid #2979FF;border-radius:12px;padding:14px 10px;min-height:70px;
   font-family:'Barlow Condensed','Arial Black',Impact,sans-serif;font-size:38px;font-weight:900;letter-spacing:0.08em;text-align:center;text-transform:uppercase;
@@ -990,7 +999,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="modal-title" id="m-truck-title">🚛 Add Truck</div>
     <div class="form-group">
       <label class="form-label">Plate Number</label>
-      <input class="form-input" id="f-plate" placeholder="A 12345" style="text-transform:uppercase;" autocomplete="off" oninput="plateAssist(event)">
+      <input class="form-input" id="f-plate" placeholder="A 12345" inputmode="numeric" enterkeyhint="done" style="text-transform:uppercase;" autocomplete="off" oninput="plateAssist(event)" onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();saveTruck();}">
     </div>
     <div class="form-group">
       <label class="form-label">Work Post</label>
@@ -1007,13 +1016,13 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
     <div class="form-group">
       <label class="form-label">Load Type</label>
       <div class="type-grid">
-        <div class="type-opt active-shirac" id="type-shirac" onclick="selectType('shirac')">
+        <div class="type-opt active-shirac" id="type-shirac" onclick="selectType('shirac');focusPlate()">
           <div class="t-icon">🚛</div><div class="t-label" style="color:#10b981;">Shirac</div>
         </div>
-        <div class="type-opt" id="type-bilashirac" onclick="selectType('bilashirac')">
+        <div class="type-opt" id="type-bilashirac" onclick="selectType('bilashirac');focusPlate()">
           <div class="t-icon">🚚</div><div class="t-label" style="color:#3b82f6;">Bila Shirac</div>
         </div>
-        <div class="type-opt" id="type-metal" onclick="selectType('metal')">
+        <div class="type-opt" id="type-metal" onclick="selectType('metal');focusPlate()">
           <div class="t-icon">🏗️</div><div class="t-label" style="color:#e74c3c;">Metal</div>
         </div>
       </div>
@@ -1033,6 +1042,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
       <label class="form-label">Date</label>
       <input class="form-input" id="f-date" type="date">
     </div>
+    <details id="f-more"><summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--accent);padding:4px 0 8px;">＋ More options (arrimeurs, notes)</summary>
     <div class="form-group">
       <label class="form-label">Arrimeurs <span style="color:var(--muted);font-weight:500;font-size:9px;">(optionnel)</span></label>
       <div id="f-arrimeurs-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;min-height:32px;"></div>
@@ -1042,6 +1052,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);}
       <label class="form-label">Notes (optional)</label>
       <input class="form-input" id="f-notes" placeholder="Any notes..." autocomplete="off">
     </div>
+    </details>
     <button class="btn-pri" onclick="saveTruck()">💾 Save Truck</button>
     <button class="btn-sec" onclick="closeModal('m-truck')">Cancel</button>
   </div>
@@ -1834,6 +1845,9 @@ function selectPost(id) {
 // ══════════════════════════════════════════════════════════
 // TYPE & STATUS SELECTORS
 // ══════════════════════════════════════════════════════════
+// après un choix de type par l'utilisateur : le clavier reste sur la plaque, Entrée enregistre
+function focusPlate() { var pl=document.getElementById('f-plate'); if(pl){ try{ pl.focus({preventScroll:true}); }catch(e){ pl.focus(); } } }
+
 function selectType(t) {
   document.getElementById('f-type').value = t;
   ['shirac','bilashirac','metal'].forEach(x => {
